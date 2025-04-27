@@ -1,0 +1,714 @@
+/* Firebase Theme - Inspired by Jeton and Hyer */
+
+:root {
+    /* Colors */
+    --primary-color: #ff6b6b;
+    --primary-hover: #ff5252;
+    --secondary-color: #64748b;
+    --secondary-hover: #475569;
+    --background-color: #ffffff;
+    --surface-color: #f8fafc;
+    --text-color: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-3xl: 48px;
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+    
+    /* Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* Dark Theme Variables */
+.dark-theme {
+    --primary-color: #ff7e7e;
+    --primary-hover: #ff9e9e;
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-color: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Firebase-style Theme CSS */
+
+/* Core Theme */
+:root {
+  --primary-gradient: linear-gradient(to right, #FFC107, #F44336, #E91E63);
+  --btn-gradient: linear-gradient(to right, #4F46E5, #3B82F6);
+  --dark-bg: #0b0d0e;
+  --dark-surface: #1a1c1f;
+  --dark-card: #282828;
+  --dark-border: #333333;
+  --text-primary: #FFFFFF;
+  --blue-accent: #3B82F6;
+  --green-accent: #22C55E;
+  --purple-accent: #8B5CF6;
+  --pink-accent: #EC4899;
+  --sidebar-width: 260px;
+  --header-height: 60px;
+  --chat-input-height: 80px;
+  --message-spacing: 24px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition-fast: 0.2s ease;
+  --ai-message-bg: #2a2b32;
+  --user-message-bg: #343541;
+  --input-bg: #40414f;
+}
+
+body.firebase-theme {
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
+}
+
+/* Typography */
+.firebase-theme .gradient-heading {
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+.firebase-theme .section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.firebase-theme .section-description {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  max-width: 650px;
+}
+
+/* Containers */
+.firebase-theme .page-container {
+  min-height: 100vh;
+  background-color: var(--dark-bg);
+}
+
+.firebase-theme .content-section {
+  padding: 6rem 2rem;
+}
+
+.firebase-theme .container-narrow {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.firebase-theme .hero-section {
+  padding: 8rem 1rem 6rem;
+  text-align: center;
+}
+
+.firebase-theme .hero-title {
+  font-size: 3.5rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .firebase-theme .hero-title {
+    font-size: 4.5rem;
+  }
+}
+
+/* Cards */
+.firebase-theme .feature-card {
+  background-color: var(--dark-card);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.firebase-theme .feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.firebase-theme .feature-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.firebase-theme .feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* Buttons */
+.firebase-theme .btn-primary {
+  background: var(--btn-gradient);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  display: inline-block;
+  transition: all 0.2s;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.firebase-theme .btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.firebase-theme .btn-secondary {
+  background-color: transparent;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  display: inline-block;
+  border: 1px solid var(--dark-border);
+  transition: all 0.2s;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.firebase-theme .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Code Blocks */
+.firebase-theme .code-window {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+}
+
+.firebase-theme .code-header {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.firebase-theme .window-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.firebase-theme .dot-red {
+  background-color: #FF5F56;
+}
+
+.firebase-theme .dot-yellow {
+  background-color: #FFBD2E;
+}
+
+.firebase-theme .dot-green {
+  background-color: #27C93F;
+}
+
+.firebase-theme .code-content {
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.firebase-theme pre {
+  margin: 0;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.firebase-theme code {
+  color: #A0AEC0;
+}
+
+.firebase-theme .code-comment {
+  color: #6B7280;
+}
+
+.firebase-theme .code-keyword {
+  color: #F472B6;
+}
+
+.firebase-theme .code-string {
+  color: #22C55E;
+}
+
+.firebase-theme .code-function {
+  color: #60A5FA;
+}
+
+/* Modern Chat UI Styles - Based on ChatGPT & Claude */
+
+/* Chat Layout Container */
+.firebase-theme .chat-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--dark-bg);
+}
+
+/* Chat Sidebar */
+.firebase-theme .chat-sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--dark-surface);
+  border-right: 1px solid var(--dark-border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: var(--text-primary);
+}
+
+.firebase-theme .sidebar-header {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.firebase-theme .new-chat-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--dark-border);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.firebase-theme .new-chat-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.firebase-theme .chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.firebase-theme .history-section {
+  margin-bottom: 16px;
+}
+
+.firebase-theme .history-heading {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
+
+.firebase-theme .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.firebase-theme .history-item {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.firebase-theme .history-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.firebase-theme .history-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.firebase-theme .history-item-icon {
+  opacity: 0.7;
+}
+
+/* Chat Main Area */
+.firebase-theme .chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  background-color: var(--user-message-bg);
+}
+
+/* Chat Header */
+.firebase-theme .chat-header {
+  height: var(--header-height);
+  border-bottom: 1px solid var(--dark-border);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.firebase-theme .chat-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.firebase-theme .chat-model-select {
+  background-color: var(--dark-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Chat Messages */
+.firebase-theme .chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.firebase-theme .message-wrapper {
+  width: 100%;
+  padding: 24px 0;
+}
+
+.firebase-theme .message-wrapper.ai {
+  background-color: var(--ai-message-bg);
+}
+
+.firebase-theme .message-wrapper.user {
+  background-color: var(--user-message-bg);
+}
+
+.firebase-theme .message {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.firebase-theme .message-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: var(--dark-surface);
+}
+
+.firebase-theme .message-avatar.user {
+  background-color: var(--purple-accent);
+}
+
+.firebase-theme .message-content {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.firebase-theme .message-content p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.firebase-theme .message-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Chat Input */
+.firebase-theme .chat-input-container {
+  padding: 16px 24px;
+  border-top: 1px solid var(--dark-border);
+  background-color: var(--user-message-bg);
+  position: relative;
+}
+
+.firebase-theme .chat-form {
+  max-width: 768px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.firebase-theme .chat-input {
+  width: 100%;
+  min-height: 48px;
+  max-height: 200px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 12px 48px 12px 16px;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.firebase-theme .chat-input:focus {
+  border-color: var(--blue-accent);
+  box-shadow: 0 0 0 1px var(--blue-accent);
+}
+
+.firebase-theme .chat-send-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.firebase-theme .chat-send-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.firebase-theme .chat-input-footer {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* User Profile */
+.firebase-theme .user-profile {
+  padding: 12px;
+  border-top: 1px solid var(--dark-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.firebase-theme .user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--dark-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.firebase-theme .user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.firebase-theme .user-name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.firebase-theme .user-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .firebase-theme .chat-container {
+    flex-direction: column;
+  }
+  
+  .firebase-theme .chat-sidebar {
+    width: 100%;
+    height: auto;
+    flex-shrink: 0;
+  }
+  
+  .firebase-theme .chat-main {
+    height: 0;
+    flex-grow: 1;
+  }
+}
+
+/* Animation Effects */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.firebase-theme .fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+/* Dashboard Tabs */
+.firebase-theme .tab-container {
+  display: flex;
+  border-bottom: 1px solid var(--dark-border);
+  margin-bottom: 2rem;
+}
+
+.firebase-theme .tab-item {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.firebase-theme .tab-item:hover {
+  color: var(--text-primary);
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.firebase-theme .tab-item.active {
+  color: var(--blue-accent);
+  border-bottom-color: var(--blue-accent);
+}
+
+.firebase-theme .tab-content {
+  background-color: var(--dark-card);
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+/* Results Container */
+.firebase-theme .results-container {
+  background-color: var(--dark-card);
+  border-radius: 0.75rem;
+  border: 1px solid var(--dark-border);
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.firebase-theme .results-placeholder {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Footer */
+.firebase-theme .site-footer {
+  background-color: var(--dark-surface);
+  padding: 4rem 2rem 2rem;
+  margin-top: 6rem;
+}
+
+.firebase-theme .footer-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.firebase-theme .footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.firebase-theme .footer-link {
+  margin-bottom: 0.75rem;
+}
+
+.firebase-theme .footer-link a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.firebase-theme .footer-link a:hover {
+  color: var(--text-primary);
+}
+
+.firebase-theme .footer-divider {
+  border-top: 1px solid var(--dark-border);
+  margin: 2.5rem 0 1.5rem;
+}
+
+.firebase-theme .social-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.firebase-theme .social-icon {
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.firebase-theme .social-icon:hover {
+  color: var(--text-primary);
+} 

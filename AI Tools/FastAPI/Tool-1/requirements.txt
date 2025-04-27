@@ -1,0 +1,35 @@
+# List your project dependencies here
+
+# All-in-One AI Platform Dependencies
+
+# FastAPI and web server
+fastapi>=0.100.0
+uvicorn>=0.23.2
+jinja2>=3.1.2
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+
+# Authentication
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+
+# Database
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9  # For PostgreSQL
+pymongo>=4.5.0  # For MongoDB
+
+# Image Processing
+Pillow>=10.0.0
+python-magic>=0.4.27
+
+# API Integrations
+httpx>=0.24.1
+requests>=2.30.0
+
+# AI/ML
+openai>=1.0.0
+transformers>=4.30.0
+
+# Utilities
+pydantic>=2.0.0
+email-validator>=2.0.0

@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Assistant Hub - Chat{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/chat.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    :root {
+        /* Light mode colors */
+        --primary-bg: #FFFFFF;
+        --secondary-bg: #F5F5F5;
+        --primary-text: #323232;
+        --secondary-text: #666666;
+        --accent-color: #DDD0C8;
+        --border-color: #E0E0E0;
+        --hover-bg: #F0F0F0;
+        --input-bg: #FFFFFF;
+        --button-bg: #323232;
+        --button-text: #FFFFFF;
+    }
+
+    [data-theme="dark"] {
+        /* Dark mode colors */
+        --primary-bg: #1A1A1A;
+        --secondary-bg: #2D2D2D;
+        --primary-text: #FFFFFF;
+        --secondary-text: #B0B0B0;
+        --accent-color: #3D3D3D;
+        --border-color: #404040;
+        --hover-bg: #333333;
+        --input-bg: #2D2D2D;
+        --button-bg: #DDD0C8;
+        --button-text: #323232;
+    }
+
+    body {
+        overflow: hidden;
+        background-color: var(--primary-bg);
+        color: var(--primary-text);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - var(--header-height));
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .theme-toggle:hover {
+        background: var(--hover-bg);
+    }
+    
+    .greeting-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-top: 4rem;
+    }
+    
+    .greeting-title {
+        font-size: 3.5rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--primary-text);
+    }
+    
+    .greeting-subtitle {
+        font-size: 1.5rem;
+        color: var(--secondary-text);
+        margin-bottom: 3rem;
+        font-weight: 300;
+    }
+    
+    .tagline {
+        font-size: 1rem;
+        color: var(--secondary-text);
+        margin-bottom: 2rem;
+        font-style: italic;
+    }
+    
+    .ai-capabilities {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .ai-capabilities h2 {
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        color: var(--primary-text);
+    }
+    
+    .suggestions-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.7rem;
+        margin-top: 1.5rem;
+    }
+    
+    .suggestion-chip {
+        background-color: var(--secondary-bg);
+        color: var(--primary-text);
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .suggestion-chip:hover {
+        background-color: var(--hover-bg);
+        transform: translateY(-1px);
+    }
+    
+    .chat-input-container {
+        margin-top: 1rem;
+        background-color: transparent;
+    }
+    
+    .chat-form {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        background-color: var(--input-bg);
+        color: var(--primary-text);
+        resize: none;
+        font-size: 1rem;
+        min-height: 3rem;
+        max-height: 10rem;
+        transition: all 0.2s ease;
+    }
+    
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+    
+    .chat-input::placeholder {
+        color: var(--secondary-text);
+    }
+    
+    .chat-send-btn {
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .chat-send-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    
+    .model-options {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .model-option {
+        background-color: transparent;
+        color: var(--primary-text);
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .model-option.active {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border-color: var(--button-bg);
+    }
+    
+    .model-option:hover:not(.active) {
+        background-color: var(--hover-bg);
+    }
+    
+    .footer {
+        margin-top: 3rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--secondary-text);
+    }
+    
+    .footer a {
+        color: var(--primary-text);
+        text-decoration: none;
+        margin: 0 0.5rem;
+        transition: color 0.2s ease;
+    }
+    
+    .footer a:hover {
+        color: var(--secondary-text);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <button class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <div class="welcome-section">
+        <h1 class="welcome-title">
+            <span class="gradient-text">Hello</span>, 
+            <span class="user-name gradient-text">{{ current_user.name if current_user else "Guest" }}</span>
+        </h1>
+        <p class="welcome-subtitle">What would you like to create today?</p>
+    </div>
+    
+    <div class="ai-capabilities">
+        <h2>I can assist you with</h2>
+        <div class="suggestions-container">
+            <button class="suggestion-chip">
+                <i class="fas fa-code"></i>
+                Code Generation
+            </button>
+            <button class="suggestion-chip">
+                <i class="fas fa-paint-brush"></i>
+                Design Ideas
+            </button>
+            <button class="suggestion-chip">
+                <i class="fas fa-chart-line"></i>
+                Data Analysis
+            </button>
+            <button class="suggestion-chip">
+                <i class="fas fa-robot"></i>
+                AI Integration
+            </button>
+            <button class="suggestion-chip">
+                <i class="fas fa-tasks"></i>
+                Task Automation
+            </button>
+            <button class="suggestion-chip">
+                <i class="fas fa-brain"></i>
+                Problem Solving
+            </button>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages">
+        <!-- Messages will be dynamically added here -->
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="model-selector">
+            <button class="model-option active" data-model="gpt-3.5">
+                <i class="fas fa-bolt"></i>
+                GPT-3.5
+            </button>
+            <button class="model-option" data-model="gpt-4">
+                <i class="fas fa-star"></i>
+                GPT-4
+            </button>
+            <button class="model-option" data-model="claude">
+                <i class="fas fa-brain"></i>
+                Claude
+            </button>
+        </div>
+        
+        <form id="chat-form" class="chat-form">
+            <div class="input-wrapper">
+                <textarea 
+                    id="message-input" 
+                    class="chat-input" 
+                    placeholder="Message AI Assistant..."
+                    rows="1"
+                    autofocus
+                ></textarea>
+                
+                <div class="input-buttons">
+                    <button type="button" class="action-button" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" class="action-button" title="Reason">
+                        <i class="fas fa-lightbulb"></i>
+                    </button>
+                    <button type="submit" class="send-button" title="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="footer">
+        <span>AI Assistant Hub</span>
+        <span>•</span>
+        <a href="#">Documentation</a>
+        <span>•</span>
+        <a href="#">Terms</a>
+        <span>•</span>
+        <a href="#">Privacy</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const modelOptions = document.querySelectorAll('.model-option');
+    const suggestionChips = document.querySelectorAll('.suggestion-chip');
+    const chatMessages = document.getElementById('chat-messages');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('i');
+    
+    // Theme toggle functionality
+    function setTheme(isDark) {
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme === 'dark');
+    
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        setTheme(!isDark);
+    });
+    
+    // Auto-resize the textarea as user types
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Handle model selection
+    modelOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            modelOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Handle suggestion chips
+    suggestionChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            messageInput.value = `Help me with ${this.textContent.trim()}`;
+            messageInput.focus();
+            messageInput.dispatchEvent(new Event('input'));
+        });
+    });
+    
+    // Handle form submission
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (message === '') return;
+        
+        // Get selected model
+        const selectedModel = document.querySelector('.model-option.active').dataset.model;
+        
+        // Add user message to chat
+        addMessage('user', message);
+        
+        // Clear input
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        
+        // Simulate AI response (replace with actual API call)
+        const response = await simulateAIResponse(message, selectedModel);
+        addMessage('assistant', response);
+    });
+
+    // Add message to chat
+    function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Simulate AI response (replace with actual API call)
+    async function simulateAIResponse(message, model) {
+        // Add loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message assistant-message loading';
+        loadingDiv.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+        chatMessages.appendChild(loadingDiv);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Remove loading indicator
+        loadingDiv.remove();
+        
+        return `This is a simulated response from ${model}. You said: ${message}`;
+    }
+});
+</script>
+{% endblock %} 

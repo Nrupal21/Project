@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Subscription Plans - AI Assistant Hub{% endblock %}
+
+{% block head_scripts %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/subscription.css') }}">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="subscription-container">
+    <div class="subscription-header">
+        <h1>Choose Your Plan</h1>
+        <p>Select the perfect plan for your AI needs</p>
+        
+        <div class="currency-selector">
+            <select id="currency-select" class="currency-select">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="INR">INR (₹)</option>
+                <option value="BRL">BRL (R$)</option>
+                <option value="NGN">NGN (₦)</option>
+                <option value="IDR">IDR (Rp)</option>
+                <option value="PHP">PHP (₱)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="plans-container">
+        <!-- Hobby Plan -->
+        <div class="plan-card" id="hobby-plan">
+            <div class="plan-header">
+                <h2>Hobby</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">5</span>
+                    <span class="period">/month</span>
+                </div>
+            </div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> GPT-3.5 Access</li>
+                <li><i class="fas fa-check"></i> Basic AI Features</li>
+                <li><i class="fas fa-check"></i> Community Support</li>
+                <li><i class="fas fa-check"></i> 5 AI Requests/day</li>
+            </ul>
+            <button class="subscribe-btn" onclick="initiatePayment('hobby')">Start Free Trial</button>
+        </div>
+
+        <!-- Basic Plan -->
+        <div class="plan-card" id="basic-plan">
+            <div class="plan-header">
+                <h2>Basic</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">10</span>
+                    <span class="period">/month</span>
+                </div>
+            </div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> GPT-3.5 Access</li>
+                <li><i class="fas fa-check"></i> All Basic AI Features</li>
+                <li><i class="fas fa-check"></i> Email Support</li>
+                <li><i class="fas fa-check"></i> 50 AI Requests/day</li>
+                <li><i class="fas fa-check"></i> Basic Analytics</li>
+            </ul>
+            <button class="subscribe-btn" onclick="initiatePayment('basic')">Subscribe Now</button>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="plan-card featured" id="pro-plan">
+            <div class="popular-badge">Most Popular</div>
+            <div class="plan-header">
+                <h2>Pro</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">25</span>
+                    <span class="period">/month</span>
+                </div>
+            </div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> GPT-4 Access</li>
+                <li><i class="fas fa-check"></i> All Advanced AI Features</li>
+                <li><i class="fas fa-check"></i> Priority Support</li>
+                <li><i class="fas fa-check"></i> Unlimited AI Requests</li>
+                <li><i class="fas fa-check"></i> Advanced Analytics</li>
+                <li><i class="fas fa-check"></i> API Access</li>
+            </ul>
+            <button class="subscribe-btn" onclick="initiatePayment('pro')">Subscribe Now</button>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="plan-card" id="enterprise-plan">
+            <div class="plan-header">
+                <h2>Enterprise</h2>
+                <div class="price">
+                    <span class="currency">$</span>
+                    <span class="amount">99</span>
+                    <span class="period">/month</span>
+                </div>
+            </div>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> GPT-4 & Claude Access</li>
+                <li><i class="fas fa-check"></i> All Premium AI Features</li>
+                <li><i class="fas fa-check"></i> 24/7 Dedicated Support</li>
+                <li><i class="fas fa-check"></i> Unlimited AI Requests</li>
+                <li><i class="fas fa-check"></i> Custom Analytics</li>
+                <li><i class="fas fa-check"></i> API Access</li>
+                <li><i class="fas fa-check"></i> Custom Model Training</li>
+                <li><i class="fas fa-check"></i> SLA Guarantee</li>
+            </ul>
+            <button class="subscribe-btn" onclick="initiatePayment('enterprise')">Contact Sales</button>
+        </div>
+    </div>
+
+    <div class="pricing-info">
+        <p class="pricing-note">* Prices are adjusted based on your region for fair purchasing power parity</p>
+        <p class="trial-note">All plans come with a 7-day free trial. No credit card required to start.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPrices = {};
+let userCountry = 'US';
+
+// Detect user's country using IP geolocation (you can use a service like ipapi.co)
+async function detectUserCountry() {
+    try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        userCountry = data.country_code;
+        document.getElementById('currency-select').value = data.currency;
+        await updatePrices(data.currency);
+    } catch (error) {
+        console.error('Error detecting country:', error);
+    }
+}
+
+async function updatePrices(currency) {
+    try {
+        const response = await fetch(`/api/subscription/plans?currency=${currency}&country_code=${userCountry}`);
+        const data = await response.json();
+        currentPrices = data.plans;
+        
+        // Update prices in the UI
+        Object.keys(currentPrices).forEach(planId => {
+            const plan = currentPrices[planId];
+            const priceElement = document.querySelector(`#${planId}-plan .price`);
+            if (priceElement) {
+                const currencySymbol = getCurrencySymbol(currency);
+                priceElement.innerHTML = `
+                    <span class="currency">${currencySymbol}</span>
+                    <span class="amount">${plan.price}</span>
+                    <span class="period">/month</span>
+                `;
+            }
+        });
+    } catch (error) {
+        console.error('Error updating prices:', error);
+    }
+}
+
+function getCurrencySymbol(currency) {
+    const symbols = {
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'INR': '₹',
+        'BRL': 'R$',
+        'NGN': '₦',
+        'IDR': 'Rp',
+        'PHP': '₱'
+    };
+    return symbols[currency] || currency;
+}
+
+document.getElementById('currency-select').addEventListener('change', function(e) {
+    updatePrices(e.target.value);
+});
+
+async function initiatePayment(plan) {
+    try {
+        const response = await fetch('/api/subscription/create-subscription', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plan: plan,
+                email: '{{ current_user.email }}',
+                name: '{{ current_user.name }}',
+                country_code: userCountry,
+                currency: document.getElementById('currency-select').value
+            })
+        });
+
+        const data = await response.json();
+        
+        if (plan === 'enterprise') {
+            window.location.href = '/contact-sales';
+            return;
+        }
+
+        const options = {
+            key: data.key,
+            amount: data.amount * 100,
+            currency: data.currency,
+            name: data.name,
+            description: data.description,
+            image: data.image,
+            order_id: data.order_id,
+            handler: function(response) {
+                console.log('Payment successful:', response);
+                window.location.href = '/dashboard?payment=success';
+            },
+            prefill: data.prefill,
+            theme: data.theme
+        };
+
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+    } catch (error) {
+        console.error('Error initiating payment:', error);
+        alert('Error initiating payment. Please try again.');
+    }
+}
+
+// Initialize
+detectUserCountry();
+</script>
+{% endblock %} 

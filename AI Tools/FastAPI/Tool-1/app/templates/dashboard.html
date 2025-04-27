@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - AI Assistant Hub{% endblock %}
+
+{% block content %}
+<div class="dashboard-container p-lg">
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="welcome-section mb-xl">
+            <h1 class="text-2xl font-bold mb-md">Welcome back, {{ current_user.name if current_user else 'Guest' }}!</h1>
+            <p class="text-secondary">Here's an overview of your AI workspace</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions mb-xl">
+            <div class="grid grid-cols-4 gap-lg">
+                <a href="/chat" class="card hover-card">
+                    <span class="material-icons text-primary mb-sm">chat</span>
+                    <h3 class="text-lg font-medium mb-xs">AI Chat</h3>
+                    <p class="text-secondary">Start a conversation with AI</p>
+                </a>
+                
+                <a href="/code" class="card hover-card">
+                    <span class="material-icons text-primary mb-sm">code</span>
+                    <h3 class="text-lg font-medium mb-xs">Code AI</h3>
+                    <p class="text-secondary">Generate and analyze code</p>
+                </a>
+                
+                <a href="/design" class="card hover-card">
+                    <span class="material-icons text-primary mb-sm">brush</span>
+                    <h3 class="text-lg font-medium mb-xs">Design AI</h3>
+                    <p class="text-secondary">Create and edit designs</p>
+                </a>
+                
+                <a href="/productivity" class="card hover-card">
+                    <span class="material-icons text-primary mb-sm">speed</span>
+                    <h3 class="text-lg font-medium mb-xs">Productivity</h3>
+                    <p class="text-secondary">Boost your workflow</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity mb-xl">
+            <h2 class="text-xl font-bold mb-lg">Recent Activity</h2>
+            <div class="card">
+                <div class="activity-list">
+                    <div class="activity-item flex items-center gap-md p-md border-bottom">
+                        <span class="material-icons text-primary">chat</span>
+                        <div>
+                            <h4 class="font-medium">Chat Session</h4>
+                            <p class="text-secondary text-sm">Code review discussion</p>
+                        </div>
+                        <span class="text-secondary text-sm ml-auto">2 hours ago</span>
+                    </div>
+                    
+                    <div class="activity-item flex items-center gap-md p-md border-bottom">
+                        <span class="material-icons text-primary">code</span>
+                        <div>
+                            <h4 class="font-medium">Code Generation</h4>
+                            <p class="text-secondary text-sm">API endpoint implementation</p>
+                        </div>
+                        <span class="text-secondary text-sm ml-auto">Yesterday</span>
+                    </div>
+                    
+                    <div class="activity-item flex items-center gap-md p-md">
+                        <span class="material-icons text-primary">brush</span>
+                        <div>
+                            <h4 class="font-medium">Design Creation</h4>
+                            <p class="text-secondary text-sm">Landing page mockup</p>
+                        </div>
+                        <span class="text-secondary text-sm ml-auto">2 days ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Stats -->
+        <div class="usage-stats">
+            <h2 class="text-xl font-bold mb-lg">Usage Statistics</h2>
+            <div class="grid grid-cols-3 gap-lg">
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-xs">AI Credits</h3>
+                    <div class="flex items-center gap-sm">
+                        <span class="text-2xl font-bold text-primary">750</span>
+                        <span class="text-secondary">/1000</span>
+                    </div>
+                    <div class="progress-bar mt-sm">
+                        <div class="progress" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-xs">Active Projects</h3>
+                    <div class="flex items-center gap-sm">
+                        <span class="text-2xl font-bold text-primary">3</span>
+                        <span class="text-secondary">projects</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-xs">Storage Used</h3>
+                    <div class="flex items-center gap-sm">
+                        <span class="text-2xl font-bold text-primary">2.1</span>
+                        <span class="text-secondary">GB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_scripts %}
+<style>
+    .hover-card {
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: var(--on-surface);
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .border-bottom {
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        background-color: var(--surface-variant);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+    }
+    
+    .progress {
+        height: 100%;
+        background-color: var(--primary);
+        border-radius: var(--radius-full);
+    }
+    
+    .text-2xl {
+        font-size: 1.75rem;
+        line-height: 1.2;
+    }
+    
+    .ml-auto {
+        margin-left: auto;
+    }
+    
+    .text-sm {
+        font-size: 0.875rem;
+    }
+    
+    @media (max-width: 768px) {
+        .grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .grid-cols-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Assistant Hub{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/theme.css') }}">
+    {% block head_scripts %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container flex items-center justify-between">
+            <div class="flex items-center gap-md">
+                <a href="/" class="flex items-center gap-sm">
+                    <img src="{{ url_for('static', path='images/logo.svg') }}" alt="Logo" height="32">
+                    <span class="text-lg font-medium">AI Assistant Hub</span>
+                </a>
+                <div class="nav-links flex items-center gap-md">
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/chat" class="nav-link">Chat</a>
+                    <a href="/tools" class="nav-link">Tools</a>
+                    <a href="/subscription" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                {% if current_user.is_authenticated %}
+                    <div class="flex items-center gap-sm">
+                        <span class="material-icons">account_circle</span>
+                        <span>{{ current_user.name }}</span>
+                    </div>
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                {% else %}
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/register" class="btn btn-primary">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-2xl">
+        <div class="container">
+            <div class="grid grid-cols-4 gap-lg">
+                <div>
+                    <h3 class="mb-lg">Learn</h3>
+                    <ul class="footer-links">
+                        <li><a href="/docs">Developer guides</a></li>
+                        <li><a href="/api">SDK & API reference</a></li>
+                        <li><a href="/samples">Samples</a></li>
+                        <li><a href="/libraries">Libraries</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="mb-lg">Stay connected</h3>
+                    <ul class="footer-links">
+                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="https://reddit.com">Reddit</a></li>
+                        <li><a href="https://twitter.com">Twitter</a></li>
+                        <li><a href="/events">Events</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="mb-lg">Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="/contact">Contact support</a></li>
+                        <li><a href="/stackoverflow">Stack Overflow</a></li>
+                        <li><a href="/slack">Slack community</a></li>
+                        <li><a href="/faq">FAQs</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="mb-lg">Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="/terms">Terms</a></li>
+                        <li><a href="/privacy">Privacy</a></li>
+                        <li><a href="/security">Security</a></li>
+                        <li><a href="/cookies">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom mt-xl pt-lg border-top">
+                <p class="text-center text-sm text-secondary">
+                    © {% now 'Y' %} AI Assistant Hub. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
