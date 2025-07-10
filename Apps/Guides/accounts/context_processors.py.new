@@ -1,0 +1,162 @@
+"""
+Context processors for the accounts app.
+
+This module contains context processors that add user role information,
+OTP settings, and social authentication providers to the template context.
+"""
+from django.conf import settings
+from django.urls import reverse
+from allauth.socialaccount import providers
+from allauth.account import app_settings as account_settings
+from allauth.socialaccount import app_settings as socialaccount_settings
+from allauth.socialaccount import providers as provider_registry
+from allauth.utils import get_request_param
+from urllib.parse import urlencode
+
+def user_roles(request):
+    """
+    Add user role information and OTP settings to the template context.
+    
+    This function adds the following to the template context:
+    - User role information (admin, local guide, hotel owner)
+    - OTP device information if available
+    - OTP settings from Django settings
+    - Social authentication providers
+    - Site information
+    - Next URL for redirects
+    
+    Args:
+        request: The HTTP request object
+        
+    Returns:
+        dict: Context dictionary with user roles and settings
+    """
+    context = {}
+    
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        user = request.user
+        
+        # Add user role information
+        context.update({
+            'is_admin': user.is_admin,
+            'is_local_guide': user.is_local_guide,
+            'is_hotel_owner': user.is_hotel_owner,
+            'user_role': user.role if hasattr(user, 'role') else None,
+        })
+        
+        # Add OTP information if the user has an OTP device
+        if hasattr(user, 'otp_device'):
+            context.update({
+                'has_otp_device': True,
+                'is_otp_verified': user.otp_device.is_verified if hasattr(user.otp_device, 'is_verified') else False,
+            })
+    
+    # Add OTP settings to context
+    context.update({
+        'OTP_ISSUER_NAME': getattr(settings, 'OTP_ISSUER_NAME', 'GuidesApp'),
+        'OTP_DIGITS': getattr(settings, 'OTP_DIGITS', 6),
+        'OTP_EXPIRY_MINUTES': getattr(settings, 'OTP_EXPIRY_MINUTES', 10),
+    })
+    
+    # Add social authentication providers to context
+    if 'allauth.socialaccount' in settings.INSTALLED_APPS:
+        # Get all provider classes
+        all_providers = []
+        oauth2_providers = []
+        
+        # Get all provider classes from the registry
+        for provider_class in provider_registry.get_class_list():
+            try:
+                # Create an instance of the provider class
+                provider = provider_class(None)  # Instantiate with None request
+                all_providers.append(provider)
+                
+                # Temporarily only include Google provider
+                if provider.id == 'google':
+                    oauth2_providers.append(provider)
+            except Exception as e:
+                # Skip any providers that can't be instantiated
+                print(f"Error loading provider {provider_class}: {e}")
+                continue
+        
+        context.update({
+            'socialaccount_providers': all_providers,
+            'socialaccount_auto_login': socialaccount_settings.AUTO_LOGIN,
+            'socialaccount_auto_signup': socialaccount_settings.AUTO_SIGNUP,
+            'socialaccount_providers_oauth2': oauth2_providers,
+        })
+    
+    # Add site information
+    context.update({
+        'site_name': getattr(settings, 'SITE_NAME', 'Guides App'),
+        'site_domain': getattr(settings, 'SITE_DOMAIN', 'example.com'),
+    })
+    
+    # Add next URL for redirects
+    next_url = get_request_param(request, 'next')
+    if next_url:
+        context['next_url'] = next_url
+    
+    return context
+
+def socialaccount_providers(request):
+    """
+    Add social account providers to the template context.
+    This is a more focused version of the user_roles context processor
+    that only includes social account provider information.
+    
+    This function adds the following to the template context:
+    - List of social account providers with their login URLs and icons
+    - Social account auto login and signup settings
+    
+    Args:
+        request: The HTTP request object
+        
+    Returns:
+        dict: Context dictionary with social account providers
+    """
+    context = {}
+    
+    if 'allauth.socialaccount' in settings.INSTALLED_APPS:
+        provider_list = []
+        
+        # Get all provider classes from the registry
+        for provider_class in provider_registry.get_class_list():
+            try:
+                # Create an instance of the provider class
+                provider = provider_class(None)  # Instantiate with None request
+                
+                # Temporarily only include Google provider
+                if provider.id != 'google':
+                    continue
+                
+                # Get the login URL for this provider
+                login_url = reverse(f'{provider.id}_login')
+                
+                # Add next URL if available
+                next_url = get_request_param(request, 'next')
+                if next_url:
+                    login_url = f"{login_url}?{urlencode({'next': next_url})}"
+                
+                # Add provider information to the list
+                provider_list.append({
+                    'id': provider.id,
+                    'name': provider.name,
+                    'login_url': login_url,
+                    'icon': f'fab fa-{provider.id} ' + (
+                        'text-blue-600' if provider.id == 'facebook' 
+                        else 'text-red-500' if provider.id == 'google' 
+                        else 'text-gray-800'  # Apple
+                    )
+                })
+            except Exception as e:
+                # Handle provider instantiation errors
+                print(f"Error instantiating provider {provider_class}: {e}")
+        
+        context.update({
+            'socialaccount_providers': provider_list,
+            'socialaccount_auto_login': socialaccount_settings.AUTO_LOGIN,
+            'socialaccount_auto_signup': socialaccount_settings.AUTO_SIGNUP,
+        })
+    
+    return context

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Complete Your Sign Up" %} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            {% with provider=account.get_provider %}
+                {% if provider.id == 'google' %}
+                    <i class="fab fa-google text-red-500 text-5xl mb-4"></i>
+                {% elif provider.id == 'facebook' %}
+                    <i class="fab fa-facebook text-blue-600 text-5xl mb-4"></i>
+                {% elif provider.id == 'apple' %}
+                    <i class="fab fa-apple text-gray-800 text-5xl mb-4"></i>
+                {% else %}
+                    <i class="fas fa-user-plus text-indigo-600 text-5xl mb-4"></i>
+                {% endif %}
+                
+                <h2 class="text-3xl font-extrabold text-gray-900">
+                    {% trans "Complete Your Registration" %}
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    {% blocktrans with provider_name=provider.name site_name=site_name %}
+                    You're almost there! We just need a bit more information to complete your registration with {{ provider_name }}.
+                    {% endblocktrans %}
+                </p>
+            {% endwith %}
+        </div>
+
+        <div class="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form class="space-y-6" method="POST" action="{% url 'socialaccount_signup' %}" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="h-5 w-5 text-red-500 fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="ml-3">
+                                {% for error in form.non_field_errors %}
+                                    <p class="text-sm text-red-700">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Email Field (usually pre-filled from social account) -->
+                <div class="space-y-1">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.email.label }}
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        {{ form.email|add_class:"block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" }}
+                    </div>
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Username Field -->
+                <div class="space-y-1">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.username.label }}
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        {{ form.username|add_class:"block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" }}
+                    </div>
+                    {% if form.username.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Additional Fields -->
+                {% if form.first_name %}
+                <div class="space-y-1">
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.first_name.label }}
+                    </label>
+                    {{ form.first_name|add_class:"block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" }}
+                </div>
+                {% endif %}
+
+                {% if form.last_name %}
+                <div class="space-y-1">
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.last_name.label }}
+                    </label>
+                    {{ form.last_name|add_class:"block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" }}
+                </div>
+                {% endif %}
+
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+
+                <div class="pt-2">
+                    <button type="submit" 
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        {% trans 'Complete Sign Up' %}
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            {% trans 'Already have an account?' %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <a href="{% url 'account_login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        <i class="fas fa-sign-in-alt mr-1"></i> {% trans 'Sign in here' %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate username from email if empty
+    const emailField = document.querySelector('#{{ form.email.id_for_label }}');
+    const usernameField = document.querySelector('#{{ form.username.id_for_label }}');
+    
+    if (emailField && usernameField) {
+        emailField.addEventListener('blur', function() {
+            if (!usernameField.value && emailField.value) {
+                // Generate a username from the email (before @)
+                const username = emailField.value.split('@')[0]
+                    .toLowerCase()
+                    .replace(/[^a-z0-9_]/g, '_')
+                    .replace(/_+/g, '_')
+                    .replace(/^_|_$/g, '');
+                usernameField.value = username;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

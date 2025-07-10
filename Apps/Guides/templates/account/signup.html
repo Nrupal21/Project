@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load socialaccount %}
+
+{% block title %}{% trans "Sign Up" %}{% endblock %}
+
+{% block header_class %}bg-white shadow-sm fixed w-full z-50{% endblock %}
+
+{% block content %}
+<!-- Add padding-top to account for fixed navbar (h-20 = 5rem) -->
+<div class="min-h-screen flex flex-col md:flex-row bg-gray-50 pt-20">
+    <!-- Left Sidebar -->
+    <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white">
+        <div class="max-w-md mx-auto flex flex-col justify-center">
+            <div class="flex items-center mb-10">
+                <i class="fas fa-compass text-3xl mr-3"></i>
+                <span class="text-2xl font-bold">TravelGuide</span>
+            </div>
+            <h1 class="text-4xl font-bold mb-6 leading-tight">
+                {% trans 'Start Your Journey' %}
+            </h1>
+            <p class="text-blue-100 text-lg mb-10">
+                {% trans 'Join our community of travelers and unlock exclusive benefits, personalized recommendations, and unforgettable experiences.' %}
+            </p>
+            <div class="mt-auto">
+                <img src="{% static 'images/auth-illustration.svg' %}" alt="Travel Illustration" class="w-full max-w-md mx-auto">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side Form -->
+    <div class="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+                <p class="text-gray-600">Join our community of travelers</p>
+            </div>
+            
+            <form class="space-y-6" method="POST" action="{% url 'account_signup' %}" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        {% for error in form.non_field_errors %}
+                            <div class="flex items-center text-red-700">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Name Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- First Name -->
+                    <div class="space-y-2">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <input type="text"
+                                   name="first_name"
+                                   id="id_first_name"
+                                   class="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                                   placeholder=" "
+                                   value="{{ form.first_name.value|default:'' }}"
+                                   autocomplete="given-name"
+                                   required>
+                            <label for="id_first_name" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                                First Name
+                            </label>
+                        </div>
+                        {% if form.first_name.errors %}
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                {{ form.first_name.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div class="space-y-2">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <input type="text"
+                                   name="last_name"
+                                   id="id_last_name"
+                                   class="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                                   placeholder=" "
+                                   value="{{ form.last_name.value|default:'' }}"
+                                   autocomplete="family-name"
+                                   required>
+                            <label for="id_last_name" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                                Last Name
+                            </label>
+                        </div>
+                        {% if form.last_name.errors %}
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                {{ form.last_name.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Email Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <input type="email"
+                               name="email"
+                               id="id_email"
+                               class="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               value="{{ form.email.value|default:'' }}"
+                               autocomplete="email"
+                               required>
+                        <label for="id_email" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Email Address
+                        </label>
+                    </div>
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.email.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Username Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-at"></i>
+                        </div>
+                        <input type="text"
+                               name="username"
+                               id="id_username"
+                               class="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               value="{{ form.username.value|default:'' }}"
+                               autocomplete="username"
+                               required>
+                        <label for="id_username" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Username
+                        </label>
+                    </div>
+                    {% if form.username.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.username.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <input type="password"
+                               name="password1"
+                               id="password1"
+                               class="block w-full pl-10 pr-10 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               autocomplete="new-password"
+                               required>
+                        <label for="password1" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Password
+                        </label>
+                        <button type="button" id="togglePassword1" class="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 focus:outline-none" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    {% if form.password1.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.password1.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Confirmation Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <input type="password"
+                               name="password2"
+                               id="password2"
+                               class="block w-full pl-10 pr-10 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               autocomplete="new-password"
+                               required>
+                        <label for="password2" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Confirm Password
+                        </label>
+                        <button type="button" id="togglePassword2" class="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 focus:outline-none" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    {% if form.password2.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.password2.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input type="checkbox" 
+                               name="terms" 
+                               id="terms"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                               required>
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="terms" class="font-medium text-gray-700">
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500">Terms of Service</a> and <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        <span class="flex items-center">
+                            <span>Create Account</span>
+                            <span class="ml-2" id="loadingSpinner" style="display: none;">
+                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </span>
+                        </span>
+                    </button>
+                </div>
+                
+                <!-- Already have an account link -->
+                <div class="text-center text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="{% url 'accounts:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Sign in
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Wrap in IIFE to avoid global scope pollution
+(function() {
+    'use strict';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password visibility toggles
+        const togglePassword1 = document.querySelector('#togglePassword1');
+        const togglePassword2 = document.querySelector('#togglePassword2');
+        const password1 = document.querySelector('#password1');
+        const password2 = document.querySelector('#password2');
+        
+        // Toggle password 1 visibility
+        if (togglePassword1 && password1) {
+            togglePassword1.addEventListener('click', function() {
+                const type = password1.getAttribute('type') === 'password' ? 'text' : 'password';
+                password1.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+                this.querySelector('i').classList.toggle('fa-eye');
+            });
+        }
+        
+        // Toggle password 2 visibility
+        if (togglePassword2 && password2) {
+            togglePassword2.addEventListener('click', function() {
+                const type = password2.getAttribute('type') === 'password' ? 'text' : 'password';
+                password2.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+                this.querySelector('i').classList.toggle('fa-eye');
+            });
+        }
+        
+        // Form submission with loading state
+        const signupForm = document.querySelector('form[method="POST"]');
+        const submitButton = signupForm ? signupForm.querySelector('button[type="submit"]') : null;
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        if (signupForm && submitButton && loadingSpinner) {
+            const originalButtonHtml = submitButton.innerHTML;
+            
+            signupForm.addEventListener('submit', function() {
+                // Show loading state
+                submitButton.disabled = true;
+                loadingSpinner.style.display = 'inline-block';
+                
+                // Update button text
+                const buttonText = submitButton.querySelector('span:first-child');
+                if (buttonText) {
+                    buttonText.textContent = 'Creating Account...';
+                }
+            });
+            
+            // Handle form errors from server
+            const hasFormErrors = signupForm.querySelector('.is-invalid') !== null;
+            if (hasFormErrors) {
+                // Reset button state if there are form errors
+                submitButton.disabled = false;
+                loadingSpinner.style.display = 'none';
+                
+                const buttonText = submitButton.querySelector('span:first-child');
+                if (buttonText) {
+                    buttonText.textContent = 'Create Account';
+                }
+                
+                // Focus on first error field
+                const firstErrorField = signupForm.querySelector('.is-invalid');
+                if (firstErrorField) {
+                    firstErrorField.focus();
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}
+                        
+<!-- Mobile Footer -->
+<div class="lg:hidden bg-gray-50 border-t border-gray-100 py-4 px-6 text-center text-sm text-gray-500">
+    <p>© 2025 TravelGuide. All rights reserved.</p>
+</div>
+{% endblock %}

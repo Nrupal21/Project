@@ -1,0 +1,225 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* Login Container */
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--lighter);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    padding: 2.5rem;
+}
+
+/* Login Header */
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    margin-bottom: 1.5rem;
+}
+
+.login-logo img {
+    height: 48px;
+    width: auto;
+}
+
+.login-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0 0 0.5rem;
+}
+
+.login-subtitle {
+    color: var(--dark-light);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Form Styles */
+.form-row {
+    margin-bottom: 1.25rem;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-row label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark);
+    font-size: 0.9rem;
+}
+
+.form-row input[type="text"],
+.form-row input[type="password"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--light-border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-row input[type="text"]:focus,
+.form-row input[type="password"]:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+/* Submit Button */
+.submit-row {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.submit-row input[type="submit"] {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.submit-row input[type="submit"]:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Error Messages */
+.errornote {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    border-left: 4px solid #dc2626;
+}
+
+/* Form Errors */
+.form-row .errorlist {
+    color: #dc2626;
+    font-size: 0.8rem;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Forgot Password Link */
+.password-reset-link {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.password-reset-link a {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.password-reset-link a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1.5rem;
+    }
+    
+    .login-title {
+        font-size: 1.25rem;
+    }
+    
+    .login-subtitle {
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block bodyclass %}login{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="{% static 'images/logo.png' %}" alt="{% trans 'Admin Login' %}">
+            </div>
+            <h1 class="login-title">{% trans 'Welcome back' %}</h1>
+            <p class="login-subtitle">{% trans 'Sign in to your account to continue' %}</p>
+        </div>
+        
+        {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% if form.errors.items|length == 1 %}
+                    {% trans 'Please correct the error below.' %}
+                {% else %}
+                    {% trans 'Please correct the errors below.' %}
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="errornote">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                {{ form.username.errors }}
+                <label for="id_username" class="required">{% trans 'Username' %}:</label>
+                <input type="text" name="username" id="id_username" class="form-control" required>
+            </div>
+            
+            <div class="form-row">
+                {{ form.password.errors }}
+                <label for="id_password" class="required">{% trans 'Password' %}:</label>
+                <input type="password" name="password" id="id_password" class="form-control" required>
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" value="{% trans 'Log in' %}" class="btn btn-primary">
+            </div>
+        </form>
+        
+        <div class="password-reset-link">
+            <a href="{% url 'admin_password_reset' %}" class="text-muted">{% trans 'Forgot password?' %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

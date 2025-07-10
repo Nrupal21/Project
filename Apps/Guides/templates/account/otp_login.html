@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Log In with OTP" %}{% endblock %}
+
+{% block header_class %}bg-white shadow-sm fixed w-full z-50{% endblock %}
+
+{% block content %}
+<!-- Add padding-top to account for fixed navbar (h-20 = 5rem) -->
+<div class="min-h-screen flex flex-col md:flex-row bg-gray-50 pt-20">
+    <!-- Left Sidebar -->
+    <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white">
+        <div class="max-w-md mx-auto flex flex-col justify-center">
+            <div class="flex items-center mb-10">
+                <i class="fas fa-compass text-3xl mr-3"></i>
+                <span class="text-2xl font-bold">TravelGuide</span>
+            </div>
+            <h1 class="text-4xl font-bold mb-6 leading-tight">
+                {% trans 'Welcome Back' %}
+            </h1>
+            <p class="text-blue-100 text-lg mb-10">
+                {% trans 'Log in to continue your journey with secure two-factor authentication.' %}
+            </p>
+            <div class="flex items-center mb-6 border-l-4 border-blue-300 pl-4">
+                <i class="fas fa-shield-alt text-blue-300 text-lg mr-3"></i>
+                <p class="text-blue-100">{% trans 'Enhanced security with two-factor authentication' %}</p>
+            </div>
+            <div class="flex items-center mb-10 border-l-4 border-blue-300 pl-4">
+                <i class="fas fa-key text-blue-300 text-lg mr-3"></i>
+                <p class="text-blue-100">{% trans 'Protect your account with one-time passwords' %}</p>
+            </div>
+            <div class="mt-auto">
+                <img src="{% static 'images/auth-illustration.svg' %}" alt="Travel Illustration" class="w-full max-w-md mx-auto">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side Form -->
+    <div class="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">{% trans "Sign In" %}</h2>
+                <p class="text-gray-600">{% trans "Log in with OTP authentication" %}</p>
+            </div>
+            
+            <form class="space-y-6" method="POST" action="{% url 'accounts:otp_login' %}" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        {% for error in form.non_field_errors %}
+                            <div class="flex items-center text-red-700">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Username/Email Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <input type="text"
+                               name="username"
+                               id="id_username"
+                               class="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               value="{{ form.username.value|default:'' }}"
+                               autofocus
+                               required>
+                        <label for="id_username" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Email or Username
+                        </label>
+                    </div>
+                    {% if form.username.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.username.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <input type="password"
+                               name="password"
+                               id="id_password"
+                               class="block w-full pl-10 pr-10 py-3 border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200"
+                               placeholder=" "
+                               required>
+                        <label for="id_password" class="absolute left-10 top-3 text-gray-400 peer-focus:text-blue-500 peer-focus:text-sm peer-focus:-top-4 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:-top-4 transition-all duration-200 pointer-events-none">
+                            Password
+                        </label>
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <p class="mt-1 text-sm text-red-600 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ form.password.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Remember Me -->
+                <div class="flex items-center">
+                    <input type="checkbox" id="id_remember_me" name="remember_me" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="id_remember_me" class="ml-2 block text-sm text-gray-900">
+                        Remember me for 30 days
+                    </label>
+                </div>
+                
+                <!-- Login Button -->
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 text-white font-medium rounded-lg text-base px-5 py-3 text-center flex justify-center items-center transition duration-150 ease-in-out">
+                        <span class="mr-2">Continue</span>
+                        <span class="hidden" id="loadingSpinner">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+                
+                <!-- Additional Options -->
+                <div class="flex flex-col space-y-2 text-sm text-center">
+                    <a href="{% url 'accounts:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Sign in without OTP
+                    </a>
+                    <a href="{% url 'account_reset_password' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Forgot your password?
+                    </a>
+                    <div class="text-gray-600">
+                        Don't have an account? 
+                        <a href="{% url 'accounts:register' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                            Sign up
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Wrap in IIFE to avoid global scope pollution
+(function() {
+    'use strict';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#id_password');
+        
+        if (togglePassword && password) {
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+                this.querySelector('i').classList.toggle('fa-eye');
+            });
+        }
+        
+        // Form submission with loading state
+        const loginForm = document.querySelector('form[method="POST"]');
+        const submitButton = loginForm ? loginForm.querySelector('button[type="submit"]') : null;
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        if (loginForm && submitButton && loadingSpinner) {
+            loginForm.addEventListener('submit', function() {
+                // Show loading state
+                submitButton.disabled = true;
+                loadingSpinner.style.display = 'inline-block';
+                
+                // Update button text
+                const buttonText = submitButton.querySelector('span:first-child');
+                if (buttonText) {
+                    buttonText.textContent = 'Verifying...';
+                }
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}
+
+<!-- Mobile Footer -->
+<div class="lg:hidden bg-gray-50 border-t border-gray-100 py-4 px-6 text-center text-sm text-gray-500">
+    <p>© 2025 TravelGuide. All rights reserved.</p>
+</div>
+{% endblock %}

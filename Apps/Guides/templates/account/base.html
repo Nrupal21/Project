@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <a href="{% url 'core:home' %}" class="flex justify-center">
+            <i class="fas fa-globe-americas text-indigo-600 text-4xl mr-2"></i>
+            <span class="text-2xl font-bold text-gray-900">Travel<span class="text-indigo-600">Guide</span></span>
+        </a>
+    </div>
+
+    {% block auth_content %}
+    {% endblock %}
+</div>
+{% endblock %}

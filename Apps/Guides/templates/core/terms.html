@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h1 class="text-3xl font-bold text-gray-900">Terms of Service</h1>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Last updated: {% now "F j, Y" %}</p>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <div class="prose max-w-none">
+                    <p class="text-gray-700">
+                        Welcome to our platform. By accessing or using our service, you agree to be bound by these terms.
+                        Please read them carefully before using our services.
+                    </p>
+                    
+                    <h2 class="text-xl font-semibold mt-6 mb-2">1. Use of Our Service</h2>
+                    <p class="text-gray-700">
+                        You may use our services only as permitted by these terms and any applicable laws and regulations.
+                    </p>
+                    
+                    <h2 class="text-xl font-semibold mt-6 mb-2">2. User Accounts</h2>
+                    <p class="text-gray-700">
+                        When you create an account with us, you must provide accurate information and keep your account secure.
+                    </p>
+                    
+                    <h2 class="text-xl font-semibold mt-6 mb-2">3. Privacy</h2>
+                    <p class="text-gray-700">
+                        Your use of our services is also governed by our Privacy Policy, which explains how we collect, use, and protect your personal information.
+                    </p>
+                    
+                    <h2 class="text-xl font-semibold mt-6 mb-2">4. Changes to Terms</h2>
+                    <p class="text-gray-700">
+                        We may modify these terms at any time. We'll notify you of any changes by posting the new terms on this page.
+                    </p>
+                    
+                    <h2 class="text-xl font-semibold mt-6 mb-2">5. Contact Us</h2>
+                    <p class="text-gray-700">
+                        If you have any questions about these terms, please contact us.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

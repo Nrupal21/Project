@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}{% trans "Social Network Login" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            {% if provider.id == 'google' %}
+                <i class="fab fa-google text-red-500 text-5xl mb-4"></i>
+            {% elif provider.id == 'facebook' %}
+                <i class="fab fa-facebook text-blue-600 text-5xl mb-4"></i>
+            {% elif provider.id == 'apple' %}
+                <i class="fab fa-apple text-gray-800 text-5xl mb-4"></i>
+            {% endif %}
+            
+            <h2 class="text-3xl font-extrabold text-gray-900">
+                {% if process == "connect" %}
+                    {% blocktrans with provider.name as provider %}Connect {{ provider }} Account{% endblocktrans %}
+                {% else %}
+                    {% blocktrans with provider.name as provider %}Sign in with {{ provider }}{% endblocktrans %}
+                {% endif %}
+            </h2>
+            
+            <p class="mt-2 text-sm text-gray-600">
+                {% if process == "connect" %}
+                    {% blocktrans with provider.name as provider %}Connect your {{ provider }} account to sign in with just one click.{% endblocktrans %}
+                {% else %}
+                    {% blocktrans with provider.name as provider %}Sign in using your {{ provider }} account. We'll only access your basic profile information.{% endblocktrans %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div class="text-center">
+                <div class="space-y-4">
+                    {% if process == "connect" %}
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        {% blocktrans with provider.name as provider %}
+                                        By connecting your {{ provider }} account, you'll be able to log in with just one click.
+                                        {% endblocktrans %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" class="mt-6">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                       {% if provider.id == 'google' %}bg-red-600 hover:bg-red-700 focus:ring-red-500{% endif %}
+                                       {% if provider.id == 'facebook' %}bg-blue-600 hover:bg-blue-700 focus:ring-blue-500{% endif %}
+                                       {% if provider.id == 'apple' %}bg-gray-900 hover:bg-gray-800 focus:ring-gray-500{% endif %}
+                                       focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors">
+                            {% if process == "connect" %}
+                                <i class="fas fa-link mr-2"></i>
+                                {% trans "Connect" %} {{ provider.name }}
+                            {% else %}
+                                <i class="fab fa-{{ provider.id }} mr-2"></i>
+                                {% trans "Continue with" %} {{ provider.name }}
+                            {% endif %}
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6">
+                        <a href="{% url 'account_login' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                            <i class="fas fa-arrow-left mr-1"></i> {% trans "Back to sign in" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <p class="text-xs text-gray-500 text-center">
+                    {% blocktrans %}By connecting your account, you agree to our{% endblocktrans %}
+                    <a href="{% url 'terms' %}" class="text-blue-600 hover:text-blue-500">
+                        {% trans "Terms of Service" %}
+                    </a>
+                    {% trans "and" %}
+                    <a href="{% url 'privacy' %}" class="text-blue-600 hover:text-blue-500">
+                        {% trans "Privacy Policy" %}.
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add any additional JavaScript here if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any client-side interactivity here
+});
+</script>
+{% endblock %}

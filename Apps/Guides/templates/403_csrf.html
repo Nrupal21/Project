@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "403 Forbidden - CSRF Verification Failed" %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {% trans "403 Forbidden - CSRF Verification Failed" %}
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            {% trans "The request could not be processed because a valid security token was not provided." %}
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">
+                            {% trans "CSRF Verification Failed" %}
+                        </h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>{% trans "This request could not be processed because a valid security token was not provided. This is usually caused by one of the following:" %}</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-1">
+                                <li>{% trans "Your browser's cookies are disabled." %}</li>
+                                <li>{% trans "You logged out in another tab or window." %}</li>
+                                <li>{% trans "The page was open for too long without activity." %}</li>
+                            </ul>
+                            {% if reason %}
+                            <div class="mt-3 p-3 bg-red-100 rounded-md">
+                                <p class="text-xs font-mono">{{ reason }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <a href="{{ request.path }}" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {% trans "Refresh Page" %}
+                </a>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <a href="/" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    {% trans "Return to Homepage" %}
+                </a>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="mt-4 text-center">
+                <form action="{% url 'account_logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm font-medium text-gray-600 hover:text-gray-500">
+                        {% trans "Logout and try again" %}
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            
+            <!-- Debug information (only shown in DEBUG mode) -->
+            {% if debug %}
+            <div class="mt-8 p-4 bg-gray-50 rounded-md">
+                <h4 class="text-sm font-medium text-gray-700">Debug Information</h4>
+                <div class="mt-2 text-xs text-gray-600 space-y-1">
+                    <p><strong>CSRF Token:</strong> {{ csrf_token|default:"Not set" }}</p>
+                    <p><strong>Path:</strong> {{ request.path }}</p>
+                    <p><strong>Method:</strong> {{ request.method }}</p>
+                    <p><strong>User:</strong> {{ user.is_authenticated|yesno:"Authenticated,Not authenticated" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Try to get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Set up CSRF token for AJAX requests
+const csrftoken = getCookie('csrftoken');
+
+// If we're on the CSRF error page and have a token, try to refresh
+if (window.location.pathname.includes('403') && csrftoken) {
+    // Try to refresh the page after a short delay
+    setTimeout(() => {
+        window.location.reload();
+    }, 2000);
+}
+</script>
+{% endblock %}

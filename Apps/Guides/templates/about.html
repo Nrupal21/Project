@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - TravelGuide{% endblock %}
+
+{% block content %}
+<!-- About Page Container -->
+<div class="container mx-auto px-4 py-12">
+    <!-- Page Header -->
+    <header class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">About TravelGuide</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">Your ultimate companion for discovering the world's most amazing destinations.</p>
+    </header>
+
+    <!-- Our Story Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Our Story</h2>
+            <p class="text-gray-600 mb-4">
+                Founded in 2020, TravelGuide was born from a passion for travel and a desire to make exploring the world accessible to everyone. 
+                What started as a small blog has grown into a comprehensive platform helping thousands of travelers plan their perfect adventures.
+            </p>
+            <p class="text-gray-600">
+                Our team of experienced travelers and local guides work together to curate authentic, 
+                immersive experiences that go beyond the typical tourist attractions. We believe in responsible travel 
+                that respects local cultures and environments while creating unforgettable memories.
+            </p>
+        </div>
+        <div class="rounded-lg overflow-hidden shadow-lg">
+            <img src="{% static 'images/about-team.jpg' %}" alt="TravelGuide Team" class="w-full h-auto" 
+                 onerror="this.src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop'">
+        </div>
+    </section>
+
+    <!-- Our Mission Section -->
+    <section class="bg-primary-50 rounded-2xl p-8 mb-16">
+        <div class="text-center max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Our Mission</h2>
+            <p class="text-gray-700 mb-6">
+                At TravelGuide, our mission is to inspire and empower people to explore the world with confidence. 
+                We strive to provide accurate, up-to-date information and personalized recommendations 
+                that make travel planning simple and enjoyable.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                    <span class="text-gray-700">Authentic experiences</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                    <span class="text-gray-700">Sustainable travel</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                    <span class="text-gray-700">Cultural immersion</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                    <span class="text-gray-700">Community support</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="mb-16">
+        <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Meet Our Team</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Team Member 1 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:transform hover:scale-105">
+                <img src="{% static 'images/team-member-1.jpg' %}" alt="Team Member" class="w-full h-48 object-cover" 
+                     onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop'">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800">Michael Johnson</h3>
+                    <p class="text-primary-600">Founder & CEO</p>
+                    <p class="text-gray-600 text-sm mt-2">Travel enthusiast with over 15 years of experience exploring 70+ countries.</p>
+                </div>
+            </div>
+            
+            <!-- Team Member 2 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:transform hover:scale-105">
+                <img src="{% static 'images/team-member-2.jpg' %}" alt="Team Member" class="w-full h-48 object-cover" 
+                     onerror="this.src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=300&fit=crop'">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800">Sarah Chen</h3>
+                    <p class="text-primary-600">Head of Content</p>
+                    <p class="text-gray-600 text-sm mt-2">Former travel journalist passionate about authentic storytelling and cultural experiences.</p>
+                </div>
+            </div>
+            
+            <!-- Team Member 3 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:transform hover:scale-105">
+                <img src="{% static 'images/team-member-3.jpg' %}" alt="Team Member" class="w-full h-48 object-cover" 
+                     onerror="this.src='https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=300&fit=crop'">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800">David Rodriguez</h3>
+                    <p class="text-primary-600">Lead Travel Guide</p>
+                    <p class="text-gray-600 text-sm mt-2">Professional guide specializing in adventure travel and eco-tourism experiences.</p>
+                </div>
+            </div>
+            
+            <!-- Team Member 4 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:transform hover:scale-105">
+                <img src="{% static 'images/team-member-4.jpg' %}" alt="Team Member" class="w-full h-48 object-cover" 
+                     onerror="this.src='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=300&fit=crop'">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800">Emma Wilson</h3>
+                    <p class="text-primary-600">Customer Experience</p>
+                    <p class="text-gray-600 text-sm mt-2">Dedicated to ensuring every traveler has a seamless and memorable journey.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Values Section -->
+    <section class="mb-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-globe text-primary-600 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Global Perspective</h3>
+            <p class="text-gray-600">We embrace diversity and celebrate the unique cultures that make our world beautiful.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-leaf text-primary-600 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Sustainability</h3>
+            <p class="text-gray-600">We promote responsible travel practices that protect our planet for future generations.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-handshake text-primary-600 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Community</h3>
+            <p class="text-gray-600">We believe in supporting local communities and creating meaningful connections.</p>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Ready to Start Your Adventure?</h2>
+        <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Join thousands of travelers who have discovered their perfect destinations with TravelGuide.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'destinations:destination-list' %}" class="btn-primary">
+                Explore Destinations
+            </a>
+            <a href="{% url 'core:contact' %}" class="btn-outline">
+                Contact Us
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
