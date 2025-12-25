@@ -1,0 +1,57 @@
+Order Confirmation #{{ order.id }} - {{ restaurant.name }}
+
+Dear {{ user.first_name|default:user.username }},
+
+Great news! Your order has been confirmed and is being prepared.
+
+ORDER DETAILS
+============
+Order ID: #{{ order.id }}
+Placed on: {{ order.created_at|date:"F d, Y at g:i A" }}
+Payment Method: {{ order.get_payment_method_display|default:"Pending" }}
+Delivery Method: {{ order.get_delivery_method_display|default:"Standard Delivery" }}
+
+RESTAURANT INFORMATION
+======================
+Name: {{ restaurant.name }}
+{% if restaurant.address %}Address: {{ restaurant.address }}{% endif %}
+{% if restaurant.phone %}Phone: {{ restaurant.phone }}{% endif %}
+
+{% if order.delivery_address %}
+DELIVERY INFORMATION
+====================
+Delivery Address: {{ order.delivery_address }}
+Estimated Delivery: {{ order.estimated_delivery_time|date:"g:i A"|default:"30-45 minutes" }}
+{% endif %}
+
+ORDER ITEMS
+===========
+{% for item in order_items %}
+{{ item.menu_item.name }} - Quantity: {{ item.quantity }} - ₹{{ item.get_total_price }}
+{% if item.special_instructions %}  Special instructions: {{ item.special_instructions }}{% endif %}
+{% endfor %}
+
+ORDER SUMMARY
+=============
+Subtotal: ₹{{ order.get_subtotal }}
+{% if order.delivery_fee %}Delivery Fee: ₹{{ order.delivery_fee }}{% endif %}
+{% if order.tax_amount %}Tax: ₹{{ order.tax_amount }}{% endif %}
+{% if order.discount_amount %}Discount: -₹{{ order.discount_amount }}{% endif %}
+Total Amount: ₹{{ order.total_amount }}
+
+TRACK YOUR ORDER
+================
+Follow your order in real-time from preparation to delivery!
+Track URL: {{ track_order_url }}
+
+NEED HELP?
+=========
+If you have any questions about your order, please contact:
+Restaurant: {{ restaurant.phone|default:"Contact restaurant directly" }}
+Our Support: support@{{ site_domain|default:"foodordering.com" }}
+
+Thank you for ordering from {{ restaurant.name }}! 🎉
+
+We hope you enjoy your meal! Please consider leaving a review after your delivery.
+
+© {{ current_year }} {{ site_name }}. All rights reserved.

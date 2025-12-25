@@ -1,0 +1,1377 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}POS - Select Table{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       POS TABLE SELECTION - MODERN DESIGN
+       Professional Point of Sale Interface
+       ============================================ */
+    
+    :root {
+        --pos-primary: #1e40af;
+        --pos-success: #059669;
+        --pos-danger: #dc2626;
+        --pos-gradient: linear-gradient(135deg, #1e40af 0%, #0891b2 100%);
+    }
+    
+    /* Main Container */
+    .pos-selection-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    }
+    
+    /* Header Bar */
+    .pos-selection-header {
+        background: white;
+        border-bottom: 4px solid var(--pos-primary);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Stats Grid */
+    .pos-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Stat Card */
+    .pos-stat-box {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-left: 6px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .pos-stat-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pos-stat-box.total { border-left-color: #3b82f6; }
+    .pos-stat-box.available { border-left-color: #10b981; }
+    .pos-stat-box.occupied { border-left-color: #ef4444; }
+    .pos-stat-box.restaurant { border-left-color: #8b5cf6; }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value.blue { color: #3b82f6; }
+    .stat-value.green { color: #10b981; }
+    .stat-value.red { color: #ef4444; }
+    .stat-value.purple { color: #8b5cf6; }
+    
+    /* Table Selection Grid */
+    .pos-table-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+    
+    /* Table Card */
+    .pos-selection-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 4px solid transparent;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .pos-selection-card:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* Available State */
+    .pos-selection-card.available {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+    }
+    
+    .pos-selection-card.available::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    }
+    
+    .pos-selection-card.available:hover {
+        border-color: #059669;
+        background: linear-gradient(135deg, #d1fae5 0%, #ffffff 100%);
+    }
+    
+    /* Occupied State */
+    .pos-selection-card.occupied {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+        cursor: not-allowed;
+        opacity: 0.75;
+    }
+    
+    .pos-selection-card.occupied::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .pos-selection-card.occupied:hover {
+        transform: none;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Table Number */
+    .pos-selection-number {
+        font-size: 4.5rem;
+        font-weight: 900;
+        text-align: center;
+        padding: 2rem 0;
+        line-height: 1;
+        background: var(--pos-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    /* Status Badge */
+    .pos-selection-status {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pos-selection-status.available {
+        background: #10b981;
+        color: white;
+        animation: pulse-available 2s infinite;
+    }
+    
+    .pos-selection-status.occupied {
+        background: #ef4444;
+        color: white;
+    }
+    
+    @keyframes pulse-available {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    }
+    
+    /* Card Details */
+    .pos-selection-details {
+        padding: 0 2rem 2rem;
+    }
+    
+    .detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .detail-row:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
+    }
+    
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+    
+    .detail-value {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    /* Action Button */
+    .pos-selection-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1.25rem 2rem;
+        border-radius: 14px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pos-selection-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .pos-selection-action.start {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .pos-selection-action.disabled {
+        background: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+    
+    .pos-selection-action.disabled:hover {
+        transform: none;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Occupied Info */
+    .occupied-info {
+        background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+        border: 2px solid #ef4444;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .occupied-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #991b1b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+    
+    .occupied-value {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #7f1d1d;
+    }
+    
+    /* Empty State */
+    .pos-empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Filter and Search Controls */
+    .pos-filter-controls {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .filter-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .filter-input {
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-select {
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-button {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* View Toggle */
+    .pos-view-toggle {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 12px;
+        padding: 0.25rem;
+        margin-left: 1rem;
+    }
+    
+    .view-toggle-button {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .view-toggle-button.active {
+        background: white;
+        color: #3b82f6;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Auto-refresh Indicator */
+    .pos-refresh-indicator {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+    
+    .pos-refresh-indicator.refreshing {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+    
+    .refresh-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Quick View Modal */
+    .pos-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .pos-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .pos-modal-content {
+        background: white;
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        transform: scale(0.9);
+        transition: all 0.3s ease;
+    }
+    
+    .pos-modal-overlay.active .pos-modal-content {
+        transform: scale(1);
+    }
+    
+    .pos-modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: between;
+    }
+    
+    .pos-modal-body {
+        padding: 1.5rem;
+    }
+    
+    .pos-modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .pos-table-selection-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .pos-selection-number {
+            font-size: 3.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+        }
+        
+        /* Filter controls responsive */
+        .filter-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .pos-filter-controls {
+            padding: 1rem;
+        }
+        
+        .filter-input,
+        .filter-select {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+    }
+    
+    @media (max-width: 1024px) and (min-width: 769px) {
+        /* Tablet responsive */
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .filter-row > .filter-group:last-child {
+            grid-column: 1 / -1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<!-- ============================================
+     POS TABLE SELECTION INTERFACE
+     Professional Point of Sale System
+     ============================================ -->
+<div class="pos-selection-container">
+    
+    <!-- ========== HEADER ========== -->
+    <div class="pos-selection-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <!-- Title Section -->
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                        📍
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Select Table</h1>
+                        <p class="text-sm text-gray-600 mt-1">Choose a table to begin order</p>
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="flex items-center gap-3">
+                    <!-- View Toggle -->
+                    <div class="pos-view-toggle">
+                        <button class="view-toggle-button active" onclick="setView('grid')" id="grid-view-btn">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            Grid
+                        </button>
+                        <button class="view-toggle-button" onclick="setView('floor')" id="floor-view-btn">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Floor Plan
+                        </button>
+                    </div>
+                    
+                    <!-- Back Button -->
+                    <a href="{% url 'restaurant:active_tables' %}" 
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ========== STATISTICS ========== -->
+        <div class="pos-stats-grid">
+            <!-- Total Tables -->
+            <div class="pos-stat-box total">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Total Tables</p>
+                        <p class="stat-value blue">{{ total_tables }}</p>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 font-medium">Configured tables</p>
+            </div>
+            
+            <!-- Available -->
+            <div class="pos-stat-box available">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Available</p>
+                        <p class="stat-value green">{{ available_tables }}</p>
+                    </div>
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 font-medium">Ready to serve</p>
+            </div>
+            
+            <!-- Occupied -->
+            <div class="pos-stat-box occupied">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Occupied</p>
+                        <p class="stat-value red">{{ occupied_tables }}</p>
+                    </div>
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 font-medium">Currently in use</p>
+            </div>
+            
+            <!-- Restaurant -->
+            <div class="pos-stat-box restaurant">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Restaurant</p>
+                        <p class="text-xl font-bold text-purple-600 leading-tight">{{ restaurant.name }}</p>
+                    </div>
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 font-medium">Active location</p>
+            </div>
+        </div>
+
+        <!-- ========== FILTER CONTROLS ========== -->
+        <div class="pos-filter-controls">
+            <div class="filter-row">
+                <!-- Search Input -->
+                <div class="filter-group">
+                    <label class="filter-label">Search Tables</label>
+                    <input type="text" 
+                           id="search-input" 
+                           class="filter-input" 
+                           placeholder="Search by table number or location..."
+                           onkeyup="filterTables()">
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="status-filter" class="filter-select" onchange="filterTables()">
+                        <option value="all">All Tables</option>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                    </select>
+                </div>
+                
+                <!-- Capacity Filter -->
+                <div class="filter-group">
+                    <label class="filter-label">Capacity</label>
+                    <select id="capacity-filter" class="filter-select" onchange="filterTables()">
+                        <option value="all">Any Size</option>
+                        <option value="2">2 Seats</option>
+                        <option value="4">4 Seats</option>
+                        <option value="6">6 Seats</option>
+                        <option value="8">8+ Seats</option>
+                    </select>
+                </div>
+                
+                <!-- Clear Filters Button -->
+                <button class="filter-button" onclick="clearFilters()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- ========== TABLE SELECTION GRID ========== -->
+        <div class="pos-table-selection-grid">
+            {% for table_info in tables_with_status %}
+            <div class="pos-selection-card {{ table_info.status }}"
+                 data-table-id="{{ table_info.table.id }}"
+                 data-table-number="{{ table_info.table.table_number }}"
+                 data-table-capacity="{{ table_info.table.capacity }}"
+                 data-table-location="{{ table_info.table.location_description|default:'Main Area' }}"
+                 data-status="{{ table_info.status }}"
+                 {% if table_info.current_order %}
+                 data-order-id="{{ table_info.current_order.order_id }}"
+                 data-customer-name="{{ table_info.current_order.customer_name|default:'Guest' }}"
+                 data-customer-phone="{{ table_info.current_order.customer_phone|default:'N/A' }}"
+                 data-order-status="{{ table_info.current_order.get_status_display }}"
+                 data-active-orders-count="{{ table_info.active_orders_count }}"
+                 {% endif %}
+                 {% if table_info.status == 'available' %}
+                 onclick="selectTable('{{ table_info.table.id }}')"
+                 {% else %}
+                 onclick="showQuickViewModal(this)"
+                 {% endif %}>
+                
+                <!-- Status Badge -->
+                <div class="pos-selection-status {{ table_info.status }}">
+                    {% if table_info.status == 'available' %}
+                        ✓ READY
+                    {% else %}
+                        ✕ BUSY
+                    {% endif %}
+                </div>
+                
+                <!-- Table Number -->
+                <div class="pos-selection-number">
+                    T{{ table_info.table.table_number }}
+                </div>
+                
+                <!-- Details -->
+                <div class="pos-selection-details">
+                    <!-- Capacity -->
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Capacity
+                        </div>
+                        <div class="detail-value">{{ table_info.table.capacity }} Seats</div>
+                    </div>
+                    
+                    <!-- Location -->
+                    {% if table_info.table.location_description %}
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Location
+                        </div>
+                        <div class="detail-value">{{ table_info.table.location_description }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Active Orders (if occupied) -->
+                    {% if table_info.status == 'occupied' %}
+                    <div class="occupied-info">
+                        <p class="occupied-label">Current Status</p>
+                        <div class="flex items-center justify-between">
+                            <span class="occupied-value">{{ table_info.active_orders_count }} Active Order{{ table_info.active_orders_count|pluralize }}</span>
+                            {% if table_info.current_order %}
+                            <span class="occupied-value">#{{ table_info.current_order.order_id|slice:":8"|upper }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Button -->
+                    <div class="mt-6">
+                        {% if table_info.status == 'available' %}
+                        <a href="{% url 'restaurant:create_table_order' table_info.table.id %}" 
+                           class="pos-selection-action start">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Start Order
+                        </a>
+                        {% else %}
+                        <button disabled class="pos-selection-action disabled w-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                            Table Occupied
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Empty State -->
+            <div class="pos-empty-state col-span-full">
+                <svg class="w-32 h-32 mx-auto mb-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">No Tables Available</h3>
+                <p class="text-gray-600 mb-6">Please configure tables in your restaurant</p>
+                <a href="{% url 'restaurant:table_management' %}" 
+                   class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-xl shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Configure Tables
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ========== AUTO-REFRESH INDICATOR ========== -->
+<div class="pos-refresh-indicator" id="refresh-indicator">
+    <div class="refresh-spinner" id="refresh-spinner" style="display: none;"></div>
+    <svg class="w-4 h-4" id="refresh-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+    </svg>
+    <span id="refresh-text">Auto-refresh in 30s</span>
+</div>
+
+<!-- ========== QUICK VIEW MODAL ========== -->
+<div class="pos-modal-overlay" id="quick-view-modal" onclick="if(event.target === this) closeQuickViewModal()">
+    <div class="pos-modal-content">
+        <div class="pos-modal-header">
+            <div class="flex items-center justify-between w-full">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900" id="modal-table-title">Table Details</h3>
+                    <p class="text-sm text-gray-600" id="modal-table-subtitle">Order Information</p>
+                </div>
+                <button onclick="closeQuickViewModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="pos-modal-body" id="modal-content">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+        
+        <div class="pos-modal-footer">
+            <button onclick="closeQuickViewModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                Close
+            </button>
+            <button id="modal-action-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                View Order Details
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Enhanced POS Table Selection JavaScript
+ * Handles table selection, filtering, auto-refresh, and quick view functionality
+ */
+
+// Global variables
+let refreshInterval;
+let refreshCountdown = 30;
+let currentView = 'grid';
+let originalTableData = [];
+
+/**
+ * Navigate to table order creation
+ * @param {string} tableId - The ID of the selected table
+ */
+function selectTable(tableId) {
+    window.location.href = `/restaurant/table-order/${tableId}/`;
+}
+
+/**
+ * Filter tables based on search and filter criteria
+ */
+function filterTables() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    const capacityFilter = document.getElementById('capacity-filter').value;
+    
+    const tableCards = document.querySelectorAll('.pos-selection-card');
+    let visibleCount = 0;
+    
+    tableCards.forEach(card => {
+        const tableNumber = card.querySelector('.pos-selection-number').textContent.toLowerCase();
+        const tableStatus = card.classList.contains('available') ? 'available' : 'occupied';
+        const capacityText = card.querySelector('.detail-value').textContent;
+        const capacity = parseInt(capacityText) || 0;
+        
+        // Check if table matches all filters
+        const matchesSearch = tableNumber.includes(searchTerm) || 
+                             card.textContent.toLowerCase().includes(searchTerm);
+        const matchesStatus = statusFilter === 'all' || tableStatus === statusFilter;
+        const matchesCapacity = capacityFilter === 'all' || 
+                               (capacityFilter === '8' && capacity >= 8) || 
+                               capacity == capacityFilter;
+        
+        if (matchesSearch && matchesStatus && matchesCapacity) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Show/hide empty state based on filtered results
+    const emptyState = document.querySelector('.pos-empty-state');
+    if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+}
+
+/**
+ * Clear all filters and reset table display
+ */
+function clearFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('status-filter').value = 'all';
+    document.getElementById('capacity-filter').value = 'all';
+    filterTables();
+}
+
+/**
+ * Toggle between grid and floor plan views
+ * @param {string} view - The view type ('grid' or 'floor')
+ */
+function setView(view) {
+    currentView = view;
+    
+    // Update button states
+    const gridBtn = document.getElementById('grid-view-btn');
+    const floorBtn = document.getElementById('floor-view-btn');
+    
+    if (view === 'grid') {
+        gridBtn.classList.add('active');
+        floorBtn.classList.remove('active');
+        // Show grid view (current implementation)
+        document.querySelector('.pos-table-selection-grid').style.display = 'grid';
+    } else {
+        gridBtn.classList.remove('active');
+        floorBtn.classList.add('active');
+        // Load floor plan view
+        loadFloorPlanView();
+    }
+}
+
+/**
+ * Load floor plan view via AJAX
+ */
+function loadFloorPlanView() {
+    // Hide grid view temporarily and show loading
+    const gridContainer = document.querySelector('.pos-table-selection-grid');
+    gridContainer.style.display = 'grid';
+    gridContainer.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Loading Floor Plan...</h3>
+            <p class="text-gray-600">Visual table layout will appear here</p>
+        </div>
+    `;
+    
+    // Make actual AJAX call to fetch floor plan HTML
+    fetch('/restaurant/api/tables/floor-plan/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error loading floor plan:', data.error);
+            showErrorState('Failed to load floor plan view');
+            return;
+        }
+        
+        // Update container with floor plan HTML
+        gridContainer.innerHTML = data.html;
+        console.log('Floor plan loaded successfully');
+    })
+    .catch(error => {
+        console.error('Error loading floor plan:', error);
+        showErrorState('Failed to load floor plan view');
+    });
+}
+
+/**
+ * Show error state in floor plan container
+ * @param {string} message - Error message to display
+ */
+function showErrorState(message) {
+    const gridContainer = document.querySelector('.pos-table-selection-grid');
+    gridContainer.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Error Loading Floor Plan</h3>
+            <p class="text-gray-600 mb-4">${message}</p>
+            <button onclick="setView('grid')" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z"></path>
+                </svg>
+                Switch to Grid View
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Show quick view modal for occupied tables
+ * @param {HTMLElement} tableCard - The table card element that was clicked
+ */
+function showQuickViewModal(tableCard) {
+    const modal = document.getElementById('quick-view-modal');
+    const modalTitle = document.getElementById('modal-table-title');
+    const modalSubtitle = document.getElementById('modal-table-subtitle');
+    const modalContent = document.getElementById('modal-content');
+    const modalActionBtn = document.getElementById('modal-action-btn');
+    
+    // Pause auto-refresh while modal is open
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        console.log('Auto-refresh paused - modal opened');
+    }
+    
+    // Get data from table card attributes
+    const tableNumber = tableCard.dataset.tableNumber;
+    const tableCapacity = tableCard.dataset.tableCapacity;
+    const tableLocation = tableCard.dataset.tableLocation;
+    const status = tableCard.dataset.status;
+    const tableId = tableCard.dataset.tableId;
+    
+    // Set modal header
+    modalTitle.textContent = `Table ${tableNumber}`;
+    modalSubtitle.textContent = status === 'occupied' ? 'Currently Occupied' : 'Available';
+    
+    // Set modal content based on status
+    if (status === 'occupied' && tableCard.dataset.orderId) {
+        const orderId = tableCard.dataset.orderId;
+        const customerName = tableCard.dataset.customerName;
+        const customerPhone = tableCard.dataset.customerPhone;
+        const orderStatus = tableCard.dataset.orderStatus;
+        const activeOrdersCount = tableCard.dataset.activeOrdersCount;
+        
+        modalContent.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-red-800 mb-2">Active Order</h4>
+                    <p class="text-red-600">Order #${orderId.toString().substring(0, 8).toUpperCase()}</p>
+                    <p class="text-sm text-red-500">Status: ${orderStatus}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Customer</p>
+                        <p class="font-semibold">${customerName}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Phone</p>
+                        <p class="font-semibold">${customerPhone}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Order Items</p>
+                    <p class="font-semibold">${activeOrdersCount} item${activeOrdersCount > 1 ? 's' : ''}</p>
+                </div>
+            </div>
+        `;
+        
+        modalActionBtn.onclick = function() {
+            window.location.href = `/restaurant/orders/${orderId}/`;
+        };
+        modalActionBtn.textContent = 'View Order Details';
+        modalActionBtn.style.display = 'block';
+    } else {
+        modalContent.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-green-800 mb-2">Table Available</h4>
+                    <p class="text-green-600">Ready to take new orders</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Capacity</p>
+                        <p class="font-semibold">${tableCapacity} Seats</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Location</p>
+                        <p class="font-semibold">${tableLocation}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modalActionBtn.onclick = function() {
+            selectTable(tableId);
+        };
+        modalActionBtn.textContent = 'Start Order';
+        modalActionBtn.style.display = 'block';
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+}
+
+/**
+ * Close quick view modal
+ */
+function closeQuickViewModal() {
+    const modal = document.getElementById('quick-view-modal');
+    modal.classList.remove('active');
+    
+    // Resume auto-refresh when modal is closed
+    startAutoRefresh();
+    console.log('Auto-refresh resumed - modal closed');
+}
+
+/**
+ * Start auto-refresh countdown
+ */
+function startAutoRefresh() {
+    // Clear any existing interval to prevent multiple intervals
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    
+    refreshCountdown = 30;
+    updateRefreshIndicator();
+    
+    refreshInterval = setInterval(function() {
+        refreshCountdown--;
+        updateRefreshIndicator();
+        
+        if (refreshCountdown <= 0) {
+            refreshTableData();
+            refreshCountdown = 30;
+        }
+    }, 1000);
+}
+
+/**
+ * Update refresh indicator display
+ */
+function updateRefreshIndicator() {
+    const refreshText = document.getElementById('refresh-text');
+    const refreshSpinner = document.getElementById('refresh-spinner');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const refreshIndicator = document.getElementById('refresh-indicator');
+    
+    if (refreshCountdown <= 5) {
+        refreshText.textContent = `Refreshing in ${refreshCountdown}s...`;
+        refreshIndicator.classList.add('refreshing');
+        refreshSpinner.style.display = 'block';
+        refreshIcon.style.display = 'none';
+    } else {
+        refreshText.textContent = `Auto-refresh in ${refreshCountdown}s`;
+        refreshIndicator.classList.remove('refreshing');
+        refreshSpinner.style.display = 'none';
+        refreshIcon.style.display = 'block';
+    }
+}
+
+/**
+ * Refresh table data via AJAX
+ */
+function refreshTableData() {
+    // Show refreshing state
+    const refreshIndicator = document.getElementById('refresh-indicator');
+    refreshIndicator.classList.add('refreshing');
+    
+    // Make actual AJAX call to fetch updated table status
+    fetch('/restaurant/api/tables/status/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error refreshing table data:', data.error);
+            return;
+        }
+        
+        // Update statistics
+        updateStatistics(data.statistics);
+        
+        // Update table cards
+        updateTableCards(data.tables);
+        
+        console.log('Table data refreshed successfully');
+    })
+    .catch(error => {
+        console.error('Error refreshing table data:', error);
+    })
+    .finally(() => {
+        // Reset indicator
+        refreshIndicator.classList.remove('refreshing');
+    });
+}
+
+/**
+ * Update statistics display with new data
+ * @param {Object} statistics - Statistics object from API response
+ */
+function updateStatistics(statistics) {
+    // Update stat values in the dashboard
+    const statElements = {
+        total: document.querySelector('.pos-stat-box.total .stat-value'),
+        available: document.querySelector('.pos-stat-box.available .stat-value'),
+        occupied: document.querySelector('.pos-stat-box.occupied .stat-value')
+    };
+    
+    if (statElements.total) statElements.total.textContent = statistics.total_tables;
+    if (statElements.available) statElements.available.textContent = statistics.available_tables;
+    if (statElements.occupied) statElements.occupied.textContent = statistics.occupied_tables;
+}
+
+/**
+ * Update table cards with new data from API
+ * @param {Array} tables - Array of table data from API response
+ */
+function updateTableCards(tables) {
+    tables.forEach(tableData => {
+        const tableCard = document.querySelector(`[data-table-id="${tableData.table_id}"]`);
+        if (!tableCard) return;
+        
+        // Update status classes and attributes
+        const wasAvailable = tableCard.classList.contains('available');
+        const isAvailable = tableData.status === 'available';
+        
+        if (wasAvailable !== isAvailable) {
+            // Status changed - update classes
+            tableCard.classList.remove('available', 'occupied');
+            tableCard.classList.add(tableData.status);
+            tableCard.dataset.status = tableData.status;
+            
+            // Update status badge
+            const statusBadge = tableCard.querySelector('.pos-selection-status');
+            if (statusBadge) {
+                statusBadge.classList.remove('available', 'occupied');
+                statusBadge.classList.add(tableData.status);
+                statusBadge.textContent = isAvailable ? '✓ READY' : '✕ BUSY';
+            }
+            
+            // Update onclick handler
+            if (isAvailable) {
+                tableCard.setAttribute('onclick', `selectTable('${tableData.table_id}')`);
+            } else {
+                tableCard.setAttribute('onclick', 'showQuickViewModal(this)');
+            }
+        }
+        
+        // Update order data for occupied tables
+        if (tableData.status === 'occupied' && tableData.order_id) {
+            tableCard.dataset.orderId = tableData.order_id;
+            tableCard.dataset.customerName = tableData.customer_name;
+            tableCard.dataset.customerPhone = tableData.customer_phone;
+            tableCard.dataset.orderStatus = tableData.order_status;
+            tableCard.dataset.activeOrdersCount = tableData.active_orders_count;
+        } else {
+            // Remove order data if table became available
+            delete tableCard.dataset.orderId;
+            delete tableCard.dataset.customerName;
+            delete tableCard.dataset.customerPhone;
+            delete tableCard.dataset.orderStatus;
+            delete tableCard.dataset.activeOrdersCount;
+        }
+        
+        // Update occupied info section
+        const occupiedInfo = tableCard.querySelector('.occupied-info');
+        if (tableData.status === 'occupied') {
+            if (!occupiedInfo) {
+                // Add occupied info if it doesn't exist
+                const detailsSection = tableCard.querySelector('.pos-selection-details');
+                const actionButton = detailsSection.querySelector('.mt-6');
+                
+                const occupiedDiv = document.createElement('div');
+                occupiedDiv.className = 'occupied-info';
+                occupiedDiv.innerHTML = `
+                    <p class="occupied-label">Current Status</p>
+                    <div class="flex items-center justify-between">
+                        <span class="occupied-value">${tableData.active_orders_count} Active Order${tableData.active_orders_count > 1 ? 's' : ''}</span>
+                        <span class="occupied-value">#${tableData.order_id.toString().substring(0, 8).toUpperCase()}</span>
+                    </div>
+                `;
+                detailsSection.insertBefore(occupiedDiv, actionButton);
+            } else {
+                // Update existing occupied info
+                const orderCountSpan = occupiedInfo.querySelector('.occupied-value');
+                if (orderCountSpan) {
+                    orderCountSpan.textContent = `${tableData.active_orders_count} Active Order${tableData.active_orders_count > 1 ? 's' : ''}`;
+                }
+            }
+        } else if (occupiedInfo) {
+            // Remove occupied info if table became available
+            occupiedInfo.remove();
+        }
+    });
+}
+
+/**
+ * Manual refresh trigger
+ */
+function manualRefresh() {
+    refreshCountdown = 30;
+    refreshTableData();
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Enhanced POS Table Selection Initialized');
+    
+    // Store original table data
+    const tableCards = document.querySelectorAll('.pos-selection-card');
+    tableCards.forEach(card => {
+        originalTableData.push({
+            element: card,
+            html: card.outerHTML
+        });
+    });
+    
+    // Start auto-refresh
+    startAutoRefresh();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // ESC key to go back
+        if (e.key === 'Escape') {
+            window.location.href = '{% url "restaurant:active_tables" %}';
+        }
+        // F key to focus search
+        else if (e.key === 'f' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            document.getElementById('search-input').focus();
+        }
+        // R key to manual refresh
+        else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            manualRefresh();
+        }
+    });
+    
+    // Quick view modal is now handled by onclick handlers in the template
+    // No need for additional event listeners
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    });
+});
+</script>
+{% endblock %}

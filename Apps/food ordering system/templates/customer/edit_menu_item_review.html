@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Edit Review - {{ menu_item.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Edit Menu Item Review</h1>
+                    <p class="text-gray-600 mt-1">Update your review for {{ menu_item.name }}</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ restaurant.name }}</p>
+                </div>
+                <a href="{% url 'customer:my_reviews' %}" class="text-orange-600 hover:text-orange-700 font-medium">
+                    ← Back to My Reviews
+                </a>
+            </div>
+        </div>
+
+        <!-- Menu Item Information -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center space-x-4">
+                <img src="{{ menu_item|get_menu_item_image:'full' }}" alt="{{ menu_item.name }}" 
+                     class="w-20 h-20 rounded-lg object-cover"
+                     onerror="this.src='/media/placeholders/food_default.jpg'">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ menu_item.name }}</h3>
+                    <p class="text-gray-600 text-sm">{{ menu_item.description|truncatewords:20 }}</p>
+                    <p class="text-orange-600 font-semibold mt-1">₹{{ menu_item.price }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Warning -->
+        {% if review.is_editable %}
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-green-900">Review is Editable</p>
+                        <p class="text-sm text-green-700">You can edit this review until {{ review.created_at|date:"M d, Y"|add_days:7 }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-red-900">Edit Period Expired</p>
+                        <p class="text-sm text-red-700">This review can no longer be edited (7-day limit exceeded)</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Order Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-blue-900">Verified Purchase</p>
+                    <p class="text-sm text-blue-700">Order #{{ order.order_id }} • {{ order.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <form method="post" id="reviewForm">
+                {% csrf_token %}
+                
+                <!-- Overall Rating -->
+                <div class="mb-8">
+                    <label class="block text-lg font-semibold text-gray-900 mb-4">
+                        Overall Rating <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center space-x-2">
+                        {{ form.rating }}
+                    </div>
+                    {% if form.rating.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.rating.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Review Comment -->
+                <div class="mb-8">
+                    <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Your Review
+                    </label>
+                    {{ form.comment }}
+                    {% if form.comment.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.comment.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500">Share your experience with this menu item (optional).</p>
+                </div>
+
+                <!-- Detailed Ratings -->
+                <div class="border-t pt-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Detailed Ratings (Optional)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Taste -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Taste
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                {{ form.taste }}
+                            </div>
+                        </div>
+
+                        <!-- Presentation -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Presentation
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                {{ form.presentation }}
+                            </div>
+                        </div>
+
+                        <!-- Portion Size -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Portion Size
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                {{ form.portion_size }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'customer:review_detail' review_type='menu_item' review_id=review.id %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
+                        Cancel
+                    </a>
+                    <div class="flex items-center space-x-3">
+                        {% if review.is_editable %}
+                            <button type="submit" class="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 font-medium">
+                                Update Review
+                            </button>
+                        {% else %}
+                            <button type="button" disabled class="px-6 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed font-medium">
+                                Edit Period Expired
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Review Guidelines -->
+        <div class="bg-gray-50 rounded-lg p-6 mt-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Review Guidelines</h3>
+            <ul class="text-sm text-gray-600 space-y-2">
+                <li class="flex items-start">
+                    <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Focus on taste, presentation, and portion size
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Be specific about what you liked or didn't like
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    Reviews can only be edited within 7 days of submission
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    Don't include personal information or offensive content
+                </li>
+            </ul>
+        </div>
+
+        <!-- Original Review Preview -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Original Review</h3>
+            <div class="border-l-4 border-gray-300 pl-4">
+                <div class="flex items-center space-x-2 mb-2">
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                            <span class="{% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                        {% endfor %}
+                    </div>
+                    <span class="text-sm text-gray-600">{{ review.rating }}/5</span>
+                </div>
+                
+                <!-- Original Detailed Ratings -->
+                {% if review.taste or review.presentation or review.portion_size %}
+                    <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                        {% if review.taste %}
+                            <span>Taste: {{ review.taste }}/5</span>
+                        {% endif %}
+                        {% if review.presentation %}
+                            <span>Presentation: {{ review.presentation }}/5</span>
+                        {% endif %}
+                        {% if review.portion_size %}
+                            <span>Portion: {{ review.portion_size }}/5</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <p class="text-gray-700">{{ review.comment|default:"No comment provided" }}</p>
+                <p class="text-sm text-gray-500 mt-2">Posted {{ review.created_at|date:"M d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Star Rating Styles */
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-rating input[type="radio"] {
+    display: none;
+}
+
+.star-rating label {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #d1d5db;
+    transition: color 0.2s;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input[type="radio"]:checked ~ label {
+    color: #f59e0b;
+}
+
+.star-rating label:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .star-rating label {
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('reviewForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const isEditable = {{ review.is_editable|yesno:"true,false" }};
+    
+    // Prevent form submission if edit period expired
+    form.addEventListener('submit', function(e) {
+        if (!isEditable) {
+            e.preventDefault();
+            return false;
+        }
+        
+        const overallRating = form.querySelector('input[name="rating"]:checked');
+        
+        if (!overallRating) {
+            e.preventDefault();
+            alert('Please select an overall rating.');
+            return;
+        }
+    });
+    
+    // Character counter for comment
+    const commentTextarea = form.querySelector('textarea[name="comment"]');
+    if (commentTextarea) {
+        const counter = document.createElement('div');
+        counter.className = 'text-sm text-gray-500 mt-1';
+        counter.textContent = commentTextarea.value.length + ' characters';
+        commentTextarea.parentNode.appendChild(counter);
+        
+        commentTextarea.addEventListener('input', function() {
+            counter.textContent = this.value.length + ' characters';
+        });
+    }
+});
+</script>
+{% endblock %}

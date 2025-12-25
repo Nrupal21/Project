@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Respond to Review{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Respond to Review</h1>
+                    <p class="text-gray-600 mt-1">Address customer feedback for {{ restaurant.name }}</p>
+                </div>
+                <a href="{% url 'customer:review_detail' review_type=review_type review_id=review.id %}" class="text-orange-600 hover:text-orange-700 font-medium">
+                    ← Back to Review
+                </a>
+            </div>
+        </div>
+
+        <!-- Review Preview -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Review</h3>
+            
+            <!-- Review Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-4">
+                    {% if review_type == 'restaurant' %}
+                            <img src="{{ review.restaurant|get_restaurant_image:'full' }}" 
+                                 alt="{{ review.restaurant.name }}" 
+                                 class="w-12 h-12 rounded-lg object-cover"
+                        <div>
+                            <h4 class="font-semibold text-gray-900">{{ review.restaurant.name }}</h4>
+                            <p class="text-sm text-gray-600">Restaurant Review</p>
+                        </div>
+                    {% else %}
+                        <img src="{{ review.menu_item|get_menu_item_image:'full' }}" 
+                             alt="{{ review.menu_item.name }}" 
+                             class="w-12 h-12 rounded-lg object-cover"
+                             onerror="this.src='/media/placeholders/food_default.jpg'">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">{{ review.menu_item.name }}</h4>
+                            <p class="text-sm text-gray-600">{{ review.menu_item.restaurant.name }} • Menu Item Review</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Rating -->
+                <div class="text-right">
+                    <div class="flex items-center justify-end">
+                        {% for i in "12345" %}
+                            <span class="{% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ review.rating }}/5</p>
+                </div>
+            </div>
+
+            <!-- Review Content -->
+            {% if review.title %}
+                <h5 class="font-medium text-gray-900 mb-2">{{ review.title }}</h5>
+            {% endif %}
+            <p class="text-gray-700 text-sm mb-3">{{ review.comment }}</p>
+            
+            <!-- Detailed Ratings (if available) -->
+            {% if review_type == 'restaurant' %}
+                {% if review.food_quality or review.service_quality or review.delivery_speed or review.value_for_money %}
+                    <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            {% if review.food_quality %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Food Quality:</span>
+                                    <span class="text-gray-700">{{ review.food_quality }}/5</span>
+                                </div>
+                            {% endif %}
+                            {% if review.service_quality %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Service Quality:</span>
+                                    <span class="text-gray-700">{{ review.service_quality }}/5</span>
+                                </div>
+                            {% endif %}
+                            {% if review.delivery_speed %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Delivery Speed:</span>
+                                    <span class="text-gray-700">{{ review.delivery_speed }}/5</span>
+                                </div>
+                            {% endif %}
+                            {% if review.value_for_money %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Value for Money:</span>
+                                    <span class="text-gray-700">{{ review.value_for_money }}/5</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if review.taste or review.presentation or review.portion_size %}
+                    <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            {% if review.taste %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Taste:</span>
+                                    <span class="text-gray-700">{{ review.taste }}/5</span>
+                                </div>
+                            {% endif %}
+                            {% if review.presentation %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Presentation:</span>
+                                    <span class="text-gray-700">{{ review.presentation }}/5</span>
+                                </div>
+                            {% endif %}
+                            {% if review.portion_size %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Portion Size:</span>
+                                    <span class="text-gray-700">{{ review.portion_size }}/5</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <p class="text-xs text-gray-500">By {{ review.user.get_full_name|default:review.user.username }} • {{ review.created_at|date:"M d, Y" }}</p>
+        </div>
+
+        <!-- Response Guidelines -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Response Guidelines</h3>
+            <p class="text-sm text-gray-700 mb-4">
+                Responding to reviews shows customers you value their feedback and helps build trust. 
+                Here are some best practices for effective responses:
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900 mb-2">Do:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Thank the customer for their feedback
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Address specific concerns mentioned
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Offer solutions for negative experiences
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Invite them to visit again
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900 mb-2">Don't:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Be defensive or argumentative
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Share personal information
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Use promotional language
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Make promises you can't keep
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Form -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <form method="post" id="responseForm">
+                {% csrf_token %}
+                
+                <!-- Response Text -->
+                <div class="mb-6">
+                    <label for="{{ form.response.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Your Response <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.response }}
+                    {% if form.response.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.response.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500">Write a thoughtful response addressing the customer's feedback.</p>
+                </div>
+
+                <!-- Public/Private Toggle -->
+                <div class="mb-8">
+                    <div class="flex items-center">
+                        {{ form.is_public }}
+                        <label for="{{ form.is_public.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                            Make this response public
+                        </label>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">
+                        Public responses will be visible to all customers. Private responses are only visible to the review author and moderators.
+                    </p>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'customer:review_detail' review_type=review_type review_id=review.id %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 font-medium">
+                        Submit Response
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Response Examples -->
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Response Examples</h3>
+            
+            <div class="space-y-4">
+                <div class="border-l-4 border-green-500 pl-4">
+                    <p class="text-xs font-medium text-gray-900 mb-1">Positive Review Response:</p>
+                    <p class="text-sm text-gray-700 italic">
+                        "Thank you so much for your wonderful review! We're thrilled you enjoyed your experience at {{ restaurant.name }}. 
+                        We look forward to serving you again soon!"
+                    </p>
+                </div>
+                
+                <div class="border-l-4 border-yellow-500 pl-4">
+                    <p class="text-xs font-medium text-gray-900 mb-1">Constructive Feedback Response:</p>
+                    <p class="text-sm text-gray-700 italic">
+                        "Thank you for your valuable feedback. We appreciate you bringing these issues to our attention and 
+                        we're already working on improvements. We'd love to make it right - please contact us directly so we can address your concerns."
+                    </p>
+                </div>
+                
+                <div class="border-l-4 border-red-500 pl-4">
+                    <p class="text-xs font-medium text-gray-900 mb-1">Negative Review Response:</p>
+                    <p class="text-sm text-gray-700 italic">
+                        "We sincerely apologize for falling short of your expectations. Your feedback is important to us and 
+                        we're taking immediate steps to address the issues you mentioned. Please give us another chance to provide you with the excellent experience we're known for."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('responseForm');
+    
+    form.addEventListener('submit', function(e) {
+        const response = form.querySelector('textarea[name="response"]').value.trim();
+        
+        if (!response) {
+            e.preventDefault();
+            alert('Please provide a response.');
+            return;
+        }
+        
+        if (response.length < 10) {
+            e.preventDefault();
+            alert('Please provide at least 10 characters for your response.');
+            return;
+        }
+        
+        // Confirmation dialog
+        const isPublic = form.querySelector('input[name="is_public"]').checked;
+        const publicText = isPublic ? 'public' : 'private';
+        const confirmed = confirm(`Are you sure you want to submit this ${publicText} response?`);
+        if (!confirmed) {
+            e.preventDefault();
+            return;
+        }
+    });
+    
+    // Character counter for response
+    const responseTextarea = form.querySelector('textarea[name="response"]');
+    const counter = document.createElement('div');
+    counter.className = 'text-sm text-gray-500 mt-1';
+    counter.textContent = `${responseTextarea.value.length} characters`;
+    responseTextarea.parentNode.appendChild(counter);
+    
+    responseTextarea.addEventListener('input', function() {
+        counter.textContent = `${this.value.length} characters`;
+    });
+});
+</script>
+{% endblock %}

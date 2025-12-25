@@ -1,0 +1,16 @@
+# robots.txt for Food Ordering System
+# Controls search engine crawler access
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /restaurant/dashboard/
+Disallow: /orders/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /api/
+Disallow: /media/table_qr_codes/
+
+# Sitemap location (update with your domain)
+Sitemap: https://tetech.in/sitemap.xml

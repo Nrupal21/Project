@@ -1,0 +1,380 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ restaurant.name }}{% endblock %}
+
+{% block restaurant_content %}
+<!-- Table Form Page for Add/Edit Tables -->
+<div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <!-- Breadcrumb Navigation -->
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="{% url 'customer:home' %}" class="hover:text-orange-500">Home</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'restaurant:dashboard' %}" class="hover:text-orange-500">Dashboard</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'restaurant:table_management' %}" class="hover:text-orange-500">Table QR Codes</a>
+            <span class="mx-2">/</span>
+            <span class="text-orange-600 font-medium">{{ title }}</span>
+        </nav>
+        
+        <!-- Page Title -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">{{ title }} 📱</h1>
+            <p class="text-gray-600 mt-2">
+                {% if action == 'Add' %}
+                    Create a new table for {{ restaurant.name }} and generate its QR code
+                {% else %}
+                    Update table details for {{ restaurant.name }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-200">
+        <div class="p-6">
+            <!-- Restaurant Info -->
+            <div class="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <p class="font-semibold text-orange-900">{{ restaurant.name }}</p>
+                        <p class="text-sm text-orange-700">{{ restaurant.address }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post" id="table-form" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Table Number -->
+                <div>
+                    <label for="{{ form.table_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Table Number <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.table_number }}
+                    {% if form.table_number.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.table_number.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Enter a unique table number (e.g., 1, 2, 3 or A1, A2, B1)</p>
+                </div>
+
+                <!-- Table Capacity -->
+                <div>
+                    <label for="{{ form.capacity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Seating Capacity <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.capacity }}
+                    {% if form.capacity.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.capacity.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Maximum number of guests for this table</p>
+                </div>
+
+                <!-- Table Type -->
+                <div>
+                    <label for="{{ form.table_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Table Type <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.table_type }}
+                    {% if form.table_type.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.table_type.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Choose the type of table for better organization</p>
+                </div>
+
+                <!-- Location Description -->
+                <div>
+                    <label for="{{ form.location_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Location Description
+                    </label>
+                    {{ form.location_description }}
+                    {% if form.location_description.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.location_description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Describe where this table is located (e.g., "Near window", "Outdoor patio", "Private room")</p>
+                </div>
+
+                <!-- Is Active -->
+                <div class="flex items-center">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                        Table is active and available for customers
+                    </label>
+                    {% if form.is_active.errors %}
+                        <div class="ml-2 text-sm text-red-600">
+                            {% for error in form.is_active.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- QR Code Info -->
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <p class="font-semibold text-blue-900">QR Code Generation</p>
+                            <p class="text-sm text-blue-700 mt-1">
+                                {% if action == 'Add' %}
+                                    A unique QR code will be automatically generated for this table when you save it. Customers can scan this code to view the menu and place orders directly from their table.
+                                {% else %}
+                                    The existing QR code for this table will remain active. Customers can continue to use it for ordering.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                    <a href="{% url 'restaurant:table_management' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Back to Tables</span>
+                    </a>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button type="button" 
+                                onclick="if(confirm('Are you sure you want to discard your changes?')) { window.location.href='{% url 'restaurant:table_management' %}'; }"
+                                class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        
+                        <button type="submit" 
+                                class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {% if action == 'Add' %}
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                {% else %}
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                {% endif %}
+                            </svg>
+                            <span>{{ action }} Table</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="mt-8 bg-gray-50 rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Table Management Tips</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">Table Numbering</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Use simple numbers (1, 2, 3) for small restaurants</li>
+                    <li>• Use alphanumeric codes (A1, A2, B1) for larger venues</li>
+                    <li>• Keep numbers unique within your restaurant</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">Capacity Guidelines</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• 2-4 people for small tables</li>
+                    <li>• 4-6 people for medium tables</li>
+                    <li>• 6-10 people for large tables</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">QR Code Benefits</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Contactless menu viewing</li>
+                    <li>• Direct ordering from table</li>
+                    <li>• Reduced staff workload</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">Best Practices</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Print QR codes on durable material</li>
+                    <li>• Place codes at eye level</li>
+                    <li>• Test codes regularly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form Styling JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form field styling for Django forms
+    const formFields = {
+        'table_number': {
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors',
+            placeholder: 'Enter table number'
+        },
+        'capacity': {
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors',
+            placeholder: 'Enter seating capacity'
+        },
+        'table_type': {
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors'
+        },
+        'location_description': {
+            class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors',
+            placeholder: 'Describe table location (optional)',
+            rows: '3'
+        },
+        'is_active': {
+            class: 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded'
+        }
+    };
+
+    // Apply styling to form fields
+    Object.keys(formFields).forEach(fieldName => {
+        const field = document.getElementById(`id_${fieldName}`);
+        if (field) {
+            const styling = formFields[fieldName];
+            
+            // Add CSS classes
+            if (styling.class) {
+                field.className = styling.class;
+            }
+            
+            // Add attributes
+            if (styling.placeholder) {
+                field.placeholder = styling.placeholder;
+            }
+            if (styling.rows) {
+                field.rows = styling.rows;
+            }
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('table-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const tableNumber = document.getElementById('id_table_number');
+            const capacity = document.getElementById('id_capacity');
+            const tableType = document.getElementById('id_table_type');
+            
+            let isValid = true;
+            
+            // Validate table number
+            if (!tableNumber.value.trim()) {
+                showError(tableNumber, 'Table number is required');
+                isValid = false;
+            } else {
+                clearError(tableNumber);
+            }
+            
+            // Validate capacity
+            if (!capacity.value || capacity.value < 1) {
+                showError(capacity, 'Capacity must be at least 1');
+                isValid = false;
+            } else {
+                clearError(capacity);
+            }
+            
+            // Validate table type
+            if (!tableType.value) {
+                showError(tableType, 'Please select a table type');
+                isValid = false;
+            } else {
+                clearError(tableType);
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    function showError(field, message) {
+        field.classList.add('border-red-500');
+        field.classList.remove('border-gray-300');
+        
+        // Remove existing error message
+        const existingError = field.parentNode.querySelector('.text-red-600');
+        if (existingError && existingError.textContent.includes(message)) {
+            return;
+        }
+        
+        // Add error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'mt-1 text-sm text-red-600';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+
+    function clearError(field) {
+        field.classList.remove('border-red-500');
+        field.classList.add('border-gray-300');
+        
+        // Remove error message
+        const errorDiv = field.parentNode.querySelector('.text-red-600');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+});
+</script>
+
+<style>
+/* Additional form styling */
+select#id_table_type {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+textarea#id_location_description {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group .error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,824 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{# ============================================================================
+   RESTAURANT OPERATIONS HUB - UNIFIED INTERFACE
+   ============================================================================
+   Consolidated interface combining all restaurant management tasks:
+   - Table Operations (POS View)
+   - Order Management (Active Orders)
+   - Menu Management (Quick Access)
+   - Table Layout & QR Codes
+   - Analytics Dashboard
+   
+   Purpose: Single-page interface for efficient restaurant operations
+   Design: Tailwind CSS with tab-based navigation
+   ============================================================================ #}
+
+{% block title %}Operations Hub - {{ restaurant.name|default:"Restaurant" }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ============================================
+   OPERATIONS HUB - CUSTOM STYLES
+   Professional restaurant management interface
+   ============================================ */
+
+:root {
+    --hub-primary: #f97316;
+    --hub-secondary: #0891b2;
+    --hub-success: #10b981;
+    --hub-warning: #f59e0b;
+    --hub-danger: #ef4444;
+    --hub-info: #3b82f6;
+}
+
+/* Main Hub Container */
+.hub-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Tab Navigation Styles */
+.tab-navigation {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-button:hover {
+    background: #f1f5f9;
+    color: var(--hub-primary);
+}
+
+.tab-button.active {
+    background: linear-gradient(135deg, var(--hub-primary) 0%, #ea580c 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* Tab Content Panels */
+.tab-panel {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Quick Action Cards */
+.quick-action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    cursor: pointer;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    border-left-color: var(--hub-primary);
+}
+
+.quick-action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 1rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-available {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-occupied {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-pending {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Statistics Cards */
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-top: 4px solid var(--stat-color);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0.5rem 0;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+    .tab-button {
+        font-size: 0.875rem;
+        padding: 0.625rem 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .tab-navigation,
+    .no-print {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hub-container px-4 py-6">
+    <div class="max-w-7xl mx-auto">
+        
+        {# Header section with restaurant info and controls #}
+        <div class="mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                        🏪 Operations Hub
+                    </h1>
+                    <p class="text-gray-600">
+                        {{ restaurant.name|default:"Restaurant" }} - All operations in one place
+                    </p>
+                </div>
+                
+                <div class="flex flex-wrap gap-3">
+                    {# Real-time clock #}
+                    <div class="px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200">
+                        <span class="text-sm text-gray-500">Current Time</span>
+                        <div id="current-time" class="text-lg font-bold text-gray-900"></div>
+                    </div>
+                    
+                    {# Active orders count #}
+                    <div class="px-4 py-2 bg-orange-50 rounded-xl shadow-sm border border-orange-200">
+                        <span class="text-sm text-orange-600">Active Orders</span>
+                        <div class="text-lg font-bold text-orange-700">
+                            <span id="active-orders-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Tab navigation for different operations #}
+        <div class="tab-navigation">
+            <div class="flex gap-2 flex-nowrap">
+                {# Table Operations Tab #}
+                <button class="tab-button active" onclick="switchTab('tables')" data-tab="tables">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Tables</span>
+                    </span>
+                </button>
+                
+                {# Orders Tab #}
+                <button class="tab-button" onclick="switchTab('orders')" data-tab="orders">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span>Orders</span>
+                    </span>
+                </button>
+                
+                {# Menu Tab #}
+                <button class="tab-button" onclick="switchTab('menu')" data-tab="menu">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span>Menu</span>
+                    </span>
+                </button>
+                
+                {# QR Codes Tab #}
+                <button class="tab-button" onclick="switchTab('qrcodes')" data-tab="qrcodes">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        <span>QR Codes</span>
+                    </span>
+                </button>
+                
+                {# Analytics Tab #}
+                <button class="tab-button" onclick="switchTab('analytics')" data-tab="analytics">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Analytics</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        {# Tab content panels for each section #}
+        
+        {# TABLE OPERATIONS PANEL #}
+        <div id="tables-panel" class="tab-panel active">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                {# Quick Stats for Tables #}
+                <div class="stat-card" style="--stat-color: #10b981;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Total Tables</div>
+                    <div class="stat-value text-green-600">{{ total_tables|default:0 }}</div>
+                    <div class="text-xs text-gray-500">All tables</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #f59e0b;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Occupied</div>
+                    <div class="stat-value text-yellow-600">{{ occupied_tables|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Currently serving</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #3b82f6;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Available</div>
+                    <div class="stat-value text-blue-600">{{ available_tables|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Ready for guests</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #f97316;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Capacity</div>
+                    <div class="stat-value text-orange-600">{{ total_capacity|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Total seats</div>
+                </div>
+            </div>
+            
+            {# Table Grid View #}
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Table Status</h2>
+                    <div class="flex gap-2">
+                        <a href="{% url 'restaurant:table_management' %}" 
+                           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                            Manage Tables
+                        </a>
+                        <a href="{% url 'restaurant:table_layout' %}" 
+                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                            View Layout
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="tables-grid">
+                    {# Tables will be loaded dynamically #}
+                    <div class="text-center text-gray-500 py-8 col-span-full">
+                        Loading tables...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ORDERS PANEL #}
+        <div id="orders-panel" class="tab-panel">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+                {# Quick Stats for Orders #}
+                <div class="stat-card" style="--stat-color: #3b82f6;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Pending</div>
+                    <div class="stat-value text-blue-600" id="pending-count">0</div>
+                    <div class="text-xs text-gray-500">Awaiting confirmation</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #f59e0b;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Preparing</div>
+                    <div class="stat-value text-yellow-600" id="preparing-count">0</div>
+                    <div class="text-xs text-gray-500">In kitchen</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #8b5cf6;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Ready</div>
+                    <div class="stat-value text-purple-600" id="ready-count">0</div>
+                    <div class="text-xs text-gray-500">Ready to serve</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #10b981;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Completed</div>
+                    <div class="stat-value text-green-600" id="completed-count">0</div>
+                    <div class="text-xs text-gray-500">Today</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #f97316;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Revenue</div>
+                    <div class="stat-value text-orange-600" id="revenue-today">₹0</div>
+                    <div class="text-xs text-gray-500">Today's sales</div>
+                </div>
+            </div>
+            
+            {# Orders List #}
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Active Orders</h2>
+                    <div class="flex gap-2">
+                        <a href="{% url 'restaurant:table_orders_list' %}" 
+                           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                            View All Orders
+                        </a>
+                        <a href="{% url 'restaurant:table_selection' %}" 
+                           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                            + New Order
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="orders-list" class="space-y-4">
+                    <div class="text-center text-gray-500 py-8">
+                        Loading orders...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# MENU PANEL #}
+        <div id="menu-panel" class="tab-panel">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                {# Quick Actions for Menu #}
+                <div class="quick-action-card" data-href="{% url 'restaurant:menu_management' %}">
+                    <div class="quick-action-icon bg-orange-100 text-orange-600">
+                        📖
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Menu Management</h3>
+                    <p class="text-sm text-gray-600">Manage your menu items and categories</p>
+                </div>
+                
+                <div class="quick-action-card" data-href="{% url 'restaurant:category_management' %}">
+                    <div class="quick-action-icon bg-blue-100 text-blue-600">
+                        🏷️
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Categories</h3>
+                    <p class="text-sm text-gray-600">Organize menu into categories</p>
+                </div>
+                
+                <div class="quick-action-card" data-href="{% url 'restaurant:add_menu_item' %}">
+                    <div class="quick-action-icon bg-green-100 text-green-600">
+                        ➕
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Add Item</h3>
+                    <p class="text-sm text-gray-600">Create new menu item</p>
+                </div>
+                
+                <div class="quick-action-card" data-href="{% url 'orders:promo_code_list' %}">
+                    <div class="quick-action-icon bg-purple-100 text-purple-600">
+                        🎫
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Promo Codes</h3>
+                    <p class="text-sm text-gray-600">Manage promotional offers</p>
+                </div>
+            </div>
+            
+            {# Menu Quick View #}
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Menu Overview</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-xl">
+                        <div class="text-2xl font-bold text-gray-900">{{ total_menu_items|default:0 }}</div>
+                        <div class="text-sm text-gray-600">Total Items</div>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-xl">
+                        <div class="text-2xl font-bold text-green-600">{{ available_items|default:0 }}</div>
+                        <div class="text-sm text-gray-600">Available</div>
+                    </div>
+                    <div class="p-4 bg-yellow-50 rounded-xl">
+                        <div class="text-2xl font-bold text-yellow-600">{{ categories_count|default:0 }}</div>
+                        <div class="text-sm text-gray-600">Categories</div>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-xl">
+                        <div class="text-2xl font-bold text-blue-600">{{ popular_items|default:0 }}</div>
+                        <div class="text-sm text-gray-600">Popular Items</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# QR CODES PANEL #}
+        <div id="qrcodes-panel" class="tab-panel">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="quick-action-card" data-href="{% url 'restaurant:table_management' %}">
+                    <div class="quick-action-icon bg-blue-100 text-blue-600">
+                        📱
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Generate QR Codes</h3>
+                    <p class="text-sm text-gray-600">Create QR codes for tables</p>
+                </div>
+                
+                <div class="quick-action-card" data-href="{% url 'restaurant:table_layout' %}">
+                    <div class="quick-action-icon bg-purple-100 text-purple-600">
+                        🗺️
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Table Layout</h3>
+                    <p class="text-sm text-gray-600">View and manage table arrangement</p>
+                </div>
+                
+                <div class="quick-action-card">
+                    <div class="quick-action-icon bg-orange-100 text-orange-600">
+                        🖨️
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Print QR Codes</h3>
+                    <p class="text-sm text-gray-600">Print QR codes for display</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">QR Code System</h2>
+                <p class="text-gray-600 mb-4">
+                    QR codes enable customers to scan and order directly from their tables. 
+                    Manage your QR codes from the Table Management section.
+                </p>
+                <a href="{% url 'restaurant:table_management' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium">
+                    Go to Table Management →
+                </a>
+            </div>
+        </div>
+
+        {# ANALYTICS PANEL #}
+        <div id="analytics-panel" class="tab-panel">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <div class="stat-card" style="--stat-color: #10b981;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Today's Sales</div>
+                    <div class="stat-value text-green-600">₹{{ today_sales|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Revenue today</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #3b82f6;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Total Orders</div>
+                    <div class="stat-value text-blue-600">{{ today_orders|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Orders today</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #f59e0b;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Avg Order Value</div>
+                    <div class="stat-value text-yellow-600">₹{{ avg_order_value|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Per order</div>
+                </div>
+                
+                <div class="stat-card" style="--stat-color: #8b5cf6;">
+                    <div class="text-sm text-gray-600 font-semibold uppercase">Customers</div>
+                    <div class="stat-value text-purple-600">{{ today_customers|default:0 }}</div>
+                    <div class="text-xs text-gray-500">Served today</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Analytics</h2>
+                <p class="text-gray-600 mb-4">
+                    View detailed analytics and reports in the full dashboard.
+                </p>
+                <a href="{% url 'restaurant:dashboard' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    View Full Dashboard →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+/**
+ * Operations Hub JavaScript
+ * Handles tab switching, real-time updates, and dynamic content loading
+ */
+
+// ==================== TAB MANAGEMENT ====================
+/**
+ * Switch between different operation tabs
+ * @param {string} tabName - Name of the tab to activate
+ */
+function switchTab(tabName) {
+    // Hide all tab panels
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab panel
+    const selectedPanel = document.getElementById(tabName + '-panel');
+    if (selectedPanel) {
+        selectedPanel.classList.add('active');
+    }
+    
+    // Activate selected tab button
+    const selectedButton = document.querySelector(`[data-tab="${tabName}"]`);
+    if (selectedButton) {
+        selectedButton.classList.add('active');
+    }
+    
+    // Load content for the selected tab
+    loadTabContent(tabName);
+}
+
+/**
+ * Load dynamic content for a tab
+ * @param {string} tabName - Name of the tab to load content for
+ */
+function loadTabContent(tabName) {
+    switch(tabName) {
+        case 'tables':
+            loadTables();
+            break;
+        case 'orders':
+            loadOrders();
+            break;
+        case 'menu':
+            // Menu is static, no need to load
+            break;
+        case 'qrcodes':
+            // QR codes is static, no need to load
+            break;
+        case 'analytics':
+            // Analytics is static, no need to load
+            break;
+    }
+}
+
+// ==================== REAL-TIME CLOCK ====================
+/**
+ * Update the real-time clock display
+ */
+function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const clockElement = document.getElementById('current-time');
+    if (clockElement) {
+        clockElement.textContent = timeString;
+    }
+}
+
+// ==================== DATA LOADING FUNCTIONS ====================
+/**
+ * Load tables data from server
+ */
+function loadTables() {
+    const tablesGrid = document.getElementById('tables-grid');
+    if (!tablesGrid) return;
+    
+    // Show loading state
+    tablesGrid.innerHTML = '<div class="text-center text-gray-500 py-8 col-span-full">Loading tables...</div>';
+    
+    // Note: URL endpoints need to be created in views.py
+    // For now, using placeholder - update with actual endpoint when available
+    console.log('Loading tables...');
+    
+    // Placeholder: In production, uncomment and create the endpoint
+    // fetch('/restaurant/api/tables-status/')
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         if (data.tables && data.tables.length > 0) {
+    //             displayTables(data.tables);
+    //         } else {
+    //             tablesGrid.innerHTML = '<div class="text-center text-gray-500 py-8 col-span-full">No tables found</div>';
+    //         }
+    //     })
+    //     .catch(error => {
+    //         console.error('Error loading tables:', error);
+    //         tablesGrid.innerHTML = '<div class="text-center text-red-500 py-8 col-span-full">Error loading tables</div>';
+    //     });
+    
+    // Temporary placeholder
+    tablesGrid.innerHTML = '<div class="text-center text-gray-500 py-8 col-span-full">Table data will load here</div>';
+}
+
+/**
+ * Display tables in the grid
+ * @param {Array} tables - Array of table objects
+ */
+function displayTables(tables) {
+    const tablesGrid = document.getElementById('tables-grid');
+    if (!tablesGrid) return;
+    
+    let html = '';
+    tables.forEach(table => {
+        const statusClass = table.status === 'available' ? 'status-available' : 'status-occupied';
+        const statusText = table.status === 'available' ? 'Available' : 'Occupied';
+        
+        html += `
+            <div class="quick-action-card">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="font-bold text-lg text-gray-900">${table.table_number}</h3>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Capacity: ${table.capacity} seats</p>
+                ${table.current_order ? `
+                    <a href="/restaurant/orders/${table.current_order}/" 
+                       class="text-xs text-blue-600 hover:underline">
+                        View Order →
+                    </a>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    tablesGrid.innerHTML = html;
+}
+
+/**
+ * Load active orders from server
+ */
+function loadOrders() {
+    const ordersList = document.getElementById('orders-list');
+    if (!ordersList) return;
+    
+    // Show loading state
+    ordersList.innerHTML = '<div class="text-center text-gray-500 py-8">Loading orders...</div>';
+    
+    // Fetch orders data
+    fetch('{% url "restaurant:get_active_orders" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.orders && data.orders.length > 0) {
+                displayOrders(data.orders);
+                updateOrderStats(data.stats);
+            } else {
+                ordersList.innerHTML = '<div class="text-center text-gray-500 py-8">No active orders</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            ordersList.innerHTML = '<div class="text-center text-red-500 py-8">Error loading orders</div>';
+        });
+}
+
+/**
+ * Display orders in the list
+ * @param {Array} orders - Array of order objects
+ */
+function displayOrders(orders) {
+    const ordersList = document.getElementById('orders-list');
+    if (!ordersList) return;
+    
+    let html = '';
+    orders.forEach(order => {
+        const statusColors = {
+            'pending': 'blue',
+            'preparing': 'yellow',
+            'ready': 'purple',
+            'completed': 'green'
+        };
+        const color = statusColors[order.status] || 'gray';
+        
+        html += `
+            <div class="p-4 border border-gray-200 rounded-xl hover:border-${color}-300 transition-colors">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="font-bold text-gray-900">Order #${order.order_number}</h3>
+                        <p class="text-sm text-gray-600">Table ${order.table_number}</p>
+                    </div>
+                    <span class="status-badge bg-${color}-100 text-${color}-700">${order.status}</span>
+                </div>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm font-bold text-gray-900">₹${order.total}</span>
+                    <a href="/restaurant/orders/${order.id}/" 
+                       class="text-sm text-blue-600 hover:underline">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+    
+    ordersList.innerHTML = html;
+}
+
+/**
+ * Update order statistics
+ * @param {Object} stats - Statistics object
+ */
+function updateOrderStats(stats) {
+    if (stats) {
+        document.getElementById('pending-count').textContent = stats.pending || 0;
+        document.getElementById('preparing-count').textContent = stats.preparing || 0;
+        document.getElementById('ready-count').textContent = stats.ready || 0;
+        document.getElementById('completed-count').textContent = stats.completed || 0;
+        document.getElementById('revenue-today').textContent = '₹' + (stats.revenue || 0);
+        document.getElementById('active-orders-count').textContent = stats.active || 0;
+    }
+}
+
+// ==================== INITIALIZATION ====================
+/**
+ * Initialize the operations hub on page load
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event listeners to quick action cards
+    document.querySelectorAll('.quick-action-card[data-href]').forEach(card => {
+        card.addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+    
+    // Start real-time clock
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Load initial tab content
+    loadTabContent('tables');
+    
+    // Auto-refresh orders every 30 seconds
+    setInterval(() => {
+        const activePanel = document.querySelector('.tab-panel.active');
+        if (activePanel && activePanel.id === 'orders-panel') {
+            loadOrders();
+        }
+    }, 30000);
+    
+    // Auto-refresh tables every 60 seconds
+    setInterval(() => {
+        const activePanel = document.querySelector('.tab-panel.active');
+        if (activePanel && activePanel.id === 'tables-panel') {
+            loadTables();
+        }
+    }, 60000);
+});
+
+/**
+ * Export report function (placeholder)
+ */
+function exportReport() {
+    alert('Report export functionality will be implemented soon!');
+}
+</script>
+{% endblock %}

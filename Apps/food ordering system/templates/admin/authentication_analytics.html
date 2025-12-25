@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🔐 Authentication & Security Analytics - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .security-alert {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .metric-success { background: #10b981; color: white; }
+    .metric-warning { background: #f59e0b; color: white; }
+    .metric-danger { background: #ef4444; color: white; }
+    .metric-info { background: #3b82f6; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                    <p class="text-gray-600 mt-2">User authentication, security monitoring, and access analytics</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">{{ last_updated }}</span></span>
+                    <button onclick="refreshDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Refresh
+                    </button>
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=authentication" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Export CSV
+                    </a>
+                    <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        ← Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Alerts -->
+        {% if auth_data.security.failed_attempts_today > 10 or auth_data.security.failed_attempts_week > 50 %}
+        <div class="security-alert">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-lg font-semibold text-red-800">Security Alert</h3>
+                    <p class="text-red-600">High number of failed login attempts detected. Consider reviewing security settings.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Users</p>
+                        <p class="text-3xl font-bold mt-2">{{ auth_data.total_users }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">+{{ auth_data.new_users_today }}</span>
+                            <span class="text-white/70 text-xs ml-2">new today</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Users Today -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Active Today</p>
+                        <p class="text-3xl font-bold mt-2">{{ auth_data.active_users_today }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">{{ auth_data.active_users_week }}</span>
+                            <span class="text-white/70 text-xs ml-2">this week</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Success Rate -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Success Rate</p>
+                        <p class="text-3xl font-bold mt-2">{{ auth_data.login_success_rate }}%</p>
+                        <div class="flex items-center mt-2">
+                            {% if auth_data.login_success_rate > 90 %}
+                                <span class="metric-badge metric-success">Excellent</span>
+                            {% elif auth_data.login_success_rate > 80 %}
+                                <span class="metric-badge metric-warning">Good</span>
+                            {% else %}
+                                <span class="metric-badge metric-danger">Poor</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Attempts -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Failed Attempts</p>
+                        <p class="text-3xl font-bold mt-2">{{ auth_data.security.failed_attempts_today }}</p>
+                        <div class="flex items-center mt-2">
+                            {% if auth_data.security.failed_attempts_today > 10 %}
+                                <span class="metric-badge metric-danger">High</span>
+                            {% elif auth_data.security.failed_attempts_today > 5 %}
+                                <span class="metric-badge metric-warning">Moderate</span>
+                            {% else %}
+                                <span class="metric-badge metric-success">Low</span>
+                            {% endif %}
+                            <span class="text-white/70 text-xs ml-2">today</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Login Activity Trends (24 Hours) -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Login Activity (Last 24 Hours)</h3>
+                <div class="chart-container">
+                    <canvas id="loginTrendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- User Role Distribution -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">👥 User Role Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="userRolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Growth Metrics -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 User Growth Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">New Users Today</h4>
+                    <p class="text-3xl font-bold text-blue-600">{{ auth_data.new_users_today }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Registered today</p>
+                </div>
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">New Users This Week</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ auth_data.new_users_week }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 7 days</p>
+                </div>
+                <div class="text-center p-6 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">New Users This Month</h4>
+                    <p class="text-3xl font-bold text-purple-600">{{ auth_data.new_users_month }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 30 days</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Analytics -->
+        {% if auth_data.security.axes_available %}
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔒 Security Analytics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 bg-red-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Failed Attempts Today</h4>
+                    <p class="text-3xl font-bold text-red-600">{{ auth_data.security.failed_attempts_today }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Today</p>
+                </div>
+                <div class="text-center p-6 bg-orange-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Failed Attempts This Week</h4>
+                    <p class="text-3xl font-bold text-orange-600">{{ auth_data.security.failed_attempts_week }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 7 days</p>
+                </div>
+                <div class="text-center p-6 bg-yellow-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Locked Out IPs</h4>
+                    <p class="text-3xl font-bold text-yellow-600">{{ auth_data.security.locked_out_ips }}</p>
+                    <p class="text-sm text-gray-500 mt-2">This month</p>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Security Status</h4>
+                    <p class="text-3xl font-bold text-green-600">Active</p>
+                    <p class="text-sm text-gray-500 mt-2">Axes enabled</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔒 Security Analytics</h3>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <svg class="w-12 h-12 text-yellow-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <h4 class="text-lg font-semibold text-yellow-800 mb-2">Security Analytics Unavailable</h4>
+                <p class="text-yellow-600">Django Axes is not installed or enabled. Install and configure Axes for detailed security analytics.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Active Users by Period -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">👤 Active Users by Period</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Active Today</h4>
+                    <p class="text-3xl font-bold text-blue-600">{{ auth_data.active_users_today }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Logged in today</p>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Active This Week</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ auth_data.active_users_week }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 7 days</p>
+                </div>
+                <div class="text-center p-6 bg-purple-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Active This Month</h4>
+                    <p class="text-3xl font-bold text-purple-600">{{ auth_data.active_users_month }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 30 days</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Quick Navigation</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'admin_monitoring:business_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">💰</div>
+                    <h4 class="font-semibold text-gray-900">Business Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:restaurant_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🍽️</div>
+                    <h4 class="font-semibold text-gray-900">Restaurant Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:customer_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">👥</div>
+                    <h4 class="font-semibold text-gray-900">Customer Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:system_health_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">⚙️</div>
+                    <h4 class="font-semibold text-gray-900">System Health</h4>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js Configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Login Trends Chart (24 Hours)
+const loginTrendsCtx = document.getElementById('loginTrendsChart').getContext('2d');
+/* eslint-disable */
+const loginTrendsData = {{ auth_data.login_trends_24h|safe }};
+/* eslint-enable */
+const loginTrendsChart = new Chart(loginTrendsCtx, {
+    type: 'line',
+    data: {
+        labels: loginTrendsData.map(item => item.hour),
+        datasets: [{
+            label: 'Login Activity',
+            data: loginTrendsData.map(item => item.count),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// User Roles Chart
+const userRolesCtx = document.getElementById('userRolesChart').getContext('2d');
+/* eslint-disable */
+const userRolesData = {{ auth_data.user_roles|safe }};
+/* eslint-enable */
+const userRolesChart = new Chart(userRolesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: userRolesData.map(item => item.role_name),
+        datasets: [{
+            data: userRolesData.map(item => item.count),
+            backgroundColor: [
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(239, 68, 68, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            }
+        }
+    }
+});
+
+// Refresh functionality
+function refreshDashboard() {
+    fetch('{% url "admin_monitoring:api_stats" %}?type=authentication')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            
+            // Update KPI cards
+            document.querySelector('.kpi-card:nth-child(1) .text-3xl').textContent = data.data.authentication.total_users;
+            document.querySelector('.kpi-card:nth-child(2) .text-3xl').textContent = data.data.authentication.active_users_today;
+            document.querySelector('.kpi-card:nth-child(3) .text-3xl').textContent = data.data.authentication.login_success_rate + '%';
+            document.querySelector('.kpi-card:nth-child(4) .text-3xl').textContent = data.data.authentication.security.failed_attempts_today;
+            
+            // Update charts
+            loginTrendsChart.data.datasets[0].data = data.data.authentication.login_trends_24h.map(item => item.count);
+            loginTrendsChart.update();
+            
+            userRolesChart.data.datasets[0].data = data.data.authentication.user_roles.map(item => item.count);
+            userRolesChart.update();
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+        });
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+</script>
+{% endblock %}

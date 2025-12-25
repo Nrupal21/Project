@@ -1,0 +1,336 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Table selection card layout styles */
+    .table-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 3px solid transparent;
+    }
+    
+    .table-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+    
+    .table-card.available {
+        border-color: #10B981;
+        background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
+    }
+    
+    .table-card.available:hover {
+        border-color: #059669;
+        background: linear-gradient(135deg, #D1FAE5 0%, #ECFDF5 100%);
+    }
+    
+    .table-card.occupied {
+        border-color: #EF4444;
+        background: linear-gradient(135deg, #FEF2F2 0%, #FEF5F5 100%);
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+    
+    .table-card.occupied:hover {
+        transform: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #4F46E5, #7C3AED);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .status-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .status-badge.available {
+        background: #10B981;
+        color: white;
+    }
+    
+    .status-badge.occupied {
+        background: #EF4444;
+        color: white;
+    }
+    
+    .capacity-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        background: #F3F4F6;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1F2937;
+    }
+    
+    @media (max-width: 640px) {
+        .table-card {
+            margin-bottom: 1rem;
+        }
+        
+        .table-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<div class="min-h-screen py-8" data-occupied-tables="{{ occupied_tables|default:0 }}">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        🍽️ {{ title }}
+                    </h1>
+                    <p class="mt-2 text-gray-600">
+                        Select a table to place a new order for {{ restaurant.name }}
+                    </p>
+                </div>
+                <a href="{% url 'restaurant:dashboard' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stats-card">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-600">Total Tables</p>
+                        <p class="stats-number">{{ total_tables }}</p>
+                    </div>
+                    <div class="capacity-icon">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-600">Available</p>
+                        <p class="stats-number text-green-600">{{ available_tables }}</p>
+                    </div>
+                    <div class="capacity-icon bg-green-100">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-600">Occupied</p>
+                        <p class="stats-number text-red-600">{{ occupied_tables }}</p>
+                    </div>
+                    <div class="capacity-icon bg-red-100">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-600">Restaurant</p>
+                        <p class="text-lg font-bold text-indigo-600">{{ restaurant.name }}</p>
+                    </div>
+                    <div class="capacity-icon bg-indigo-100">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for table_info in tables_with_status %}
+            <div class="table-card {{ table_info.status }} bg-white rounded-xl shadow-lg p-6 relative overflow-hidden">
+                <!-- Status Badge -->
+                <div class="status-badge {{ table_info.status }}">
+                    {{ table_info.status }}
+                </div>
+                
+                <!-- Table Number -->
+                <div class="text-center mb-4">
+                    <div class="table-number">
+                        {{ table_info.table.table_number }}
+                    </div>
+                </div>
+                
+                <!-- Table Details -->
+                <div class="space-y-3">
+                    <!-- Capacity -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span class="text-sm text-gray-600">Capacity</span>
+                        </div>
+                        <span class="font-semibold text-gray-900">{{ table_info.table.capacity }} seats</span>
+                    </div>
+                    
+                    <!-- Location -->
+                    {% if table_info.table.location_description %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="text-sm text-gray-600">Location</span>
+                        </div>
+                        <span class="font-medium text-gray-900">{{ table_info.table.location_description }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Order Status -->
+                    {% if table_info.status == 'occupied' %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <span class="text-sm text-gray-600">Active Orders</span>
+                        </div>
+                        <span class="font-semibold text-red-600">{{ table_info.active_orders_count }}</span>
+                    </div>
+                    
+                    {% if table_info.current_order %}
+                    <div class="bg-red-50 rounded-lg p-3">
+                        <p class="text-xs text-red-600 font-medium">Current Order</p>
+                        <p class="text-sm text-red-800">#{{ table_info.current_order.order_id|slice:":8" }}</p>
+                        <p class="text-xs text-red-600">{{ table_info.current_order.get_status_display }}</p>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                
+                <!-- Action Button -->
+                <div class="mt-6">
+                    {% if table_info.status == 'available' %}
+                    <a href="{% url 'restaurant:create_table_order' table_info.table.id %}" 
+                       class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-200 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Start Order
+                    </a>
+                    {% else %}
+                    <button disabled 
+                            class="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-lg cursor-not-allowed flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Table Occupied
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No tables available</h3>
+                <p class="mt-1 text-sm text-gray-500">Please add tables to your restaurant first.</p>
+                <a href="{% url 'restaurant:dashboard' %}" 
+                   class="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    Go to Dashboard
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Table selection page JavaScript functionality
+ * Handles interactive elements and real-time updates
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const tableCards = document.querySelectorAll('.table-card.available');
+    
+    // Add click feedback animation
+    tableCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Only animate if clicking on the card itself, not the button
+            if (!e.target.closest('a')) {
+                // Find the button and trigger its click
+                const button = this.querySelector('a');
+                if (button) {
+                    button.click();
+                }
+            }
+        });
+        
+        // Add hover sound effect (optional)
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Auto-refresh every 30 seconds to update table status
+    setInterval(function() {
+        window.location.reload();
+    }, 30000);
+    
+    // Show notification if tables are occupied
+    const occupiedCount = parseInt(document.querySelector('[data-occupied-tables]').dataset.occupiedTables);
+    if (occupiedCount > 0) {
+        console.log(occupiedCount + ' table(s) are currently occupied');
+    }
+});
+</script>
+{% endblock %}

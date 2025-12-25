@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Flag Review{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Flag Review</h1>
+                    <p class="text-gray-600 mt-1">Report inappropriate content for moderation</p>
+                </div>
+                <a href="{% url 'customer:review_detail' review_type=review_type review_id=review.id %}" class="text-orange-600 hover:text-orange-700 font-medium">
+                    ← Back to Review
+                </a>
+            </div>
+        </div>
+
+        <!-- Review Preview -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review Being Flagged</h3>
+            
+            <!-- Review Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-4">
+                    {% if review_type == 'restaurant' %}
+                            <img src="{{ review.restaurant|get_restaurant_image:'full' }}" 
+                                 alt="{{ review.restaurant.name }}" 
+                                 class="w-12 h-12 rounded-lg object-cover"
+                                 onerror="this.src='/media/placeholders/restaurant_default.jpg'">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">{{ review.restaurant.name }}</h4>
+                            <p class="text-sm text-gray-600">Restaurant Review</p>
+                        </div>
+                    {% else %}
+                        <img src="{{ review.menu_item|get_menu_item_image:'full' }}" 
+                             alt="{{ review.menu_item.name }}" 
+                             class="w-12 h-12 rounded-lg object-cover"
+                             onerror="this.src='/media/placeholders/food_default.jpg'">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">{{ review.menu_item.name }}</h4>
+                            <p class="text-sm text-gray-600">{{ review.menu_item.restaurant.name }} • Menu Item Review</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Rating -->
+                <div class="text-right">
+                    <div class="flex items-center justify-end">
+                        {% for i in "12345" %}
+                            <span class="{% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ review.rating }}/5</p>
+                </div>
+            </div>
+
+            <!-- Review Content -->
+            {% if review.title %}
+                <h5 class="font-medium text-gray-900 mb-2">{{ review.title }}</h5>
+            {% endif %}
+            <p class="text-gray-700 text-sm">{{ review.comment|truncatewords:30 }}</p>
+            <p class="text-xs text-gray-500 mt-2">By {{ review.user.get_full_name|default:review.user.username }} • {{ review.created_at|date:"M d, Y" }}</p>
+        </div>
+
+        <!-- Flag Form -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <form method="post" id="flagForm">
+                {% csrf_token %}
+                
+                <!-- Flag Reason -->
+                <div class="mb-6">
+                    <label for="{{ form.reason.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Reason for Flagging <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.reason }}
+                    {% if form.reason.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.reason.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500">Select the most appropriate reason for flagging this review.</p>
+                </div>
+
+                <!-- Additional Details -->
+                <div class="mb-8">
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Details
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500">Please provide any additional context that might help moderators understand why this review should be reviewed.</p>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'customer:review_detail' review_type=review_type review_id=review.id %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 font-medium">
+                        Submit Flag
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Flagging Guidelines -->
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Community Guidelines</h3>
+            <p class="text-sm text-gray-700 mb-4">
+                Help us maintain a safe and respectful community by flagging reviews that violate our guidelines. 
+                Our moderation team will review all flagged content within 24-48 hours.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900 mb-2">Flag for:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Hate speech or discrimination
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Spam or fake reviews
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Personal information sharing
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Off-topic or irrelevant content
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900 mb-2">Don't flag for:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Disagreement with opinion
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Negative but constructive feedback
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Personal preference differences
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Restaurant owner disputes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consequences -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">What happens next?</h3>
+            <ol class="text-sm text-gray-700 space-y-2">
+                <li class="flex items-start">
+                    <span class="font-medium text-yellow-600 mr-2">1.</span>
+                    Your flag will be reviewed by our moderation team
+                </li>
+                <li class="flex items-start">
+                    <span class="font-medium text-yellow-600 mr-2">2.</span>
+                    The review may be temporarily hidden during review
+                </li>
+                <li class="flex items-start">
+                    <span class="font-medium text-yellow-600 mr-2">3.</span>
+                    Appropriate action will be taken based on our guidelines
+                </li>
+                <li class="flex items-start">
+                    <span class="font-medium text-yellow-600 mr-2">4.</span>
+                    You'll be notified of the decision via email
+                </li>
+            </ol>
+            <p class="text-xs text-gray-600 mt-4">
+                <strong>Note:</strong> False or malicious flagging may result in account restrictions. 
+                Please only flag content that genuinely violates our community guidelines.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('flagForm');
+    
+    form.addEventListener('submit', function(e) {
+        const reason = form.querySelector('select[name="reason"]').value;
+        const description = form.querySelector('textarea[name="description"]').value.trim();
+        
+        if (!reason) {
+            e.preventDefault();
+            alert('Please select a reason for flagging this review.');
+            return;
+        }
+        
+        if (description && description.length < 10) {
+            e.preventDefault();
+            alert('If providing details, please write at least 10 characters.');
+            return;
+        }
+        
+        // Confirmation dialog
+        const confirmed = confirm('Are you sure you want to flag this review for moderation?');
+        if (!confirmed) {
+            e.preventDefault();
+            return;
+        }
+    });
+    
+    // Character counter for description
+    const descriptionTextarea = form.querySelector('textarea[name="description"]');
+    const counter = document.createElement('div');
+    counter.className = 'text-sm text-gray-500 mt-1';
+    counter.textContent = `${descriptionTextarea.value.length} characters`;
+    descriptionTextarea.parentNode.appendChild(counter);
+    
+    descriptionTextarea.addEventListener('input', function() {
+        counter.textContent = `${this.value.length} characters`;
+    });
+});
+</script>
+{% endblock %}

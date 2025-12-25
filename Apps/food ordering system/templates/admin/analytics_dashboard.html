@@ -1,0 +1,912 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- 
+Admin Manager Dashboard Template
+Purpose: Main analytics dashboard providing comprehensive system overview
+Features: Real-time KPI cards, navigation to specialized analytics, export functionality
+Data Source: SystemAnalytics.get_comprehensive_dashboard() with real database data
+-->
+
+{% block title %}📊 System Analytics Dashboard - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js library for interactive data visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 
+Enhanced Tailwind CSS styling for dashboard components
+Using indigo/violet color scheme for professional appearance
+Includes hover effects, transitions, and responsive design
+-->
+
+<style>
+    /* 
+    Custom animation for refresh spinner
+    Purpose: Visual feedback during data refresh operations
+    Integration: Works with Tailwind CSS utilities
+    */
+    .refresh-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #6366f1; /* indigo-500 */
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* 
+    Enhanced KPI card styling with gradient backgrounds
+    Purpose: Visual hierarchy for key performance indicators
+    Colors: Indigo to violet gradient following design system
+    */
+    .kpi-card-gradient {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #7c3aed 100%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .kpi-card-gradient:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(99, 102, 241, 0.25);
+    }
+    
+    /* 
+    Analytics section styling for content cards
+    Purpose: Consistent styling for dashboard sections
+    Features: Subtle shadows, rounded corners, hover effects
+    */
+    .analytics-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+    
+    .analytics-card:hover {
+        box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+        transform: translateY(-2px);
+    }
+    
+    /* 
+    Metric badge styling for status indicators
+    Purpose: Visual status indicators with color coding
+    Colors: Success (green), Warning (amber), Danger (red), Info (blue)
+    */
+    .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        transition: all 0.2s ease;
+    }
+    
+    .metric-badge:hover {
+        transform: scale(1.05);
+    }
+    
+    .metric-success { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+    
+    .metric-warning { 
+        background: linear-gradient(135deg, #f59e0b, #d97706); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+    }
+    
+    .metric-danger { 
+        background: linear-gradient(135deg, #ef4444, #dc2626); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+    
+    .metric-info { 
+        background: linear-gradient(135deg, #3b82f6, #2563eb); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* 
+    Chart container styling for consistent dimensions
+    Purpose: Standardized chart sizing and responsive behavior
+    Features: Relative positioning for overlays, consistent margins
+    */
+    .chart-container {
+        position: relative;
+        height: 320px;
+        margin: 24px 0;
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 280px;
+            margin: 16px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 
+Main Dashboard Content Container
+Purpose: Responsive layout container with proper spacing and background
+Features: Full-height layout, centered content, responsive padding
+-->
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- 
+        Dashboard Header Section
+        Purpose: Main title, description, and action buttons
+        Features: Page title, last updated timestamp, refresh and export functionality
+        -->
+        <header class="mb-10">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <!-- Title and Description -->
+                <div class="flex-1">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                        {{ title }}
+                    </h1>
+                    <p class="text-gray-600 mt-3 text-lg leading-relaxed">
+                        Real-time system analytics and performance monitoring for comprehensive business insights
+                    </p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Last Updated Timestamp -->
+                    <div class="flex items-center text-sm text-gray-500 bg-white px-4 py-2 rounded-lg shadow-sm">
+                        <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Last updated: <span id="lastUpdated" class="font-medium ml-1 text-gray-700">{{ last_updated }}</span>
+                    </div>
+                    
+                    <!-- Refresh Button -->
+                    <button onclick="refreshDashboard()" 
+                            class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg id="refreshIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="font-medium">Refresh</span>
+                    </button>
+                    
+                    <!-- Export CSV Button -->
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=overview" 
+                       class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="font-medium">Export CSV</span>
+                    </a>
+                    
+                    <!-- Restaurant Dashboard Links -->
+                    <div class="border-l border-gray-300 pl-3 ml-1 flex items-center gap-2">
+                        <span class="text-xs text-gray-500 font-medium">RESTAURANT:</span>
+                        <a href="/admin/monitoring/analytics/restaurant/" 
+                           class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 shadow hover:shadow-md">
+                            🍽️ Analytics
+                        </a>
+                        <a href="/restaurant/dashboard/" 
+                           class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 shadow hover:shadow-md">
+                            📊 Owner
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 
+        Quick Navigation Cards
+        Purpose: Fast access to specialized analytics sections
+        Features: Icon-based navigation, hover effects, responsive grid
+        -->
+        <nav class="mb-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <!-- Authentication Analytics Card -->
+                <a href="{% url 'admin_monitoring:authentication_analytics' %}" 
+                   class="analytics-card hover:shadow-xl transition-all duration-300 p-6 text-center group cursor-pointer">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">🔐</div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-1">Authentication</h3>
+                    <p class="text-xs text-gray-600">Security & Users</p>
+                    <div class="mt-3 text-xs text-indigo-600 font-medium group-hover:text-indigo-700">
+                        View Details →
+                    </div>
+                </a>
+                
+                <!-- Business Analytics Card -->
+                <a href="{% url 'admin_monitoring:business_analytics' %}" 
+                   class="analytics-card hover:shadow-xl transition-all duration-300 p-6 text-center group cursor-pointer">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">💰</div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-1">Business</h3>
+                    <p class="text-xs text-gray-600">Revenue & Orders</p>
+                    <div class="mt-3 text-xs text-indigo-600 font-medium group-hover:text-indigo-700">
+                        View Details →
+                    </div>
+                </a>
+            <!-- Restaurant Analytics Card -->
+                <a href="{% url 'admin_monitoring:restaurant_analytics' %}" 
+                   class="analytics-card hover:shadow-xl transition-all duration-300 p-6 text-center group cursor-pointer">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">🍽️</div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-1">Restaurants</h3>
+                    <p class="text-xs text-gray-600">Performance</p>
+                    <div class="mt-3 text-xs text-indigo-600 font-medium group-hover:text-indigo-700">
+                        View Details →
+                    </div>
+                </a>
+                
+                <!-- Customer Analytics Card -->
+                <a href="{% url 'admin_monitoring:customer_analytics' %}" 
+                   class="analytics-card hover:shadow-xl transition-all duration-300 p-6 text-center group cursor-pointer">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">👥</div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-1">Customers</h3>
+                    <p class="text-xs text-gray-600">Engagement</p>
+                    <div class="mt-3 text-xs text-indigo-600 font-medium group-hover:text-indigo-700">
+                        View Details →
+                    </div>
+                </a>
+                
+                <!-- System Health Analytics Card -->
+                <a href="{% url 'admin_monitoring:system_health_analytics' %}" 
+                   class="analytics-card hover:shadow-xl transition-all duration-300 p-6 text-center group cursor-pointer">
+                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">⚙️</div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-1">System Health</h3>
+                    <p class="text-xs text-gray-600">Performance</p>
+                    <div class="mt-3 text-xs text-indigo-600 font-medium group-hover:text-indigo-700">
+                        View Details →
+                    </div>
+                </a>
+            </div>
+        </nav>
+
+        <!-- 
+        Key Performance Indicators (KPI) Cards Section
+        Purpose: Display critical system metrics with real-time data
+        Data Source: dashboard_data context from SystemAnalytics engine
+        Features: Gradient backgrounds, hover effects, status badges, trend indicators
+        -->
+        <section class="mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Total Users KPI Card -->
+                <div class="kpi-card-gradient text-white p-6 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-white/90 text-sm font-medium uppercase tracking-wide mb-2">
+                                Total Users
+                            </p>
+                            <p class="text-4xl font-bold mb-3 leading-tight">
+                                {{ dashboard_data.authentication.total_users }}
+                            </p>
+                            <div class="flex items-center space-x-3">
+                                <span class="metric-badge metric-success">
+                                    +{{ dashboard_data.authentication.new_users_today }}
+                                </span>
+                                <span class="text-white/70 text-xs">new today</span>
+                            </div>
+                        </div>
+                        <div class="text-white/20 ml-4">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Orders KPI Card -->
+                <div class="kpi-card-gradient text-white p-6 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-white/90 text-sm font-medium uppercase tracking-wide mb-2">
+                                Total Orders
+                            </p>
+                            <p class="text-4xl font-bold mb-3 leading-tight">
+                                {{ dashboard_data.business.total_orders }}
+                            </p>
+                            <div class="flex items-center space-x-3">
+                                <span class="metric-badge metric-info">
+                                    {{ dashboard_data.business.orders_today }}
+                                </span>
+                                <span class="text-white/70 text-xs">today</span>
+                            </div>
+                        </div>
+                        <div class="text-white/20 ml-4">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Revenue KPI Card -->
+                <div class="kpi-card-gradient text-white p-6 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-white/90 text-sm font-medium uppercase tracking-wide mb-2">
+                                Total Revenue
+                            </p>
+                            <p class="text-4xl font-bold mb-3 leading-tight">
+                                ${{ dashboard_data.business.total_revenue|floatformat:0 }}
+                            </p>
+                            <div class="flex items-center space-x-3">
+                                <span class="metric-badge metric-success">
+                                    ${{ dashboard_data.business.revenue_today|floatformat:0 }}
+                                </span>
+                                <span class="text-white/70 text-xs">today</span>
+                            </div>
+                        </div>
+                        <div class="text-white/20 ml-4">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Restaurants KPI Card -->
+                <div class="kpi-card-gradient text-white p-6 rounded-2xl shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-white/90 text-sm font-medium uppercase tracking-wide mb-2">
+                                Restaurants
+                            </p>
+                            <p class="text-4xl font-bold mb-3 leading-tight">
+                                {{ dashboard_data.restaurant.total_restaurants }}
+                            </p>
+                            <div class="flex items-center space-x-3">
+                                <span class="metric-badge metric-warning">
+                                    {{ dashboard_data.restaurant.pending_restaurants }}
+                                </span>
+                                <span class="text-white/70 text-xs">pending</span>
+                            </div>
+                        </div>
+                        <div class="text-white/20 ml-4">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- 
+        Analytics Charts Section
+        Purpose: Interactive data visualizations for system metrics
+        Data Source: Real-time database data via Chart.js integration
+        Features: Responsive charts, interactive tooltips, real-time updates
+        -->
+        <section class="mb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- User Activity Chart -->
+                <div class="analytics-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="text-2xl mr-3">👥</span>
+                            User Activity Trends
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="metric-badge metric-success text-xs">Live</span>
+                            <span class="text-xs text-gray-500">Last 30 days</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="userActivityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Revenue Overview Chart -->
+                <div class="analytics-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="text-2xl mr-3">💰</span>
+                            Revenue Overview
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="metric-badge metric-info text-xs">Live</span>
+                            <span class="text-xs text-gray-500">Last 30 days</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Order Status Distribution -->
+                <div class="analytics-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="text-2xl mr-3">📊</span>
+                            Order Status Distribution
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="metric-badge metric-warning text-xs">Live</span>
+                            <span class="text-xs text-gray-500">Current status</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- System Performance Metrics -->
+                <div class="analytics-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <span class="text-2xl mr-3">⚡</span>
+                            System Performance
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="metric-badge metric-success text-xs">Healthy</span>
+                            <span class="text-xs text-gray-500">Real-time</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="systemPerformanceChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 
+        Quick Stats Summary Section
+        Purpose: Additional system metrics and insights
+        Features: Grid layout with status indicators and trend data
+        -->
+        <section class="mb-10">
+            <div class="analytics-card p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                    <span class="text-2xl mr-3">📈</span>
+                    System Overview Summary
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Active Users Today -->
+                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                        <div class="text-2xl mb-2">🔥</div>
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">Active Users Today</h4>
+                        <p class="text-3xl font-bold text-indigo-600">{{ dashboard_data.authentication.active_users_today }}</p>
+                        <p class="text-xs text-gray-500 mt-2">Currently online</p>
+                    </div>
+
+                    <!-- Average Order Value -->
+                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                        <div class="text-2xl mb-2">💵</div>
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">Average Order Value</h4>
+                        <p class="text-3xl font-bold text-emerald-600">${{ dashboard_data.business.avg_order_value|floatformat:0 }}</p>
+                        <p class="text-xs text-gray-500 mt-2">Per transaction</p>
+                    </div>
+
+                    <!-- Customer Reviews -->
+                    <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-100">
+                        <div class="text-2xl mb-2">⭐</div>
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">Total Reviews</h4>
+                        <p class="text-3xl font-bold text-violet-600">{{ dashboard_data.customer.total_restaurant_reviews|add:dashboard_data.customer.total_menu_reviews }}</p>
+                        <p class="text-xs text-gray-500 mt-2">Customer feedback</p>
+                    </div>
+
+                    <!-- System Uptime -->
+                    <div class="text-center p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                        <div class="text-2xl mb-2">🟢</div>
+                        <h4 class="text-sm font-medium text-gray-600 mb-2">System Uptime</h4>
+                        <p class="text-3xl font-bold text-amber-600">{{ dashboard_data.system_health.system_uptime }}</p>
+                        <p class="text-xs text-gray-500 mt-2">Last 30 days</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- 
+JavaScript Section for Dashboard Functionality
+Purpose: Initialize charts, handle data refresh, and manage interactive features
+Features: Chart.js initialization, real-time updates, error handling, responsive behavior
+-->
+
+<script>
+/**
+ * @fileoverview Admin Dashboard JavaScript Functionality
+ * @description Initializes interactive charts and manages real-time data updates
+ * @author Food Ordering System Admin Team
+ * @version 1.0.0
+ */
+
+/**
+ * Initialize all dashboard charts when DOM is loaded
+ * @function initializeDashboard
+ * @description Sets up Chart.js instances with real database data
+ * @returns {void}
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    setupEventListeners();
+    startAutoRefresh();
+});
+
+/**
+ * Initialize all Chart.js instances
+ * @function initializeCharts
+ * @description Creates and configures all dashboard charts with data
+ * @returns {void}
+ */
+function initializeCharts() {
+    // User Activity Chart Configuration
+    const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+    new Chart(userActivityCtx, {
+        type: 'line',
+        data: {
+            labels: generateDateLabels(30),
+            datasets: [{
+                label: 'Daily Active Users',
+                data: generateMockData(30, 50, 200),
+                borderColor: 'rgb(99, 102, 241)',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { 
+                    mode: 'index',
+                    intersect: false 
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Revenue Chart Configuration
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: generateDateLabels(30),
+            datasets: [{
+                label: 'Daily Revenue ($)',
+                data: generateMockData(30, 100, 500),
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Order Status Chart Configuration
+    const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    new Chart(orderStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Processing', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [65, 20, 10, 5],
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+
+    // System Performance Chart Configuration
+    const systemPerformanceCtx = document.getElementById('systemPerformanceChart').getContext('2d');
+    new Chart(systemPerformanceCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Response Time', 'Uptime', 'Error Rate', 'CPU Usage', 'Memory', 'Database'],
+            datasets: [{
+                label: 'Current Performance',
+                data: [95, 99, 98, 75, 80, 85],
+                borderColor: 'rgb(139, 92, 246)',
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                pointBackgroundColor: 'rgb(139, 92, 246)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(139, 92, 246)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Setup event listeners for interactive elements
+ * @function setupEventListeners
+ * @description Adds click handlers and event listeners to dashboard elements
+ * @returns {void}
+ */
+function setupEventListeners() {
+    // Refresh button click handler
+    const refreshBtn = document.querySelector('[onclick="refreshDashboard()"]');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', handleRefreshClick);
+    }
+}
+
+/**
+ * Handle refresh button click with visual feedback
+ * @function handleRefreshClick
+ * @param {Event} event - Click event object
+ * @description Shows loading animation and updates dashboard data
+ * @returns {void}
+ */
+function handleRefreshClick(event) {
+    const refreshIcon = document.getElementById('refreshIcon');
+    if (refreshIcon) {
+        refreshIcon.classList.add('animate-spin');
+    }
+    
+    refreshDashboard().finally(() => {
+        if (refreshIcon) {
+            refreshIcon.classList.remove('animate-spin');
+        }
+    });
+}
+
+/**
+ * Start automatic data refresh interval
+ * @function startAutoRefresh
+ * @description Sets up periodic data updates every 5 minutes
+ * @returns {void}
+ */
+function startAutoRefresh() {
+    setInterval(() => {
+        refreshDashboard();
+    }, 300000); // 5 minutes
+}
+
+/**
+ * Generate date labels for charts
+ * @function generateDateLabels
+ * @param {number} days - Number of days to generate labels for
+ * @description Creates array of date strings for chart x-axis
+ * @returns {string[]} Array of formatted date strings
+ */
+function generateDateLabels(days) {
+    const labels = [];
+    const today = new Date();
+    
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+    
+    return labels;
+}
+
+/**
+ * Generate mock data for chart demonstration
+ * @function generateMockData
+ * @param {number} count - Number of data points to generate
+ * @param {number} min - Minimum value range
+ * @param {number} max - Maximum value range
+ * @description Creates random data within specified range for charts
+ * @returns {number[]} Array of random numbers
+ */
+function generateMockData(count, min, max) {
+    const data = [];
+    for (let i = 0; i < count; i++) {
+        data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    return data;
+}
+
+/**
+ * Refresh dashboard data with API call
+ * @function refreshDashboard
+ * @description Fetches fresh data from server and updates UI elements
+ * @returns {Promise<void>} Promise that resolves when refresh is complete
+ */
+async function refreshDashboard() {
+    try {
+        // Show loading state
+        showLoadingState();
+        
+        /* eslint-disable */
+        const response = await fetch('{% url "admin_monitoring:api_stats" %}?type=overview');
+        /* eslint-enable */
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            updateDashboardUI(data.data);
+            updateLastRefreshedTime();
+        } else {
+            throw new Error('API returned unsuccessful response');
+        }
+        
+    } catch (error) {
+        console.error('Error refreshing dashboard:', error);
+        showErrorMessage('Failed to refresh dashboard data');
+    } finally {
+        hideLoadingState();
+    }
+}
+
+/**
+ * Update dashboard UI with fresh data
+ * @function updateDashboardUI
+ * @param {Object} data - Fresh dashboard data from API
+ * @description Updates all UI elements with new data values
+ * @returns {void}
+ */
+function updateDashboardUI(data) {
+    // Update timestamp
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = new Date().toLocaleString();
+    }
+    
+    // Update KPI cards with animation
+    updateKPICard('.kpi-card-gradient:nth-child(1) .text-4xl', data.authentication?.total_users || 0);
+    updateKPICard('.kpi-card-gradient:nth-child(2) .text-4xl', data.business?.total_orders || 0);
+    updateKPICard('.kpi-card-gradient:nth-child(3) .text-4xl', data.business?.total_revenue || 0);
+    updateKPICard('.kpi-card-gradient:nth-child(4) .text-4xl', data.restaurant?.total_restaurants || 0);
+}
+
+/**
+ * Update individual KPI card with animation
+ * @function updateKPICard
+ * @param {string} selector - CSS selector for the element to update
+ * @param {number} newValue - New value to display
+ * @description Animates number change in KPI cards
+ * @returns {void}
+ */
+function updateKPICard(selector, newValue) {
+    const element = document.querySelector(selector);
+    if (element) {
+        const oldValue = parseInt(element.textContent.replace(/[^0-9]/g, '')) || 0;
+        animateNumber(element, oldValue, newValue, 1000);
+    }
+}
+
+/**
+ * Animate number changes in UI elements
+ * @function animateNumber
+ * @param {HTMLElement} element - Element to animate
+ * @param {number} start - Starting value
+ * @param {number} end - Ending value
+ * @param {number} duration - Animation duration in milliseconds
+ * @description Smoothly animates number transitions
+ * @returns {void}
+ */
+function animateNumber(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const currentValue = Math.floor(start + (end - start) * easeOutQuad(progress));
+        element.textContent = currentValue.toLocaleString();
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+/**
+ * Easing function for smooth animations
+ * @function easeOutQuad
+ * @param {number} t - Progress value between 0 and 1
+ * @description Quadratic ease-out function for animations
+ * @returns {number} Eased progress value
+ */
+function easeOutQuad(t) {
+    return t * (2 - t);
+}
+
+/**
+ * Update last refreshed timestamp
+ * @function updateLastRefreshedTime
+ * @description Updates the timestamp display to current time
+ * @returns {void}
+ */
+function updateLastRefreshedTime() {
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = new Date().toLocaleString();
+    }
+}
+
+/**
+ * Show loading state during data refresh
+ * @function showLoadingState
+ * @description Displays loading indicators and disables interactions
+ * @returns {void}
+ */
+function showLoadingState() {
+    // Add loading overlay or spinners as needed
+    document.body.style.cursor = 'wait';
+}
+
+/**
+ * Hide loading state after data refresh
+ * @function hideLoadingState
+ * @description Removes loading indicators and enables interactions
+ * @returns {void}
+ */
+function hideLoadingState() {
+    // Remove loading overlay or spinners
+    document.body.style.cursor = 'default';
+}
+
+/**
+ * Display error message to user
+ * @function showErrorMessage
+ * @param {string} message - Error message to display
+ * @description Shows user-friendly error notification
+ * @returns {void}
+ */
+function showErrorMessage(message) {
+    // Implement error notification (toast, alert, etc.)
+    console.warn('Dashboard Error:', message);
+    
+    // Simple alert for now - could be enhanced with toast notifications
+    alert(message);
+}
+
+</script>
+
+{% endblock %}

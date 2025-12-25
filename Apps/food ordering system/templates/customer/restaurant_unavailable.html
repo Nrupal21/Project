@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Unavailable</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Error Message Container -->
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+            <!-- Restaurant Logo/Image -->
+            {% if restaurant.get_image_url %}
+            <div class="mb-6">
+                <img src="{{ restaurant.get_image_url }}" 
+                     alt="{{ restaurant.name }}"
+                     class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-200">
+            </div>
+            {% else %}
+            <!-- Default Icon -->
+            <div class="mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-yellow-100">
+                    <i class="fas fa-store-slash text-yellow-600 text-4xl"></i>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Restaurant Name -->
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                {{ restaurant.name }}
+            </h1>
+            
+            <!-- Status Badge -->
+            <div class="inline-block px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold mb-4">
+                <i class="fas fa-clock mr-1"></i>Currently Unavailable
+            </div>
+            
+            <!-- Error Message -->
+            <p class="text-gray-600 mb-6">
+                {{ message|default:"This restaurant is currently not accepting orders. Please check back later." }}
+            </p>
+            
+            <!-- Restaurant Contact Information (if available) -->
+            {% if restaurant.phone or restaurant.address %}
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>Restaurant Information
+                </h3>
+                
+                {% if restaurant.address %}
+                <p class="text-sm text-gray-700 mb-2 flex items-start">
+                    <i class="fas fa-map-marker-alt mr-2 mt-1 flex-shrink-0 text-gray-500"></i>
+                    <span>{{ restaurant.address }}</span>
+                </p>
+                {% endif %}
+                
+                {% if restaurant.phone %}
+                <p class="text-sm text-gray-700 flex items-center">
+                    <i class="fas fa-phone mr-2 text-gray-500"></i>
+                    <a href="tel:{{ restaurant.phone }}" class="text-indigo-600 hover:underline">
+                        {{ restaurant.phone }}
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <a href="{% url 'customer:home' %}" 
+                   class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg">
+                    <i class="fas fa-search mr-2"></i>Browse Other Restaurants
+                </a>
+                
+                <button onclick="window.location.reload()" 
+                        class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all">
+                    <i class="fas fa-redo mr-2"></i>Refresh Page
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

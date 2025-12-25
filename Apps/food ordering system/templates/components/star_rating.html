@@ -1,0 +1,105 @@
+<!-- Star Rating Component -->
+<!-- Usage: {% include 'components/star_rating.html' with rating=review.rating size='large' %} -->
+<!-- Parameters: rating (1-5), size (small/medium/large), interactive (true/false) -->
+
+{% with star_size='w-5 h-5' text_size='text-xs' %}
+    {% if size == 'small' %}
+        {% with star_size='w-4 h-4' text_size='text-xs' %}{% endwith %}
+    {% elif size == 'large' %}
+        {% with star_size='w-6 h-6' text_size='text-sm' %}{% endwith %}
+    {% endif %}
+
+    <div class="flex items-center space-x-1 {% if interactive %}cursor-pointer{% endif %}" 
+         {% if interactive %}data-rating="{{ rating }}"{% endif %}>
+        <!-- Star Icons -->
+        <div class="flex items-center">
+            {% for i in "12345" %}
+                <svg class="{{ star_size }} {% if forloop.counter <= rating %}text-yellow-400{% else %}text-gray-300{% endif %} 
+                       {% if interactive %}hover:text-yellow-400 transition-colors{% endif %}" 
+                     fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+            {% endfor %}
+        </div>
+        
+        <!-- Rating Text -->
+        {% if show_text %}
+            <span class="{{ text_size }} text-gray-600 ml-2">
+                {% if show_decimal %}
+                    {{ rating|floatformat:1 }}/5
+                {% else %}
+                    {{ rating }}/5
+                {% endif %}
+            </span>
+        {% endif %}
+        
+        <!-- Review Count -->
+        {% if review_count %}
+            <span class="{{ text_size }} text-gray-500 ml-1">
+                ({{ review_count }}{% if review_count == 1 %} review{% else %} reviews{% endif %})
+            </span>
+        {% endif %}
+    </div>
+{% endwith %}
+
+<!-- Interactive JavaScript for star rating -->
+{% if interactive %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starRating = document.querySelector('[data-rating]');
+    if (!starRating) return;
+    
+    const stars = starRating.querySelectorAll('svg');
+    const currentRating = parseInt(starRating.dataset.rating) || 0;
+    
+    stars.forEach((star, index) => {
+        star.addEventListener('click', function() {
+            const newRating = index + 1;
+            starRating.dataset.rating = newRating;
+            
+            // Update visual state
+            stars.forEach((s, i) => {
+                if (i < newRating) {
+                    s.classList.remove('text-gray-300');
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.remove('text-yellow-400');
+                    s.classList.add('text-gray-300');
+                }
+            });
+            
+            // Trigger custom event
+            starRating.dispatchEvent(new CustomEvent('ratingChanged', {
+                detail: { rating: newRating }
+            }));
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const hoverRating = index + 1;
+            stars.forEach((s, i) => {
+                if (i < hoverRating) {
+                    s.classList.remove('text-gray-300');
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.remove('text-yellow-400');
+                    s.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+    
+    starRating.addEventListener('mouseleave', function() {
+        const rating = parseInt(starRating.dataset.rating) || 0;
+        stars.forEach((s, i) => {
+            if (i < rating) {
+                s.classList.remove('text-gray-300');
+                s.classList.add('text-yellow-400');
+            } else {
+                s.classList.remove('text-yellow-400');
+                s.classList.add('text-gray-300');
+            }
+        });
+    });
+});
+</script>
+{% endif %}

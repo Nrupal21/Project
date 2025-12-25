@@ -1,0 +1,1025 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_id|slice:":8" }} - Restaurant Dashboard{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Enhanced order detail styles with modern design */
+    
+    /* Timeline styles */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, #10b981, #3b82f6, #8b5cf6);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 20px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -23px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #10b981;
+        z-index: 1;
+    }
+    
+    .timeline-item.completed::before {
+        background: #10b981;
+        border-color: #10b981;
+    }
+    
+    .timeline-item.current::before {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        animation: pulse 2s infinite;
+    }
+    
+    .timeline-item.pending::before {
+        background: #e5e7eb;
+        border-color: #e5e7eb;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    
+    /* Action cards */
+    .action-card {
+        background: linear-gradient(to bottom right, rgb(238 242 255), rgb(243 232 255));
+        border: 1px solid rgb(199 210 254);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Status badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-pending { 
+        background-color: rgb(254 249 195); 
+        color: rgb(120 113 53); 
+    }
+    .status-accepted { 
+        background-color: rgb(219 234 254); 
+        color: rgb(30 58 138); 
+    }
+    .status-preparing { 
+        background-color: rgb(243 232 255); 
+        color: rgb(91 33 182); 
+    }
+    .status-ready { 
+        background-color: rgb(220 252 231); 
+        color: rgb(20 83 45); 
+    }
+    .status-out-for-delivery { 
+        background-color: rgb(224 231 255); 
+        color: rgb(49 46 129); 
+    }
+    .status-delivered { 
+        background-color: rgb(220 252 231); 
+        color: rgb(20 83 45); 
+    }
+    .status-cancelled { 
+        background-color: rgb(254 226 226); 
+        color: rgb(127 29 29); 
+    }
+    
+    /* Table info card */
+    .table-info {
+        background: linear-gradient(to right, rgb(16 185 129), rgb(20 184 166));
+        color: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
+        .timeline {
+            padding-left: 20px;
+        }
+        
+        .timeline::before {
+            left: 10px;
+        }
+        
+        .timeline-item::before {
+            left: -18px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<!-- Main Page Content (Hidden when printing) -->
+<div class="no-print">
+<!-- Page Header with Enhanced Breadcrumb -->
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'restaurant:dashboard' %}" class="text-indigo-600 hover:text-indigo-700 transition-colors duration-200 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+            <span class="text-gray-400">|</span>
+            <span class="text-gray-600">Order Management</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="status-badge status-{{ order.status }}">
+                {{ order.get_status_display }}
+            </span>
+            {% if order.is_table_order and order.table %}
+            <span class="status-badge bg-emerald-100 text-emerald-800">
+                🪑 Table {{ order.table.table_number }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <h1 class="text-3xl lg:text-4xl font-bold text-gray-900">Order Details</h1>
+        <div class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-mono text-sm">
+            #{{ order.order_id|slice:":8" }}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Order Information Section -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Table Information (for table orders) -->
+        {% if order.is_table_order and order.table %}
+        <div class="table-info">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold mb-2">🪑 Table {{ order.table.table_number }}</h2>
+                    <p class="text-sm opacity-90">Capacity: {{ order.table.capacity }} people</p>
+                    {% if order.table.location_description %}
+                    <p class="text-sm opacity-90">Location: {{ order.table.location_description }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-right">
+                    <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
+                        {{ order.table.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Customer Information Card -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Customer Information</h2>
+                <button onclick="toggleEditCustomer()" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </button>
+            </div>
+            
+            <div id="customer-info-display">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-600 mb-1">Customer Name</p>
+                        <p class="font-bold text-lg text-gray-800">{{ order.customer_name }}</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-gray-600 mb-1">Phone Number</p>
+                        <p class="font-bold text-lg text-gray-800">📞 {{ order.customer_phone }}</p>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <p class="text-gray-600 mb-1">Delivery Address</p>
+                        <p class="font-bold text-lg text-gray-800">📍 {{ order.customer_address }}</p>
+                    </div>
+                    
+                    {% if order.notes %}
+                    <div class="md:col-span-2">
+                        <p class="text-gray-600 mb-1">Order Notes</p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-gray-800">{{ order.notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Edit Customer Form (Hidden by default) -->
+            <form id="customer-edit-form" class="hidden" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_customer">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Customer Name *</label>
+                        <input type="text" 
+                               name="customer_name" 
+                               value="{{ order.customer_name }}" 
+                               required 
+                               minlength="2" 
+                               maxlength="200"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Enter customer name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Phone Number</label>
+                        <input type="tel" 
+                               name="customer_phone" 
+                               value="{{ order.customer_phone }}" 
+                               pattern="[+]?[0-9]{10,15}" 
+                               title="Enter 10-15 digit phone number (optional + prefix)"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Enter phone number">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-medium mb-2">Delivery Address</label>
+                        <textarea name="customer_address" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Enter delivery address">{{ order.customer_address }}</textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-medium mb-2">Order Notes</label>
+                        <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Enter any special instructions or notes">{{ order.notes }}</textarea>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium">
+                        Save Changes
+                    </button>
+                    <button type="button" onclick="toggleEditCustomer()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Order Items Card with Enhanced Actions -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Order Items</h2>
+                {% if order.status != 'delivered' and order.status != 'cancelled' %}
+                <a href="{% url 'restaurant:add_items_to_order' order.order_id %}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Items
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="space-y-4">
+                {% for item in order.items.all %}
+                <!-- Order Item with Enhanced Design -->
+                <div class="flex justify-between items-center pb-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 p-3 rounded-lg transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                            {% if item.menu_item.image %}
+                            <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="w-full h-full object-cover rounded-lg">
+                            {% else %}
+                            <span class="text-2xl">🍽️</span>
+                            {% endif %}
+                            {% if item.menu_item.is_vegetarian %}
+                            <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-1 py-0.5 rounded-bl">
+                                🥬
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-800 text-lg">{{ item.menu_item.name }}</h3>
+                            <p class="text-gray-600 text-sm">{{ item.menu_item.category.name }}</p>
+                            <div class="flex items-center gap-4 mt-2">
+                                <p class="text-indigo-600 font-medium">₹{{ item.price }} × {{ item.quantity }}</p>
+                                {% if item.menu_item.preparation_time %}
+                                <p class="text-gray-500 text-sm">⏱️ {{ item.menu_item.preparation_time }} min</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <p class="text-xl font-bold text-gray-800">₹{{ item.subtotal }}</p>
+                        {% if order.status == 'preparing' and item.menu_item.preparation_time %}
+                        <p class="text-xs text-gray-500 mt-1">Prep time: {{ item.menu_item.preparation_time }} min</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Enhanced Total Section -->
+            <div class="border-t-2 border-gray-200 mt-6 pt-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Subtotal ({{ order.items.count }} items):</span>
+                        <span class="font-semibold">₹{{ order.total_amount }}</span>
+                    </div>
+                    {% if order.delivery_charge and order.delivery_charge > 0 %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Delivery Charge:</span>
+                        <span class="font-semibold">₹{{ order.delivery_charge }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.discount_amount and order.discount_amount > 0 %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Discount:</span>
+                        <span class="font-semibold text-green-600">-₹{{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center text-2xl font-bold pt-2 border-t">
+                        <span class="text-gray-900">Total Amount:</span>
+                        <span class="text-indigo-600">₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Timeline -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Timeline</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Order Placed</h4>
+                            <p class="text-sm text-gray-600">{{ order.created_at|date:"M d, Y" }} at {{ order.created_at|time:"h:i A" }}</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                {% if order.status != 'pending' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Order Accepted</h4>
+                            <p class="text-sm text-gray-600">Restaurant confirmed your order</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% else %}
+                <div class="timeline-item current">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Order Accepted</h4>
+                            <p class="text-sm text-gray-600">Waiting for restaurant confirmation</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if order.status == 'preparing' %}
+                <div class="timeline-item current">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Preparing</h4>
+                            <p class="text-sm text-gray-600">Food is being prepared</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                {% elif order.status == 'ready' or order.status == 'out_for_delivery' or order.status == 'delivered' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Preparing</h4>
+                            <p class="text-sm text-gray-600">Food preparation completed</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% else %}
+                <div class="timeline-item pending">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Preparing</h4>
+                            <p class="text-sm text-gray-600">Food will be prepared soon</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if order.status == 'ready' %}
+                <div class="timeline-item current">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Ready for Pickup/Delivery</h4>
+                            <p class="text-sm text-gray-600">Order is ready and waiting</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                {% elif order.status == 'out_for_delivery' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Ready for Pickup/Delivery</h4>
+                            <p class="text-sm text-gray-600">Order prepared and ready</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% elif order.status == 'delivered' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Ready for Pickup/Delivery</h4>
+                            <p class="text-sm text-gray-600">Order prepared and ready</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% else %}
+                <div class="timeline-item pending">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Ready for Pickup/Delivery</h4>
+                            <p class="text-sm text-gray-600">Order will be ready soon</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if order.status == 'out_for_delivery' %}
+                <div class="timeline-item current">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Out for Delivery</h4>
+                            <p class="text-sm text-gray-600">Order is on the way</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                {% elif order.status == 'delivered' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Out for Delivery</h4>
+                            <p class="text-sm text-gray-600">Order delivered successfully</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% else %}
+                <div class="timeline-item pending">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Out for Delivery</h4>
+                            <p class="text-sm text-gray-600">Not applicable for pickup orders</p>
+                        </div>
+                        <div class="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if order.status == 'delivered' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Delivered</h4>
+                            <p class="text-sm text-gray-600">Order completed successfully</p>
+                        </div>
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% elif order.status == 'cancelled' %}
+                <div class="timeline-item completed">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-red-600">Cancelled</h4>
+                            <p class="text-sm text-gray-600">Order was cancelled</p>
+                        </div>
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Status & Actions Section -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-24 border border-gray-100">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Management</h2>
+            
+            <!-- Current Status Badge -->
+            <div class="mb-6">
+                <p class="text-gray-600 mb-2">Current Status:</p>
+                <span class="inline-block px-4 py-2 rounded-full text-lg font-bold status-badge status-{{ order.status }}">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="space-y-3 mb-6">
+                {% if order.is_table_order and order.table %}
+                <a href="{% url 'restaurant:print_kitchen_receipt' order.order_id %}" class="action-card flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Kitchen Receipt</h4>
+                            <p class="text-xs text-gray-600">Print for kitchen staff</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                
+                <a href="{% url 'restaurant:print_final_bill' order.order_id %}" class="action-card flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Final Bill</h4>
+                            <p class="text-xs text-gray-600">Customer receipt</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                
+                {% if order.status != 'delivered' and order.status != 'cancelled' %}
+                <a href="{% url 'restaurant:mark_order_complete' order.order_id %}" class="action-card flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Mark Complete</h4>
+                            <p class="text-xs text-gray-600">Complete order & payment</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                {% endif %}
+                {% endif %}
+                
+                <button onclick="printPackagingLabel()" class="action-card flex items-center justify-between group w-full">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="font-semibold text-gray-800">Packaging Label</h4>
+                            <p class="text-xs text-gray-600">Print label for package</p>
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Order Timing -->
+            <div class="mb-6 space-y-3">
+                <div>
+                    <p class="text-gray-600 text-sm">Order Placed:</p>
+                    <p class="font-bold text-gray-800">{{ order.created_at|date:"M d, Y" }}</p>
+                    <p class="text-gray-600">{{ order.created_at|time:"h:i A" }}</p>
+                </div>
+                
+                <div>
+                    <p class="text-gray-600 text-sm">Last Updated:</p>
+                    <p class="font-bold text-gray-800">{{ order.updated_at|date:"M d, Y" }}</p>
+                    <p class="text-gray-600">{{ order.updated_at|time:"h:i A" }}</p>
+                </div>
+                
+                {% if order.is_table_order and order.table %}
+                <div>
+                    <p class="text-gray-600 text-sm">Table Number:</p>
+                    <p class="font-bold text-emerald-600">🪑 Table {{ order.table.table_number }}</p>
+                </div>
+                {% endif %}
+                
+                {% if order.delivery_method %}
+                <div>
+                    <p class="text-gray-600 text-sm">Delivery Method:</p>
+                    <p class="font-bold text-gray-800">
+                        {% if order.delivery_method == 'delivery' %}
+                            🛵 Delivery
+                        {% elif order.delivery_method == 'pickup' %}
+                            🏃 Pickup
+                        {% elif order.delivery_method == 'dine_in' %}
+                            🍽️ Dine In
+                        {% else %}
+                            {{ order.get_delivery_method_display }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Update Status Form -->
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Update Status:</label>
+                    <select name="status" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors duration-200">
+                        {% for value, display in order.STATUS_CHOICES %}
+                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors duration-200 font-semibold flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Update Status
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- End Main Page Content -->
+
+<!-- Print Styles for Packaging Label -->
+<style>
+/* Hide print-only content on screen */
+@media screen {
+    .print-only {
+        display: none !important;
+    }
+}
+
+@media print {
+    /* Show print-only content when printing */
+    .print-only {
+        display: block !important;
+    }
+    
+    /* Hide screen-only elements */
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Set page size for standard shipping label (4x6 inches) */
+    @page {
+        size: 4in 6in;
+        margin: 0.25in;
+    }
+    
+    /* Main container for print */
+    body {
+        font-size: 12px;
+        line-height: 1.2;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Print header with restaurant info */
+    .print-header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+    
+    /* Order info styling */
+    .print-order-info {
+        margin-bottom: 10px;
+    }
+    
+    /* Customer info styling */
+    .print-customer-info {
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Items list styling */
+    .print-items {
+        margin-bottom: 10px;
+    }
+    
+    .print-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px dotted #ccc;
+    }
+    
+    /* Total styling */
+    .print-total {
+        font-weight: bold;
+        font-size: 14px;
+        border-top: 2px solid #000;
+        padding-top: 8px;
+        margin-top: 8px;
+    }
+    
+    /* QR code placeholder */
+    .print-qr {
+        text-align: center;
+        margin: 10px 0;
+        border: 2px dashed #000;
+        padding: 10px;
+        font-size: 10px;
+    }
+    
+    /* Status badge for print */
+    .print-status {
+        display: inline-block;
+        padding: 4px 8px;
+        border: 2px solid #000;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+}
+</style>
+
+<!-- JavaScript for Order Detail Functions -->
+<script>
+/**
+ * Toggle customer information edit form visibility
+ * Switches between display mode and edit mode for customer information
+ */
+function toggleEditCustomer() {
+    const displayDiv = document.getElementById('customer-info-display');
+    const editForm = document.getElementById('customer-edit-form');
+    
+    if (displayDiv.classList.contains('hidden')) {
+        // Show display mode, hide edit form
+        displayDiv.classList.remove('hidden');
+        editForm.classList.add('hidden');
+    } else {
+        // Show edit form, hide display mode
+        displayDiv.classList.add('hidden');
+        editForm.classList.remove('hidden');
+    }
+}
+
+/**
+ * Auto-show edit form if validation errors exist or URL parameter is set
+ * Improves user experience by showing the form when errors need to be addressed
+ */
+function autoShowEditFormIfNeeded() {
+    // Check for error messages
+    const errorMessages = document.querySelectorAll('.messages .error');
+    if (errorMessages.length > 0) {
+        // Show edit form if there are error messages
+        const displayDiv = document.getElementById('customer-info-display');
+        const editForm = document.getElementById('customer-edit-form');
+        
+        if (displayDiv && editForm) {
+            displayDiv.classList.add('hidden');
+            editForm.classList.remove('hidden');
+            
+            // Scroll to the edit form
+            editForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    // Check for URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('edit') === 'customer') {
+        toggleEditCustomer();
+    }
+}
+
+/**
+ * Initialize page functionality
+ * Sets up event listeners and auto-show functionality
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-show edit form if there are validation errors or URL parameter
+    autoShowEditFormIfNeeded();
+});
+
+/**
+ * Print packaging label for order
+ * Opens a new window with optimized print layout for shipping labels
+ */
+function printPackagingLabel() {
+    // Get the print-only content
+    const printContent = document.querySelector('.print-only');
+    if (!printContent) {
+        alert('Print content not found');
+        return;
+    }
+    
+    // Try to open a new window (check for popup blockers)
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    
+    if (!printWindow) {
+        alert('Popup blocker detected! Please allow popups for this site to print labels.');
+        return;
+    }
+    
+    // Write the print content with proper styles
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Packaging Label - Order #{{ order.order_id|slice:":8" }}</title>
+            <style>
+                @page {
+                    size: 4in 6in;
+                    margin: 0.25in;
+                }
+                body {
+                    font-size: 12px;
+                    line-height: 1.2;
+                    margin: 0;
+                    padding: 0;
+                    font-family: Arial, sans-serif;
+                }
+                .print-header {
+                    text-align: center;
+                    border-bottom: 2px solid #000;
+                    padding-bottom: 8px;
+                    margin-bottom: 12px;
+                }
+                .print-order-info {
+                    margin-bottom: 10px;
+                }
+                .print-customer-info {
+                    margin-bottom: 10px;
+                    background: #f9f9f9;
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                }
+                .print-items {
+                    margin-bottom: 10px;
+                }
+                .print-item {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 4px 0;
+                    border-bottom: 1px dotted #ccc;
+                }
+                .print-total {
+                    font-weight: bold;
+                    font-size: 14px;
+                    border-top: 2px solid #000;
+                    padding-top: 8px;
+                    margin-top: 8px;
+                }
+                .print-qr {
+                    text-align: center;
+                    margin: 10px 0;
+                    border: 2px dashed #000;
+                    padding: 10px;
+                    font-size: 10px;
+                }
+                .print-status {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border: 2px solid #000;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+            </style>
+        </head>
+        <body>
+            ${printContent.innerHTML}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait for content to load, then print and close with delay
+    printWindow.onload = function() {
+        printWindow.print();
+        // Add delay before closing to ensure print dialog completes
+        setTimeout(function() {
+            printWindow.close();
+        }, 500);
+    };
+    
+    // Fallback: close window after 3 seconds even if onload doesn't fire
+    setTimeout(function() {
+        if (printWindow && !printWindow.closed) {
+            printWindow.close();
+        }
+    }, 3000);
+}
+</script>
+
+<!-- Print-only Content (hidden on screen, visible when printing) -->
+<div class="print-only">
+    <div class="print-header">
+        <h2 style="margin: 0; font-size: 16px;">
+            {% if order.items.first %}
+                {{ order.items.first.menu_item.restaurant.name }}
+            {% else %}
+                Restaurant Order
+            {% endif %}
+        </h2>
+        <p style="margin: 2px 0; font-size: 10px;">Packaging Label</p>
+    </div>
+    
+    <div class="print-order-info">
+        <strong>Order #{{ order.order_id|slice:":8" }}</strong><br>
+        <strong>Placed:</strong> {{ order.created_at|date:"M d, Y H:i" }}<br>
+        <strong>Status:</strong> <span class="print-status">{{ order.get_status_display }}</span><br>
+        <strong>Type:</strong> {% if order.delivery_method == 'delivery' %}Delivery{% else %}Pickup{% endif %}
+    </div>
+    
+    <div class="print-customer-info">
+        <strong>Customer:</strong> {{ order.customer_name }}<br>
+        <strong>Phone:</strong> {{ order.customer_phone }}<br>
+        {% if order.delivery_method == 'delivery' %}
+        <strong>Address:</strong> {{ order.customer_address }}
+        {% endif %}
+    </div>
+    
+    <div class="print-items">
+        <strong>Order Items:</strong>
+        {% for item in order.items.all %}
+        <div class="print-item">
+            <span>{{ item.quantity }}x {{ item.menu_item.name }}</span>
+            <span>₹{{ item.subtotal }}</span>
+        </div>
+        {% endfor %}
+        <div class="print-total">
+            Total: ₹{{ order.total_amount }}
+        </div>
+    </div>
+    
+    <div class="print-qr">
+        <div style="font-size: 8px;">ORDER ID FOR SCANNING</div>
+        <div style="font-family: monospace; font-size: 10px; letter-spacing: 1px;">{{ order.order_id|slice:":8" }}</div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,261 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Shopping Cart | QuickBite{% endblock %}
+
+{% block content %}
+<!--
+==============================================
+MODERN SHOPPING CART PAGE - REDESIGNED
+==============================================
+Clean, intuitive cart interface with modern design:
+
+FEATURES:
+- Minimalist hero section with breadcrumb
+- Clean item cards with image, details, and controls
+- Simple checkout section with total
+- Smooth animations and transitions
+- Mobile-responsive design
+- Empty cart state with call-to-action
+- Quick quantity updates
+- Remove item confirmation
+- Promo codes applied at checkout
+
+DESIGN PRINCIPLES:
+- Clean white cards with subtle shadows
+- Orange/red accent colors for CTAs
+- Generous white space
+- Clear typography hierarchy
+- Intuitive iconography
+- Smooth hover effects
+-->
+
+<!-- Breadcrumb Navigation -->
+<div class="bg-gray-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <nav class="flex items-center space-x-2 text-sm">
+            <a href="{% url 'customer:home' %}" class="text-gray-500 hover:text-orange-600 transition-colors duration-200 flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                </svg>
+                Home
+            </a>
+            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-gray-900 font-medium">🛒 Shopping Cart</span>
+        </nav>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-orange-50 via-white to-red-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    🛒 Your Cart
+                    <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-lg font-semibold">
+                        {{ cart_items|length }} item{{ cart_items|length|pluralize }}
+                    </span>
+                </h1>
+                <p class="text-gray-600">Review your items and proceed to checkout</p>
+            </div>
+            <!-- Progress Steps -->
+            <div class="hidden md:flex items-center space-x-4">
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white font-bold shadow-lg">
+                        🛒
+                    </div>
+                    <span class="ml-2 text-sm font-semibold text-orange-600">Cart</span>
+                </div>
+                <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-500 font-bold">
+                        2
+                    </div>
+                    <span class="ml-2 text-sm font-medium text-gray-500">Checkout</span>
+                </div>
+                <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-500 font-bold">
+                        3
+                    </div>
+                    <span class="ml-2 text-sm font-medium text-gray-500">Payment</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Main Content Area -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {% if cart %}
+    <!-- Cart Items and Summary Grid -->
+    <div class="max-w-4xl mx-auto">
+        <!-- Cart Items Section (Full width) -->
+        <div class="space-y-6">
+            {% for item in cart %}
+            <!--
+            ==============================================
+            CART ITEM CARD
+            ==============================================
+            Clean card design for each cart item:
+            - Product image with hover effect
+            - Item name and restaurant
+            - Quantity controls with AJAX updates
+            - Price calculation
+            - Remove button
+            - Smooth animations
+            -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border border-gray-100">
+                <div class="flex gap-6">
+                    <!-- Product Image -->
+                    <div class="w-32 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                        <img src="{{ item.menu_item|get_menu_item_image:'full' }}" 
+                             alt="{{ item.menu_item.name }}"
+                             class="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                             onerror="this.src='/media/placeholders/food_default.jpg'">
+                    </div>
+                    
+                    <!-- Item Details -->
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-1">{{ item.menu_item.name }}</h3>
+                                <p class="text-sm text-gray-600">{{ item.menu_item.restaurant.name }}</p>
+                            </div>
+                            <!-- Remove Button -->
+                            <form method="POST" action="{% url 'customer:cart_remove' item.menu_item.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-gray-400 hover:text-red-600 transition-colors duration-200 p-2 hover:bg-red-50 rounded-lg"
+                                        title="Remove item">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Category Badge -->
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 mb-3">
+                            {{ item.menu_item.category.name }}
+                        </span>
+                        
+                        <!-- Price and Quantity Controls -->
+                        <div class="flex items-center justify-between mt-4">
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 font-medium">Quantity:</span>
+                                <div class="flex items-center bg-gray-100 rounded-lg">
+                                    <form method="POST" action="{% url 'customer:cart_update' item.menu_item.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="{{ item.quantity|add:'-1' }}">
+                                        <button type="submit" 
+                                                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-l-lg transition-colors duration-200"
+                                                {% if item.quantity <= 1 %}disabled{% endif %}>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    <span class="w-12 text-center font-bold text-gray-900">{{ item.quantity }}</span>
+                                    <form method="POST" action="{% url 'customer:cart_update' item.menu_item.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="{{ item.quantity|add:'1' }}">
+                                        <button type="submit" 
+                                                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-r-lg transition-colors duration-200">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Item Total Price -->
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600">Rs {{ item.price }} each</p>
+                                <p class="text-2xl font-bold text-gray-900">Rs {{ item.total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Simple Checkout Button Section -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-center sm:text-left">
+                    <p class="text-gray-600 mb-1">Cart Total</p>
+                    <p class="text-3xl font-bold text-gray-900">Rs {{ cart.get_total_price }}</p>
+                </div>
+                
+                <a href="{% url 'customer:checkout' %}" 
+                   class="block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-center py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                    🛒 Proceed to Checkout
+                    <svg class="inline-block w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </a>
+            </div>
+            
+            <p class="text-sm text-gray-600 text-center mt-4">
+                🎁 Apply promo codes and loyalty points at checkout for extra savings!
+            </p>
+        </div>
+    </div>
+    
+    {% else %}
+    <!--
+    ==============================================
+    EMPTY CART STATE
+    ==============================================
+    Friendly empty state with call-to-action:
+    - Large icon
+    - Clear message
+    - Browse restaurants button
+    - Suggested actions
+    -->
+    <div class="text-center py-16">
+        <div class="max-w-md mx-auto">
+            <div class="text-8xl mb-6">🛒</div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
+            <p class="text-gray-600 mb-8">Looks like you haven't added any items to your cart yet. Start exploring our delicious menu!</p>
+            
+            <a href="{% url 'customer:home' %}" 
+               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Browse Restaurants
+            </a>
+            
+            <!-- Suggested Actions -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 bg-gray-50 rounded-xl">
+                    <div class="text-4xl mb-3">🍕</div>
+                    <h3 class="font-bold text-gray-900 mb-2">Popular Dishes</h3>
+                    <p class="text-sm text-gray-600">Explore trending items</p>
+                </div>
+                <div class="p-6 bg-gray-50 rounded-xl">
+                    <div class="text-4xl mb-3">⭐</div>
+                    <h3 class="font-bold text-gray-900 mb-2">Top Rated</h3>
+                    <p class="text-sm text-gray-600">Try customer favorites</p>
+                </div>
+                <div class="p-6 bg-gray-50 rounded-xl">
+                    <div class="text-4xl mb-3">🎉</div>
+                    <h3 class="font-bold text-gray-900 mb-2">Special Offers</h3>
+                    <p class="text-sm text-gray-600">Check out deals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

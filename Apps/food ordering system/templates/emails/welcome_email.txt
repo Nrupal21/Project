@@ -1,0 +1,29 @@
+Welcome to {{ site_name }}! 🍽️
+
+Hello {{ user.first_name|default:user.username }},
+
+Welcome to {{ site_name }}! We're excited to have you join our community of food lovers. Your account has been created successfully and you're ready to start ordering delicious food from your favorite restaurants.
+
+Account Details:
+Username: {{ user.username }}
+Email: {{ user.email }}
+Registration Date: {{ user.date_joined|date:"F d, Y" }}
+
+What You Can Do Now:
+🍔 Browse Restaurants - Discover amazing food from local eateries
+🛒 Place Orders - Order your favorite dishes with just a few clicks
+🚚 Track Deliveries - Real-time tracking of your food delivery
+⭐ Write Reviews - Share your experience with the community
+❤️ Save Favorites - Create a wishlist of your favorite restaurants
+
+Get Started:
+Login to your account: {{ login_url }}
+
+Restaurant Owners:
+If you're a restaurant owner, you can upgrade your account to register your restaurant and start receiving orders from our platform!
+
+Thank you for choosing {{ site_name }}! 🎉
+
+If you have any questions, please contact our support team at support@{{ site_domain|default:"foodordering.com" }}
+
+© {{ current_year }} {{ site_name }}. All rights reserved.

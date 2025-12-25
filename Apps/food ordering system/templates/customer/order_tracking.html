@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Order - {{ order.order_id|upper|slice:":8" }} - Food Ordering System{% endblock %}
+
+{% block content %}
+<!-- 
+    ============================================
+    ORDER TRACKING PAGE
+    ============================================
+    Real-time order tracking interface for customers.
+    
+    Purpose:
+    --------
+    - Display current order status with visual timeline
+    - Show progress through order fulfillment stages
+    - Provide order details and customer information
+    - Auto-refresh every 30 seconds for real-time updates
+    
+    Features:
+    ---------
+    - Interactive visual timeline with status progression
+    - Color-coded status indicators (green=completed, rose=current, gray=pending)
+    - Complete order details display
+    - Customer information section
+    - Itemized order list with prices
+    - Auto-refresh for real-time status updates
+    - Current status banner with emoji
+    
+    Order Status Flow:
+    ------------------
+    1. Pending → Order Received (📝)
+    2. Accepted → Order Accepted (✅)
+    3. Preparing → Preparing Food (👨‍🍳)
+    4. Out for Delivery → On the Way (🚚)
+    5. Delivered → Successfully Delivered (🎉)
+    
+    Design:
+    -------
+    - Clean white cards on gray background
+    - Vertical timeline visualization
+    - Responsive layout for all devices
+    - Gradient status banner for current state
+-->
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- 
+            Page Header
+            ===========
+            Title and order ID with navigation link.
+            Shows truncated order ID (first 8 characters) for reference.
+        -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Track Your Order</h1>
+                    <p class="text-gray-600">Order #{{ order.order_id|upper|slice:":8" }}</p>
+                </div>
+                <!-- Back navigation link -->
+                <a href="{% url 'customer:order_history' %}" class="text-rose-500 hover:text-rose-600 font-medium">
+                    ← Back to Order History
+                </a>
+            </div>
+        </div>
+
+        <!-- 
+            Order Status Timeline Card
+            ===========================
+            Visual representation of order progress through status stages.
+            
+            Timeline Structure:
+            -------------------
+            - Vertical line connecting all stages
+            - Each stage has: Icon/Number + Title + Description
+            - Color coding:
+              * Green: Completed stages
+              * Rose: Current active stage
+              * Gray: Pending stages
+            
+            Status Data:
+            ------------
+            Provided by view as 'status_timeline' dictionary:
+            - title: Stage name
+            - description: What's happening
+            - icon: Emoji representation
+            - completed: Boolean flag
+        -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Progress</h2>
+            
+            <!-- 
+                Timeline Container
+                ===================
+                Relative positioning for vertical line and status dots.
+                Vertical gray line runs from top to bottom connecting all stages.
+            -->
+            <div class="relative">
+                <!-- Vertical timeline line connecting all status points -->
+                <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                
+                <!-- 
+                    Status Timeline Loop
+                    ====================
+                    Iterates through all order status stages.
+                    Each stage displays differently based on completion state.
+                -->
+                {% for status_key, status_info in status_timeline.items %}
+                <!-- 
+                    Timeline Item
+                    =============
+                    Single status stage in the timeline.
+                    Layout: [Dot] [Title + Description] [Emoji]
+                -->
+                <div class="relative flex items-start mb-8 last:mb-0">
+                    <!-- 
+                        Timeline Status Indicator
+                        ==========================
+                        Circular badge showing stage status.
+                        
+                        States:
+                        -------
+                        1. Completed (Green): Shows checkmark icon
+                        2. Current (Rose): Shows stage number, animating
+                        3. Pending (Gray): Shows stage number, inactive
+                    -->
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center z-10
+                        {% if status_info.completed %}
+                            bg-green-500 border-green-500 text-white
+                        {% elif current_status == status_key %}
+                            bg-rose-500 border-rose-500 text-white
+                        {% else %}
+                            bg-white border-gray-300 text-gray-400
+                        {% endif %}">
+                        <!-- Show checkmark for completed stages -->
+                        {% if status_info.completed %}
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        <!-- Show stage number for current/pending stages -->
+                        {% else %}
+                            <span class="text-sm font-bold">{{ forloop.counter }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 
+                        Timeline Content Section
+                        =========================
+                        Title, description, and emoji for this status stage.
+                        
+                        Styling:
+                        - Active/Completed: Dark text (gray-900/600)
+                        - Pending: Light gray text (gray-400)
+                    -->
+                    <div class="ml-6 flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <!-- Status title with conditional coloring -->
+                                <h3 class="text-lg font-medium {% if status_info.completed or current_status == status_key %}text-gray-900{% else %}text-gray-400{% endif %}">
+                                    {{ status_info.title }}
+                                </h3>
+                                <!-- Status description with conditional coloring -->
+                                <p class="text-sm {% if status_info.completed or current_status == status_key %}text-gray-600{% else %}text-gray-400{% endif %}">
+                                    {{ status_info.description }}
+                                </p>
+                            </div>
+                            <!-- Status emoji icon -->
+                            <div class="text-2xl">
+                                {{ status_info.icon }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 
+            Order Details Card
+            ==================
+            Complete order information including:
+            - Customer information
+            - Order items list
+            - Order summary and totals
+        -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+            <!-- Card header with gray background -->
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Order Details</h2>
+            </div>
+            
+            <div class="p-6">
+                <!-- 
+                    Customer Information Section
+                    ============================
+                    Displays customer details in responsive grid.
+                    Shows: Name, Phone, Delivery Method, Address (if delivery)
+                -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Customer Information</h3>
+                    <!-- Responsive 2-column grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Name:</span>
+                            <span class="text-gray-900 ml-2 font-medium">{{ order.customer_name }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Phone:</span>
+                            <span class="text-gray-900 ml-2 font-medium">{{ order.customer_phone }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Delivery Method:</span>
+                            <span class="text-gray-900 ml-2 font-medium">{{ order.get_delivery_method_display }}</span>
+                        </div>
+                        {% if order.customer_address %}
+                        <div>
+                            <span class="text-gray-500">Address:</span>
+                            <span class="text-gray-900 ml-2 font-medium">{{ order.customer_address }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 
+                    Order Items List
+                    ================
+                    All items in the order with quantities and prices.
+                    
+                    Display Format:
+                    ---------------
+                    [Item Name]             [₹Price × Qty]
+                    [Restaurant Name]       [₹Subtotal]
+                -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Order Items</h3>
+                    <div class="space-y-3">
+                        {% for item in order.items.all %}
+                        <!-- Single order item row -->
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
+                            <div class="flex-1">
+                                <!-- Item name and restaurant -->
+                                <p class="text-gray-900 font-medium">{{ item.menu_item.name }}</p>
+                                <p class="text-sm text-gray-500">{{ item.menu_item.restaurant.name }}</p>
+                            </div>
+                            <div class="text-right">
+                                <!-- Price calculation display -->
+                                <p class="text-gray-900">₹{{ item.price }} × {{ item.quantity }}</p>
+                                <p class="text-sm text-gray-500">₹{{ item.get_total }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 
+                    Order Summary Footer
+                    ====================
+                    Order timestamp, notes, and total amount.
+                -->
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <!-- Order placement date and time -->
+                            <p class="text-sm text-gray-500">Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|date:"g:i A" }}</p>
+                            <!-- Show customer notes if provided -->
+                            {% if order.notes %}
+                            <p class="text-sm text-gray-500 mt-1">Notes: {{ order.notes }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            <!-- Total amount prominently displayed -->
+                            <p class="text-lg font-semibold text-gray-900">Total: ₹{{ order.total_amount }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 
+            Current Status Banner
+            =====================
+            Highlighted banner showing current order status.
+            
+            Features:
+            - Gradient rose background for emphasis
+            - Status text in white
+            - Large emoji icon matching current status
+            
+            Status Emojis:
+            --------------
+            - Pending: 📝 (Note)
+            - Accepted: ✅ (Checkmark)
+            - Preparing: 👨‍🍳 (Chef)
+            - Out for Delivery: 🚚 (Truck)
+            - Delivered: 🎉 (Party)
+            - Cancelled: ❌ (X Mark)
+        -->
+        <div class="bg-gradient-to-r from-rose-500 to-rose-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold mb-1">Current Status</h3>
+                    <p class="text-rose-100">{{ order.get_status_display }}</p>
+                </div>
+                <!-- Conditional emoji based on order status -->
+                <div class="text-4xl">
+                    {% if order.status == 'pending' %}📝
+                    {% elif order.status == 'accepted' %}✅
+                    {% elif order.status == 'preparing' %}👨‍🍳
+                    {% elif order.status == 'out_for_delivery' %}🚚
+                    {% elif order.status == 'delivered' %}🎉
+                    {% elif order.status == 'cancelled' %}❌
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 
+    ============================================
+    AUTO-REFRESH JAVASCRIPT
+    ============================================
+    Automatically refreshes the page every 30 seconds to fetch
+    the latest order status from the server.
+    
+    Functionality:
+    --------------
+    - Sets a 30-second timer on page load
+    - Reloads entire page when timer expires
+    - Provides real-time status updates without manual refresh
+    
+    Note:
+    -----
+    - Simple full page reload (not AJAX)
+    - Timer resets on each reload
+    - Only runs once per page load
+    - Can be improved with AJAX for smoother updates
+-->
+<script>
+/**
+ * Auto-refresh timer for real-time order status updates.
+ * Reloads the page every 30 seconds to fetch latest order status.
+ * 
+ * @function
+ * @name autoRefreshOrderStatus
+ * @description Sets timeout to reload page after 30000ms (30 seconds)
+ */
+setTimeout(function() {
+    // Reload the entire page to get fresh order data
+    window.location.reload();
+}, 30000); // 30 seconds = 30000 milliseconds
+</script>
+
+<!-- End of Order Tracking Page -->
+{% endblock %}

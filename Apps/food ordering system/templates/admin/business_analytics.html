@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}💰 Business & Revenue Analytics - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .metric-success { background: #10b981; color: white; }
+    .metric-warning { background: #f59e0b; color: white; }
+    .metric-danger { background: #ef4444; color: white; }
+    .metric-info { background: #3b82f6; color: white; }
+    .revenue-positive { color: #10b981; }
+    .revenue-negative { color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                    <p class="text-gray-600 mt-2">Revenue analytics, order trends, and business performance metrics</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">{{ last_updated }}</span></span>
+                    <button onclick="refreshDashboard()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Refresh
+                    </button>
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=business" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Export CSV
+                    </a>
+                    <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        ← Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Revenue -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Revenue</p>
+                        <p class="text-3xl font-bold mt-2">${{ business_data.total_revenue|floatformat:0 }}</p>
+                        <div class="flex items-center mt-2">
+                            {% if business_data.daily_growth > 0 %}
+                                <span class="metric-badge metric-success">+{{ business_data.daily_growth }}%</span>
+                                <span class="text-white/70 text-xs ml-2">vs yesterday</span>
+                            {% elif business_data.daily_growth < 0 %}
+                                <span class="metric-badge metric-danger">{{ business_data.daily_growth }}%</span>
+                                <span class="text-white/70 text-xs ml-2">vs yesterday</span>
+                            {% else %}
+                                <span class="metric-badge metric-info">0%</span>
+                                <span class="text-white/70 text-xs ml-2">vs yesterday</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Orders -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Orders</p>
+                        <p class="text-3xl font-bold mt-2">{{ business_data.total_orders }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">+{{ business_data.orders_today }}</span>
+                            <span class="text-white/70 text-xs ml-2">today</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Order Value -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Avg Order Value</p>
+                        <p class="text-3xl font-bold mt-2">${{ business_data.avg_order_value|floatformat:2 }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">Per order</span>
+                            <span class="text-white/70 text-xs ml-2">average</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Revenue -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Monthly Revenue</p>
+                        <p class="text-3xl font-bold mt-2">${{ business_data.revenue_month|floatformat:0 }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">{{ business_data.orders_month }}</span>
+                            <span class="text-white/70 text-xs ml-2">orders</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Trends Chart -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Revenue Trends (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="revenueTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Order Status Distribution -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📦 Order Status Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Orders vs Revenue -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Orders vs Revenue Correlation</h3>
+                <div class="chart-container">
+                    <canvas id="ordersRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performing Restaurants -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Top Performing Restaurants</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Order Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for restaurant in business_data.top_restaurants %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ restaurant.restaurant__name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ restaurant.orders }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ restaurant.revenue|floatformat:2 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${{ restaurant.revenue|div:restaurant.orders|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if restaurant.revenue > 1000 %}
+                                    <span class="metric-badge metric-success">Excellent</span>
+                                {% elif restaurant.revenue > 500 %}
+                                    <span class="metric-badge metric-warning">Good</span>
+                                {% else %}
+                                    <span class="metric-badge metric-info">Growing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Popular Menu Items -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🍽️ Popular Menu Items</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for item in business_data.popular_items %}
+                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ item.name }}</h4>
+                        <span class="metric-badge metric-info">{{ item.orders }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">{{ item.restaurant }}</p>
+                    <p class="text-sm font-medium text-green-600">${{ item.revenue|floatformat:2 }} revenue</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Business Metrics Summary -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Business Metrics Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Orders Today</h4>
+                    <p class="text-3xl font-bold text-blue-600">{{ business_data.orders_today }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Today's orders</p>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Orders This Week</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ business_data.orders_week }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 7 days</p>
+                </div>
+                <div class="text-center p-6 bg-purple-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Orders This Month</h4>
+                    <p class="text-3xl font-bold text-purple-600">{{ business_data.orders_month }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Last 30 days</p>
+                </div>
+                <div class="text-center p-6 bg-orange-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Revenue Today</h4>
+                    <p class="text-3xl font-bold text-orange-600">${{ business_data.revenue_today|floatformat:0 }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Today's revenue</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Quick Navigation</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'admin_monitoring:authentication_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🔐</div>
+                    <h4 class="font-semibold text-gray-900">Authentication</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:restaurant_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🍽️</div>
+                    <h4 class="font-semibold text-gray-900">Restaurant Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:customer_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">👥</div>
+                    <h4 class="font-semibold text-gray-900">Customer Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:system_health_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">⚙️</div>
+                    <h4 class="font-semibold text-gray-900">System Health</h4>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js Configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Revenue Trends Chart
+const revenueTrendsCtx = document.getElementById('revenueTrendsChart').getContext('2d');
+/* eslint-disable */
+const revenueData = {{ business_data.revenue_trends|safe }};
+/* eslint-enable */
+const revenueTrendsChart = new Chart(revenueTrendsCtx, {
+    type: 'line',
+    data: {
+        labels: revenueData.map(item => item.date),
+        datasets: [{
+            label: 'Daily Revenue ($)',
+            data: revenueData.map(item => item.revenue),
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Daily Orders',
+            data: revenueData.map(item => item.orders),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Revenue ($)'
+                },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value;
+                    }
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Orders'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+
+// Order Status Chart
+const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+/* eslint-disable */
+const orderStatusData = {{ business_data.order_status|safe }};
+/* eslint-enable */
+const orderStatusChart = new Chart(orderStatusCtx, {
+    type: 'pie',
+    data: {
+        labels: orderStatusData.map(item => item.status),
+        datasets: [{
+            data: orderStatusData.map(item => item.count),
+            backgroundColor: [
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(107, 114, 128, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            }
+        }
+    }
+});
+
+// Orders vs Revenue Correlation Chart
+const ordersRevenueCtx = document.getElementById('ordersRevenueChart').getContext('2d');
+const ordersRevenueChart = new Chart(ordersRevenueCtx, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Orders vs Revenue',
+            data: revenueData.map(item => ({
+                x: item.orders,
+                y: item.revenue
+            })),
+            backgroundColor: 'rgba(99, 102, 241, 0.6)',
+            borderColor: 'rgb(99, 102, 241)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Number of Orders'
+                },
+                beginAtZero: true
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Revenue ($)'
+                },
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Refresh functionality
+function refreshDashboard() {
+    fetch('{% url "admin_monitoring:api_stats" %}?type=business')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            
+            // Update KPI cards
+            document.querySelector('.kpi-card:nth-child(1) .text-3xl').textContent = '$' + data.data.business.total_revenue.toFixed(0);
+            document.querySelector('.kpi-card:nth-child(2) .text-3xl').textContent = data.data.business.total_orders;
+            document.querySelector('.kpi-card:nth-child(3) .text-3xl').textContent = '$' + data.data.business.avg_order_value.toFixed(2);
+            document.querySelector('.kpi-card:nth-child(4) .text-3xl').textContent = '$' + data.data.business.revenue_month.toFixed(0);
+            
+            // Update charts
+            const newRevenueData = data.data.business.revenue_trends;
+            revenueTrendsChart.data.datasets[0].data = newRevenueData.map(item => item.revenue);
+            revenueTrendsChart.data.datasets[1].data = newRevenueData.map(item => item.orders);
+            revenueTrendsChart.update();
+            
+            orderStatusChart.data.datasets[0].data = data.data.business.order_status.map(item => item.count);
+            orderStatusChart.update();
+            
+            ordersRevenueChart.data.datasets[0].data = newRevenueData.map(item => ({
+                x: item.orders,
+                y: item.revenue
+            }));
+            ordersRevenueChart.update();
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+        });
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+
+// Custom filter for template division
+const div = (a, b) => b !== 0 ? a / b : 0;
+</script>
+{% endblock %}

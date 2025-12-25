@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Success - Food Ordering System{% endblock %}
+
+{% block content %}
+<!-- 
+    ============================================
+    ORDER SUCCESS PAGE
+    ============================================
+    Confirmation page displayed after successful order placement.
+    
+    Purpose:
+    --------
+    - Confirms order was placed successfully
+    - Displays complete order details for customer reference
+    - Provides order ID for tracking
+    - Shows estimated delivery time
+    - Offers quick actions (back to home, order more)
+    
+    Features:
+    ---------
+    - Success animation and messaging
+    - Order ID prominently displayed
+    - Complete customer information
+    - Itemized order list
+    - Total amount breakdown
+    - Current order status badge
+    - Estimated delivery time
+    - Action buttons for next steps
+    
+    Design:
+    -------
+    - Airbnb-inspired clean design
+    - Card-based layout for information sections
+    - Gradient backgrounds for emphasis
+    - Responsive grid for customer details
+    - Large, readable fonts for important info
+-->
+
+<!-- Success Message Container - Centered layout with max width -->
+<div class="max-w-3xl mx-auto text-center py-8 fade-in">
+    <!-- 
+        Success Icon
+        Large checkmark emoji providing immediate visual confirmation
+    -->
+    <div class="text-8xl mb-6">✅</div>
+    
+    <!-- 
+        Success Message Header
+        Primary confirmation message with thank you note
+        Reassures customer that order was received
+    -->
+    <h1 class="text-3xl lg:text-4xl font-semibold text-gray-900 mb-4">Order Placed Successfully!</h1>
+    <p class="text-xl text-gray-600 mb-8">
+        Thank you for your order. Your delicious food is on its way!
+    </p>
+    
+    <!-- 
+        Order Details Card - Main Information Container
+        ================================================
+        White card containing all order information:
+        - Order ID for tracking
+        - Customer information (name, phone, address)
+        - Order items list with quantities and prices
+        - Total amount
+        - Current status badge
+        
+        Design: Airbnb-style clean card with rounded corners and subtle shadow
+    -->
+    <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Order Details</h2>
+        
+        <!-- 
+            Order ID Display
+            ================
+            Prominently displayed order ID for customer reference and tracking.
+            Uses monospace font for easy reading and copying.
+            Highlighted with rose background for emphasis.
+        -->
+        <div class="bg-rose-50 border-2 border-rose-200 rounded-xl p-4 mb-6">
+            <p class="text-gray-600 mb-1">Order ID</p>
+            <p class="text-2xl font-semibold text-rose-600 font-mono">{{ order.order_id }}</p>
+        </div>
+        
+        <!-- 
+            Customer Information Grid
+            ==========================
+            Displays customer details in responsive 2-column layout:
+            - Name: Full customer name
+            - Phone: Contact number for delivery
+            - Address: Full delivery address (spans both columns)
+            
+            Layout: Single column on mobile, 2 columns on tablet/desktop
+        -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-6">
+            <div>
+                <p class="text-gray-600 mb-1">Customer Name</p>
+                <p class="font-semibold text-gray-900">{{ order.customer_name }}</p>
+            </div>
+            
+            <div>
+                <p class="text-gray-600 mb-1">Phone Number</p>
+                <p class="font-semibold text-gray-900">{{ order.customer_phone }}</p>
+            </div>
+            
+            <div class="md:col-span-2">
+                <p class="text-gray-600 mb-1">Delivery Address</p>
+                <p class="font-semibold text-gray-900">{{ order.customer_address }}</p>
+            </div>
+        </div>
+        
+        <!-- 
+            Order Items List
+            ================
+            Itemized list of all ordered menu items.
+            Shows quantity, item name, and subtotal for each.
+            
+            Loop: Iterates through all order.items (OrderItem objects)
+            Display: Quantity × Item Name | Subtotal
+        -->
+        <div class="border-t border-gray-100 pt-6 mb-6">
+            <h3 class="font-semibold text-lg text-gray-900 mb-4">Order Items</h3>
+            <div class="space-y-3">
+                {% for item in order.items.all %}
+                <!-- Single item row with quantity, name, and price -->
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700">
+                        <span class="font-medium">{{ item.quantity }}x</span> {{ item.menu_item.name }}
+                    </span>
+                    <span class="font-semibold text-gray-900">₹{{ item.subtotal }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 
+            Total Amount Display
+            ====================
+            Final order total including all items, discounts, and delivery charges.
+            Displayed prominently with large font and rose color for emphasis.
+        -->
+        <div class="border-t border-gray-100 pt-4">
+            <div class="flex justify-between items-center text-2xl font-semibold">
+                <span class="text-gray-900">Total Amount:</span>
+                <span class="text-rose-600">₹{{ order.total_amount }}</span>
+            </div>
+        </div>
+        
+        <!-- 
+            Order Status Badge
+            ==================
+            Current order status displayed as colored badge.
+            Color determined by order.get_status_display_class() method.
+            
+            Possible statuses:
+            - Pending: Yellow badge
+            - Accepted: Blue badge
+            - Preparing: Purple badge
+            - Out for Delivery: Indigo badge
+            - Delivered: Green badge
+            - Cancelled: Red badge
+        -->
+        <div class="mt-6">
+            <span class="inline-block px-6 py-3 rounded-full text-lg font-bold {{ order.get_status_display_class }}">
+                Status: {{ order.get_status_display }}
+            </span>
+        </div>
+    </div>
+    
+    <!-- 
+        Estimated Delivery Time Banner
+        ===============================
+        Gradient banner showing expected delivery timeframe.
+        Provides customer expectation for when to expect their food.
+        
+        Design: Gradient from rose to orange for warm, inviting feel
+    -->
+    <div class="bg-gradient-to-r from-rose-50 to-orange-50 rounded-xl p-6 mb-8">
+        <p class="text-lg text-gray-700">
+            <span class="font-semibold">⏰ Estimated Delivery Time:</span> 30-45 minutes
+        </p>
+    </div>
+    
+    <!-- 
+        Action Buttons Section
+        =======================
+        Quick action buttons for next steps:
+        1. Back to Home - Return to restaurant browsing
+        2. Order More - Browse menu again
+        
+        Layout: Stack vertically on mobile, horizontal on desktop
+    -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <!-- Primary Action: Back to Home -->
+        <a href="{% url 'customer:home' %}">
+            <button class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full transition-colors duration-200 font-semibold text-lg">
+                🏠 Back to Home
+            </button>
+        </a>
+        
+        <!-- Secondary Action: Order More -->
+        <a href="{% url 'customer:menu' %}">
+            <button class="bg-white border-2 border-rose-500 text-rose-500 px-8 py-4 rounded-full hover:bg-rose-50 transition-colors duration-200 font-semibold text-lg">
+                🍽️ Order More
+            </button>
+        </a>
+    </div>
+    
+    <!-- 
+        Thank You Message
+        =================
+        Final thank you message with next steps information.
+        Informs customer that restaurant will call to confirm.
+    -->
+    <div class="mt-12 text-gray-600">
+        <p class="text-lg">
+            We'll call you shortly to confirm your order. <br>
+            Thank you for choosing our food ordering service! 🎉
+        </p>
+    </div>
+</div>
+
+<!-- End of Order Success Page -->
+
+{% endblock %}

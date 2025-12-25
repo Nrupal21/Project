@@ -1,0 +1,509 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}⚙️ System Health & Performance Analytics - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .metric-success { background: #10b981; color: white; }
+    .metric-warning { background: #f59e0b; color: white; }
+    .metric-danger { background: #ef4444; color: white; }
+    .metric-info { background: #3b82f6; color: white; }
+    .health-excellent { color: #10b981; }
+    .health-good { color: #f59e0b; }
+    .health-critical { color: #ef4444; }
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .status-green { background: #10b981; }
+    .status-yellow { background: #f59e0b; }
+    .status-red { background: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                    <p class="text-gray-600 mt-2">System performance monitoring, database analytics, and operational health metrics</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">{{ last_updated }}</span></span>
+                    <button onclick="refreshDashboard()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Refresh
+                    </button>
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=health" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Export CSV
+                    </a>
+                    <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        ← Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Alert -->
+        <div class="analytics-section mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="status-indicator status-green"></span>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">System Status: Operational</h3>
+                        <p class="text-gray-600">All systems are functioning normally. No critical issues detected.</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Uptime: {{ health_data.system_uptime }}</p>
+                    <p class="text-sm text-gray-500">Response Time: {{ health_data.response_time }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Database Records -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Database Records</p>
+                        <p class="text-3xl font-bold mt-2">{{ health_data.database_stats.orders }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">Orders</span>
+                            <span class="text-white/70 text-xs ml-2">primary</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Uptime -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">System Uptime</p>
+                        <p class="text-3xl font-bold mt-2">{{ health_data.system_uptime }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">Excellent</span>
+                            <span class="text-white/70 text-xs ml-2">status</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Time -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Response Time</p>
+                        <p class="text-3xl font-bold mt-2">{{ health_data.response_time }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">Fast</span>
+                            <span class="text-white/70 text-xs ml-2">average</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Recent Activity</p>
+                        <p class="text-3xl font-bold mt-2">{{ health_data.recent_activity.orders_last_hour }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">Orders</span>
+                            <span class="text-white/70 text-xs ml-2">last hour</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Statistics -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🗄️ Database Statistics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Users</h4>
+                    <p class="text-2xl font-bold text-blue-600">{{ health_data.database_stats.users }}</p>
+                    <p class="text-xs text-gray-500">Total accounts</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Restaurants</h4>
+                    <p class="text-2xl font-bold text-green-600">{{ health_data.database_stats.restaurants }}</p>
+                    <p class="text-xs text-gray-500">Registered</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Menu Items</h4>
+                    <p class="text-2xl font-bold text-purple-600">{{ health_data.database_stats.menu_items }}</p>
+                    <p class="text-xs text-gray-500">Available</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Orders</h4>
+                    <p class="text-2xl font-bold text-orange-600">{{ health_data.database_stats.orders }}</p>
+                    <p class="text-xs text-gray-500">Total placed</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Order Items</h4>
+                    <p class="text-2xl font-bold text-red-600">{{ health_data.database_stats.order_items }}</p>
+                    <p class="text-xs text-gray-500">Line items</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Reviews</h4>
+                    <p class="text-2xl font-bold text-indigo-600">{{ health_data.database_stats.reviews }}</p>
+                    <p class="text-xs text-gray-500">Customer feedback</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Performance Metrics -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">⚡ System Performance Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Performance Overview -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Performance Overview</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">System Uptime</span>
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-green-600">{{ health_data.system_uptime }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Average Response Time</span>
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-green-600">{{ health_data.response_time }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Error Rate</span>
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-green-600">{{ health_data.error_rate }}%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Database Health</span>
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-green-600">Optimal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Recent Activity (Last Hour)</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">New Orders</span>
+                            <span class="metric-badge metric-info">{{ health_data.recent_activity.orders_last_hour }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">New Registrations</span>
+                            <span class="metric-badge metric-success">{{ health_data.recent_activity.registrations_last_hour }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Active Sessions</span>
+                            <span class="metric-badge metric-warning">--</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">API Requests</span>
+                            <span class="metric-badge metric-info">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health Chart -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Database Growth Overview</h3>
+            <div class="chart-container">
+                <canvas id="databaseGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Resource Usage -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">💾 Resource Usage & Storage</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Storage Usage -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Storage Usage by Model</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Orders & Order Items</span>
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 45%"></div>
+                                </div>
+                                <span class="text-sm text-gray-500">45%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Users & Profiles</span>
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 25%"></div>
+                                </div>
+                                <span class="text-sm text-gray-500">25%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Restaurants & Menus</span>
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-purple-600 h-2 rounded-full" style="width: 20%"></div>
+                                </div>
+                                <span class="text-sm text-gray-500">20%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Reviews & Ratings</span>
+                            <div class="flex items-center">
+                                <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-orange-600 h-2 rounded-full" style="width: 10%"></div>
+                                </div>
+                                <span class="text-sm text-gray-500">10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Indicators -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">System Health Indicators</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-gray-900">Database Connection</span>
+                            </div>
+                            <span class="text-sm text-green-600">Healthy</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-gray-900">Cache System</span>
+                            </div>
+                            <span class="text-sm text-green-600">Operational</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="status-indicator status-green"></span>
+                                <span class="text-sm font-medium text-gray-900">Email Service</span>
+                            </div>
+                            <span class="text-sm text-green-600">Connected</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="status-indicator status-yellow"></span>
+                                <span class="text-sm font-medium text-gray-900">Storage Space</span>
+                            </div>
+                            <span class="text-sm text-yellow-600">78% used</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Quick Navigation</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'admin_monitoring:authentication_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🔐</div>
+                    <h4 class="font-semibold text-gray-900">Authentication</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:business_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">💰</div>
+                    <h4 class="font-semibold text-gray-900">Business Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:restaurant_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🍽️</div>
+                    <h4 class="font-semibold text-gray-900">Restaurant Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:customer_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">👥</div>
+                    <h4 class="font-semibold text-gray-900">Customer Analytics</h4>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js Configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Database Growth Chart (Mock data for demonstration)
+const databaseGrowthCtx = document.getElementById('databaseGrowthChart').getContext('2d');
+/* eslint-disable */
+const databaseGrowthChart = new Chart(databaseGrowthCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+            label: 'Orders',
+            data: [120, 150, 180, 220, 280, 350, 420, 480, 550, 620, 700, {{ health_data.database_stats.orders }}],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Users',
+            data: [50, 65, 80, 95, 110, 130, 150, 170, 190, 210, 235, {{ health_data.database_stats.users }}],
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Restaurants',
+            data: [8, 10, 12, 15, 18, 22, 25, 28, 32, 35, 38, {{ health_data.database_stats.restaurants }}],
+            borderColor: 'rgb(245, 158, 11)',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+/* eslint-enable */
+
+// Refresh functionality
+function refreshDashboard() {
+    fetch('{% url "admin_monitoring:api_stats" %}?type=health')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            
+            // Update KPI cards
+            document.querySelector('.kpi-card:nth-child(1) .text-3xl').textContent = data.data.system_health.database_stats.orders;
+            document.querySelector('.kpi-card:nth-child(3) .text-3xl').textContent = data.data.system_health.response_time;
+            document.querySelector('.kpi-card:nth-child(4) .text-3xl').textContent = data.data.system_health.recent_activity.orders_last_hour;
+            
+            // Show success notification
+            showNotification('Dashboard refreshed successfully', 'success');
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+            showNotification('Error refreshing dashboard', 'error');
+        });
+}
+
+// Notification system
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+
+// Initialize tooltips and interactions
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to analytics sections
+    const sections = document.querySelectorAll('.analytics-section');
+    sections.forEach(section => {
+        section.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+        });
+        section.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,604 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🍽️ Restaurant Performance Analytics - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .metric-success { background: #10b981; color: white; }
+    .metric-warning { background: #f59e0b; color: white; }
+    .metric-danger { background: #ef4444; color: white; }
+    .metric-info { background: #3b82f6; color: white; }
+    .performance-excellent { color: #10b981; font-weight: bold; }
+    .performance-good { color: #f59e0b; font-weight: bold; }
+    .performance-poor { color: #ef4444; font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                    <p class="text-gray-600 mt-2">Restaurant performance metrics, menu analytics, and cuisine trends</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">{{ last_updated }}</span></span>
+                    <button onclick="refreshDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Refresh
+                    </button>
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=restaurant" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Export CSV
+                    </a>
+                    <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        ← Dashboard
+                    </a>
+                    <!-- Restaurant Dashboard Links -->
+                    <div class="border-l border-gray-300 pl-4 ml-4">
+                        <span class="text-sm text-gray-500 mr-3">Restaurant Pages:</span>
+                        <a href="/restaurant/dashboard/" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm transition duration-200">
+                            🍽️ Owner Dashboard
+                        </a>
+                        <a href="/restaurant/manager/" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm transition duration-200">
+                            ⚙️ Manager Panel
+                        </a>
+                        <a href="/restaurant/menu/" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm transition duration-200">
+                            📋 Menu Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Restaurants -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Restaurants</p>
+                        <p class="text-3xl font-bold mt-2">{{ restaurant_data.total_restaurants }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">{{ restaurant_data.activation_rate }}%</span>
+                            <span class="text-white/70 text-xs ml-2">active</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Restaurants -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Active Restaurants</p>
+                        <p class="text-3xl font-bold mt-2">{{ restaurant_data.active_restaurants }}</p>
+                        <div class="flex items-center mt-2">
+                            {% if restaurant_data.pending_restaurants > 0 %}
+                                <span class="metric-badge metric-warning">{{ restaurant_data.pending_restaurants }}</span>
+                                <span class="text-white/70 text-xs ml-2">pending</span>
+                            {% else %}
+                                <span class="metric-badge metric-success">All active</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Menu Items -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Menu Items</p>
+                        <p class="text-3xl font-bold mt-2">{{ restaurant_data.total_menu_items }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">{{ restaurant_data.available_items }}</span>
+                            <span class="text-white/70 text-xs ml-2">available</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Out of Stock Items -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Out of Stock</p>
+                        <p class="text-3xl font-bold mt-2">{{ restaurant_data.out_of_stock }}</p>
+                        <div class="flex items-center mt-2">
+                            {% if restaurant_data.out_of_stock > 10 %}
+                                <span class="metric-badge metric-danger">High</span>
+                            {% elif restaurant_data.out_of_stock > 5 %}
+                                <span class="metric-badge metric-warning">Moderate</span>
+                            {% else %}
+                                <span class="metric-badge metric-success">Low</span>
+                            {% endif %}
+                            <span class="text-white/70 text-xs ml-2">items</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Sales Trend Chart (Daily) -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Sales Trend (Last 30 Days)</h3>
+                <div class="chart-container">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Monthly Revenue Chart -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">💰 Monthly Revenue (12 Months)</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Cuisine Type Distribution -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">🍴 Cuisine Type Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="cuisineTypesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Menu Categories -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Menu Categories Analysis</h3>
+                <div class="chart-container">
+                    <canvas id="menuCategoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restaurant Performance Table -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Restaurant Performance Rankings</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Rating</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menu Items</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for restaurant in restaurant_data.restaurant_performance %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ restaurant.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ restaurant.total_orders }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ restaurant.total_revenue|floatformat:2 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if restaurant.avg_rating > 0 %}
+                                    <span class="metric-badge metric-success">{{ restaurant.avg_rating|floatformat:1 }} ⭐</span>
+                                {% else %}
+                                    <span class="text-gray-400">No ratings</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ restaurant.menu_items_count }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if restaurant.total_revenue > 1000 %}
+                                    <span class="metric-badge metric-success">Excellent</span>
+                                {% elif restaurant.total_revenue > 500 %}
+                                    <span class="metric-badge metric-warning">Good</span>
+                                {% else %}
+                                    <span class="metric-badge metric-info">Growing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventory Status -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📦 Inventory Status Overview</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Available Items</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ restaurant_data.available_items }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Ready to order</p>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" style="width: {{ restaurant_data.available_percentage }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ restaurant_data.available_percentage }}% of total</p>
+                    </div>
+                </div>
+                <div class="text-center p-6 bg-red-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Out of Stock</h4>
+                    <p class="text-3xl font-bold text-red-600">{{ restaurant_data.out_of_stock }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Unavailable</p>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-red-600 h-2 rounded-full" style="width: {{ restaurant_data.out_of_stock_percentage }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ restaurant_data.out_of_stock_percentage }}% of total</p>
+                    </div>
+                </div>
+                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Total Items</h4>
+                    <p class="text-3xl font-bold text-blue-600">{{ restaurant_data.total_menu_items }}</p>
+                    <p class="text-sm text-gray-500 mt-2">All menu items</p>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">100% of catalog</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuisine Types Details -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🍽️ Cuisine Types Breakdown</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for cuisine in restaurant_data.cuisine_types %}
+                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ cuisine.cuisine_type|title }}</h4>
+                        <span class="metric-badge metric-info">{{ cuisine.count }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">{{ cuisine.active_count }} active restaurants</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-orange-600 h-2 rounded-full" style="width: {{ cuisine.active_count|div:cuisine.count|mul:100 }}%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ cuisine.active_count|div:cuisine.count|mul:100|floatformat:1 }}% activation rate</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Menu Categories Details -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Menu Categories Breakdown</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for category in restaurant_data.categories %}
+                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ category.category__name|title }}</h4>
+                        <span class="metric-badge metric-success">{{ category.count }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">{{ category.available_count }} available items</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-600 h-2 rounded-full" style="width: {{ category.available_count|div:category.count|mul:100 }}%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ category.available_count|div:category.count|mul:100|floatformat:1 }}% available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Quick Navigation</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'admin_monitoring:authentication_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🔐</div>
+                    <h4 class="font-semibold text-gray-900">Authentication</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:business_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">💰</div>
+                    <h4 class="font-semibold text-gray-900">Business Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:customer_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">👥</div>
+                    <h4 class="font-semibold text-gray-900">Customer Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:system_health_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">⚙️</div>
+                    <h4 class="font-semibold text-gray-900">System Health</h4>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js Configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Cuisine Types Chart
+const cuisineTypesCtx = document.getElementById('cuisineTypesChart').getContext('2d');
+/* eslint-disable */
+const cuisineData = {{ restaurant_data.cuisine_types|safe }};
+/* eslint-enable */
+const cuisineTypesChart = new Chart(cuisineTypesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: cuisineData.map(item => item.cuisine_type),
+        datasets: [{
+            data: cuisineData.map(item => item.count),
+            backgroundColor: [
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(251, 146, 60, 0.8)',
+                'rgba(254, 215, 170, 0.8)',
+                'rgba(253, 186, 116, 0.8)',
+                'rgba(254, 243, 199, 0.8)',
+                'rgba(254, 240, 138, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            }
+        }
+    }
+});
+
+// Menu Categories Chart
+const menuCategoriesCtx = document.getElementById('menuCategoriesChart').getContext('2d');
+/* eslint-disable */
+const categoriesData = {{ restaurant_data.categories|safe }};
+/* eslint-enable */
+const menuCategoriesChart = new Chart(menuCategoriesCtx, {
+    type: 'bar',
+    data: {
+        labels: categoriesData.map(item => item.category__name),
+        datasets: [{
+            label: 'Available Items',
+            data: categoriesData.map(item => item.available_count),
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            borderColor: 'rgb(16, 185, 129)',
+            borderWidth: 1
+        }, {
+            label: 'Total Items',
+            data: categoriesData.map(item => item.count),
+            backgroundColor: 'rgba(107, 114, 128, 0.8)',
+            borderColor: 'rgb(107, 114, 128)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Sales Trend Chart (Daily)
+const salesTrendCtx = document.getElementById('salesTrendChart').getContext('2d');
+/* eslint-disable */
+const dailySales = {{ daily_sales_json|safe }};
+/* eslint-enable */
+const salesTrendChart = new Chart(salesTrendCtx, {
+    type: 'line',
+    data: {
+        labels: dailySales.map(item => item.date),
+        datasets: [{
+            label: 'Daily Revenue ($)',
+            data: dailySales.map(item => item.revenue),
+            borderColor: 'rgb(251, 146, 60)',
+            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Daily Orders',
+            data: dailySales.map(item => item.orders),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Revenue ($)'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Orders'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+
+// Monthly Revenue Chart
+const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+/* eslint-disable */
+const monthlySales = {{ monthly_sales_json|safe }};
+/* eslint-enable */
+const monthlyRevenueChart = new Chart(monthlyRevenueCtx, {
+    type: 'bar',
+    data: {
+        labels: monthlySales.map(item => item.month),
+        datasets: [{
+            label: 'Monthly Revenue ($)',
+            data: monthlySales.map(item => item.revenue),
+            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+            borderColor: 'rgb(16, 185, 129)',
+            borderWidth: 1
+        }, {
+            label: 'Monthly Orders',
+            data: monthlySales.map(item => item.orders),
+            backgroundColor: 'rgba(245, 158, 11, 0.8)',
+            borderColor: 'rgb(245, 158, 11)',
+            borderWidth: 1,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Revenue ($)'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Orders'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+
+// Refresh functionality
+function refreshDashboard() {
+    /* eslint-disable */
+    fetch('{% url "admin_monitoring:api_stats" %}?type=restaurant')
+    /* eslint-enable */
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            
+            // Update KPI cards
+            document.querySelector('.kpi-card:nth-child(1) .text-3xl').textContent = data.data.restaurant.total_restaurants;
+            document.querySelector('.kpi-card:nth-child(2) .text-3xl').textContent = data.data.restaurant.active_restaurants;
+            document.querySelector('.kpi-card:nth-child(3) .text-3xl').textContent = data.data.restaurant.total_menu_items;
+            document.querySelector('.kpi-card:nth-child(4) .text-3xl').textContent = data.data.restaurant.out_of_stock;
+            
+            // Update charts
+            cuisineTypesChart.data.datasets[0].data = data.data.restaurant.cuisine_types.map(item => item.count);
+            cuisineTypesChart.update();
+            
+            menuCategoriesChart.data.datasets[0].data = data.data.restaurant.categories.map(item => item.available_count);
+            menuCategoriesChart.data.datasets[1].data = data.data.restaurant.categories.map(item => item.count);
+            menuCategoriesChart.update();
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+        });
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+
+// Custom template filters
+const div = (a, b) => b !== 0 ? a / b : 0;
+const mul = (a, b) => a * b;
+</script>
+{% endblock %}

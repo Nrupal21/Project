@@ -1,0 +1,829 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ restaurant.name }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Enhanced table layout styles using Tailwind CSS with modern design */
+    
+    /* Main table container with glassmorphism effect */
+    .table-container {
+        @apply bg-gradient-to-br from-gray-50 to-gray-100 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 min-h-[500px] relative shadow-xl;
+    }
+    
+    /* Individual table cards with enhanced hover effects */
+    .table-card {
+        @apply w-20 h-20 border-2 border-gray-300 rounded-2xl flex flex-col items-center justify-center bg-white cursor-pointer relative m-2 shadow-md;
+        transform: translateY(0);
+    }
+    
+    .table-card:hover {
+        @apply scale-110 border-indigo-500;
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Table status colors with gradient effects */
+    .table-card.available {
+        @apply border-green-500 bg-gradient-to-br from-green-50 to-green-100;
+    }
+    
+    .table-card.occupied {
+        @apply border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100;
+    }
+    
+    .table-card.reserved {
+        @apply border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100;
+    }
+    
+    .table-card.needs-attention {
+        @apply border-red-500 bg-gradient-to-br from-red-50 to-red-100 animate-pulse;
+    }
+    
+    /* Table number styling with modern typography */
+    .table-number {
+        @apply font-bold text-lg text-gray-800 mb-1;
+    }
+    
+    /* Status indicator dots with enhanced styling */
+    .status-indicators {
+        @apply flex gap-1 mt-1;
+    }
+    
+    .status-dot {
+        @apply w-2.5 h-2.5 rounded-full shadow-sm;
+    }
+    
+    .status-running { 
+        @apply bg-blue-500 shadow-blue-500/50; 
+    }
+    
+    .status-printed { 
+        @apply bg-gray-500 shadow-gray-500/50; 
+    }
+    
+    .status-paid { 
+        @apply bg-green-500 shadow-green-500/50; 
+    }
+    
+    .status-kot { 
+        @apply bg-red-500 shadow-red-500/50; 
+    }
+    
+    .status-payment-pending { 
+        @apply bg-orange-500 shadow-orange-500/50 animate-pulse; 
+    }
+    
+    /* Section headers with modern gradient design */
+    .section-header {
+        @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl mb-6 font-bold text-lg inline-flex items-center gap-2 shadow-lg;
+    }
+    
+    /* Statistics cards with glassmorphism effect */
+    .stats-card {
+        @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-lg;
+    }
+    
+    /* Legend items with enhanced styling */
+    .legend-item {
+        @apply flex items-center gap-3 my-2 p-2 rounded-lg hover:bg-gray-50 transition-colors;
+    }
+    
+    .legend-color {
+        @apply w-6 h-6 border-2 border-gray-300 rounded-lg shadow-sm;
+    }
+    
+    /* Action buttons with modern design */
+    .action-buttons {
+        @apply bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl p-6 mb-6 shadow-lg;
+    }
+    
+    .action-btn {
+        @apply px-6 py-3 border-2 border-indigo-600 bg-white text-indigo-600 rounded-xl cursor-pointer font-semibold;
+    }
+    
+    .action-btn.active {
+        @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent shadow-lg;
+    }
+    
+    /* Tables grid with responsive design */
+    .tables-grid {
+        @apply grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3 my-6;
+    }
+    
+    /* Table sections with enhanced styling */
+    .table-section {
+        @apply bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 mb-6 shadow-xl;
+    }
+    
+    /* Order information popup styling */
+    .order-info-popup {
+        @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-900 text-white p-3 rounded-lg text-xs whitespace-nowrap z-50 opacity-0 pointer-events-none transition-opacity duration-300;
+    }
+    
+    .table-card:hover .order-info-popup {
+        @apply opacity-100;
+    }
+    
+    /* Responsive design for mobile devices */
+    @media (max-width: 768px) {
+        .tables-grid {
+            @apply grid-cols-3 sm:grid-cols-4;
+        }
+        
+        .table-card {
+            @apply w-16 h-16 m-1;
+        }
+        
+        .table-number {
+            @apply text-sm;
+        }
+        
+        .section-header {
+            @apply px-4 py-2 text-base;
+        }
+    }
+    
+    /* Animation for attention-needed tables */
+    @keyframes pulse-border {
+        0%, 100% {
+            border-color: rgba(239, 68, 68, 1);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        }
+        50% {
+            border-color: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+        }
+    }
+    
+    .table-card.needs-attention {
+        animation: pulse-border 2s infinite;
+    }
+    
+    /* Loading animation for real-time updates */
+    .loading-overlay {
+        @apply absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl z-40;
+    }
+    
+    .loading-spinner {
+        @apply animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600;
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<!-- Enhanced Restaurant Table Layout with Real-time Data -->
+<div class="max-w-screen-2xl mx-auto px-4 py-6">
+    
+    <!-- Modern Header with Restaurant Info -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 mb-8 text-white shadow-2xl">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-4xl font-bold mb-2 flex items-center gap-3">
+                    🪑 {{ restaurant.name }} - Table Layout
+                </h1>
+                <p class="text-indigo-100 text-lg mb-3">Real-time table status and order management</p>
+                <div class="flex items-center gap-6 text-sm">
+                    <span class="flex items-center gap-2">
+                        🕐 Last Updated: <span id="current-time" class="font-mono font-semibold">{{ current_time }}</span>
+                    </span>
+                    <span class="flex items-center gap-2">
+                        📅 {{ current_date }}
+                    </span>
+                </div>
+            </div>
+            <div class="text-right">
+                <a href="{% url 'restaurant:dashboard' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-xl font-semibold">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Action Buttons -->
+    <div class="action-buttons">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap gap-3">
+                <button class="action-btn active" onclick="setMode('reservation')">
+                    🍽️ Table Reservation
+                </button>
+                <button class="action-btn" onclick="setMode('contactless')">
+                    📱 Contactless Ordering
+                </button>
+                <button class="action-btn" onclick="refreshAllTables()">
+                    🔄 Refresh All
+                </button>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-600 font-medium">
+                    Mode: <span id="current-mode" class="text-indigo-600 font-bold">Table Reservation</span>
+                </span>
+                <span class="text-gray-500 text-sm">
+                    Auto-refresh: <span id="refresh-timer">30s</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Statistics Dashboard -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Table Status Legend -->
+        <div class="stats-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                🎨 Table Status Legend
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="legend-item">
+                    <div class="legend-color bg-white border-gray-300"></div>
+                    <div>
+                        <span class="font-semibold text-gray-800">Available</span>
+                        <p class="text-xs text-gray-600">Ready for seating</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-gradient-to-br from-blue-50 to-blue-100 border-blue-500"></div>
+                    <div>
+                        <span class="font-semibold text-blue-800">Occupied</span>
+                        <p class="text-xs text-gray-600">Active orders</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-gradient-to-br from-purple-50 to-purple-100 border-purple-500"></div>
+                    <div>
+                        <span class="font-semibold text-purple-800">Reserved</span>
+                        <p class="text-xs text-gray-600">Payment completed</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color bg-gradient-to-br from-red-50 to-red-100 border-red-500 animate-pulse"></div>
+                    <div>
+                        <span class="font-semibold text-red-800">Needs Attention</span>
+                        <p class="text-xs text-gray-600">Payment pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Statistics -->
+        <div class="stats-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                📊 Restaurant Statistics
+            </h3>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <h4 class="text-3xl font-bold text-green-600 mb-1">{{ available_tables }}</h4>
+                    <small class="text-sm text-green-700 font-medium">Available</small>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <h4 class="text-3xl font-bold text-blue-600 mb-1">{{ occupied_tables }}</h4>
+                    <small class="text-sm text-blue-700 font-medium">Occupied</small>
+                </div>
+                <div class="bg-red-50 rounded-xl p-4 border border-red-200">
+                    <h4 class="text-3xl font-bold text-red-600 mb-1">{{ tables_needing_attention }}</h4>
+                    <small class="text-sm text-red-700 font-medium">Need Attention</small>
+                </div>
+            </div>
+            
+            <!-- Additional Statistics -->
+            {% if has_active_orders %}
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">Active Orders Today:</span>
+                    <span class="font-bold text-indigo-600">{{ total_active_orders }}</span>
+                </div>
+                {% if total_revenue_today %}
+                <div class="flex justify-between items-center text-sm mt-2">
+                    <span class="text-gray-600">Today's Revenue:</span>
+                    <span class="font-bold text-green-600">₹{{ total_revenue_today }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Enhanced Table Sections -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {% for section_key, section_data in tables_by_section.items %}
+        <div class="table-section">
+            <!-- Section Header with Statistics -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="section-header">
+                    {% if section_key == 'ac' %}❄️{% elif section_key == 'non_ac' %}🌤️{% else %}🍺{% endif %}
+                    {{ section_data.name }}
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {{ section_data.available_count }} Free
+                    </span>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {{ section_data.occupied_count }} Busy
+                    </span>
+                    {% if section_data.attention_count > 0 %}
+                    <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
+                        {{ section_data.attention_count }} Alert
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tables Grid with Enhanced Cards -->
+            <div class="table-container">
+                <div class="tables-grid" id="tables-{{ section_key }}">
+                    {% for table_info in section_data.tables %}
+                    <div class="table-card {{ table_info.status_class }} {% if table_info.needs_attention %}needs-attention{% endif %}" 
+                         data-table-id="{{ table_info.table.id }}"
+                         data-section="{{ section_key }}"
+                         title="Table {{ table_info.table.table_number }} - {{ table_info.status|title }}"
+                         onclick="handleTableClick('{{ table_info.table.id }}', '{{ table_info.status }}', event)">
+                        
+                        <!-- Table Number -->
+                        <div class="table-number">{{ table_info.table.table_number }}</div>
+                        
+                        <!-- Status Indicators - Only show for active orders, not completed -->
+                        {% if table_info.status != 'reserved' and table_info.status != 'needs-attention' %}
+                        <div class="status-indicators">
+                            {% for icon in table_info.status_icons %}
+                            <div class="status-dot status-{{ icon }}" title="{{ icon|title }}"></div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Order Information Popup - Only show for active orders, not completed -->
+                        {% if table_info.order_info and table_info.status == 'occupied' %}
+                        <div class="order-info-popup">
+                            <div class="font-bold mb-1">Order #{{ table_info.order_info.order.order_id|slice:":8" }}</div>
+                            {% if table_info.order_info.customer_name %}
+                            <div>👤 {{ table_info.order_info.customer_name }}</div>
+                            {% endif %}
+                            {% if table_info.order_info.duration_minutes %}
+                            <div>⏱️ {{ table_info.order_info.duration_minutes }} min</div>
+                            {% endif %}
+                            <div>🛒 {{ table_info.order_info.item_count }} items</div>
+                            <div>💰 ₹{{ table_info.order_info.total_amount }}</div>
+                            <div class="text-yellow-300 mt-1">{{ table_info.order_info.status_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Capacity Badge -->
+                        {% if table_info.capacity %}
+                        <div class="absolute -top-1 -right-1 bg-gray-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                            {{ table_info.capacity }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Location Indicator -->
+                        {% if table_info.location %}
+                        <div class="absolute -bottom-1 -left-1 bg-indigo-600 text-white text-xs rounded px-1">
+                            📍
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-gray-400 mb-4">
+                            <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-600 font-medium">No tables in {{ section_data.name }}</p>
+                        <p class="text-gray-500 text-sm mt-2">Add tables to see them in the layout</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Section Statistics Footer -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <div class="flex justify-between items-center text-sm text-gray-600">
+                    <span class="font-medium">Section Summary:</span>
+                    <div class="flex gap-4">
+                        <span class="text-green-600">✓ {{ section_data.stats.available }} Available</span>
+                        <span class="text-blue-600">🍽️ {{ section_data.stats.occupied }} Occupied</span>
+                        <span class="text-purple-600">💳 {{ section_data.stats.reserved }} Reserved</span>
+                        <span class="text-red-600">⚠️ {{ section_data.stats.needs_attention }} Need Attention</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- No Tables Found State -->
+        <div class="col-span-full">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200 rounded-2xl p-12 text-center">
+                <div class="text-blue-500 mb-6">
+                    <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-blue-900 mb-3">No Tables Configured</h3>
+                <p class="text-blue-700 text-lg mb-6">Start by adding tables to your restaurant layout</p>
+                <div class="flex justify-center gap-4">
+                    <a href="{% url 'restaurant:table_management' %}" 
+                       class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-lg shadow-lg">
+                        ➕ Add Your First Tables
+                    </a>
+                    <a href="{% url 'restaurant:dashboard' %}" 
+                       class="inline-flex items-center px-8 py-4 bg-white border-2 border-blue-300 text-blue-700 rounded-xl font-semibold text-lg">
+                        ← Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-8 flex flex-col items-center">
+        <div class="loading-spinner mb-4"></div>
+        <p class="text-gray-700 font-medium">Refreshing table data...</p>
+    </div>
+</div>
+
+<script>
+/**
+ * Enhanced Table Layout JavaScript with Real-time Features
+ * Handles table interactions, real-time updates, and modern UI effects
+ */
+
+// Global state management
+let currentMode = 'reservation';
+let refreshInterval = null;
+let refreshCountdown = null;
+let refreshTimeLeft = 30;
+
+/**
+ * Initialize the enhanced table layout page
+ * Sets up real-time updates, event listeners, and UI enhancements
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Enhanced table layout initializing...');
+    
+    // Initialize real-time features
+    initializeRealTimeUpdates();
+    
+    // Setup event listeners for interactive features
+    setupEventListeners();
+    
+    // Load saved user preferences
+    loadUserPreferences();
+    
+    // Initialize keyboard shortcuts
+    initializeKeyboardShortcuts();
+    
+    // Setup table animations
+    initializeTableAnimations();
+    
+    console.log('Table layout initialized successfully');
+});
+
+/**
+ * Initialize real-time updates with configurable refresh interval
+ * Uses AJAX polling for efficient real-time data updates
+ */
+function initializeRealTimeUpdates() {
+    // Start countdown timer for visual feedback
+    startRefreshCountdown();
+    
+    // Set up automatic refresh every 30 seconds
+    refreshInterval = setInterval(function() {
+        refreshAllTables();
+    }, 30000);
+    
+    // Update current time display
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+}
+
+/**
+ * Start countdown timer for next refresh
+ * Provides visual feedback to staff about when data will update
+ */
+function startRefreshCountdown() {
+    refreshTimeLeft = 30;
+    
+    if (refreshCountdown) {
+        clearInterval(refreshCountdown);
+    }
+    
+    refreshCountdown = setInterval(function() {
+        refreshTimeLeft--;
+        document.getElementById('refresh-timer').textContent = refreshTimeLeft + 's';
+        
+        if (refreshTimeLeft <= 0) {
+            refreshTimeLeft = 30;
+        }
+    }, 1000);
+}
+
+/**
+ * Setup event listeners for interactive table features
+ * Includes click handlers, hover effects, and keyboard navigation
+ */
+function setupEventListeners() {
+    // Add click event listeners to all table cards
+    document.querySelectorAll('.table-card[data-table-id]').forEach(table => {
+        table.addEventListener('click', function(event) {
+            const tableId = this.dataset.tableId;
+            const status = this.classList.contains('available') ? 'available' : 
+                          this.classList.contains('occupied') ? 'occupied' : 'reserved';
+            handleTableClick(tableId, status, event);
+        });
+        
+        // Add hover effects for better UX
+        table.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.1)';
+        });
+        
+        table.addEventListener('mouseleave', function() {
+            this.style.styleTransform = '';
+        });
+    });
+}
+
+/**
+ * Handle table click with context-aware actions
+ * Routes to appropriate action based on table status and current mode
+ */
+function handleTableClick(tableId, status, event) {
+    console.log(`Table ${tableId} clicked with status: ${status}`);
+    
+    // Prevent event bubbling
+    event.stopPropagation();
+    
+    // Add visual feedback
+    showClickFeedback(event.target);
+    
+    // Determine action based on table status
+    if (status === 'available') {
+        // Available table - create new order
+        createOrderForTable(tableId);
+    } else if (status === 'occupied') {
+        // Occupied table - show order details
+        showTableOrders(tableId);
+    } else if (status === 'reserved' || status === 'needs-attention') {
+        // Reserved or needs attention - show payment/completion options
+        showTableActions(tableId);
+    }
+}
+
+/**
+ * Create order for selected table with mode support
+ * Redirects to order creation page with appropriate parameters
+ */
+function createOrderForTable(tableId) {
+    showLoadingState();
+    
+    // Build URL with mode parameter
+    let url = `{% url 'restaurant:create_table_order' 0 %}`.replace('0', tableId);
+    
+    if (currentMode === 'contactless') {
+        url += '?mode=contactless';
+    }
+    
+    console.log(`Creating order for table ${tableId} in ${currentMode} mode`);
+    
+    // Redirect to order creation
+    window.location.href = url;
+}
+
+/**
+ * Show table orders in a modal dialog
+ * Displays active orders with details and quick actions
+ */
+function showTableOrders(tableId) {
+    // For now, redirect to orders list (could be enhanced with modal)
+    const url = `{% url 'restaurant:table_orders_list' %}?table=${tableId}`;
+    window.location.href = url;
+}
+
+/**
+ * Show table actions for payment/completion
+ * Provides context-sensitive actions for table management
+ */
+function showTableActions(tableId) {
+    // For now, redirect to orders list (could be enhanced with modal)
+    const url = `{% url 'restaurant:table_orders_list' %}?table=${tableId}`;
+    window.location.href = url;
+}
+
+/**
+ * Set the current operating mode (reservation/contactless)
+ * Updates UI and stores preference for future sessions
+ */
+function setMode(mode) {
+    currentMode = mode;
+    const modeText = mode === 'reservation' ? 'Table Reservation' : 'Contactless Ordering';
+    
+    // Update UI
+    document.getElementById('current-mode').textContent = modeText;
+    
+    // Update button states with smooth transitions
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if ((mode === 'reservation' && btn.textContent.includes('Table Reservation')) ||
+            (mode === 'contactless' && btn.textContent.includes('Contactless'))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Store user preference
+    localStorage.setItem('tableLayoutMode', mode);
+    
+    console.log(`Mode changed to: ${modeText}`);
+}
+
+/**
+ * Refresh all tables with loading states
+ * Performs full page refresh with visual feedback
+ */
+function refreshAllTables() {
+    console.log('Refreshing all tables...');
+    showLoadingState();
+    
+    // Simulate loading delay for better UX
+    setTimeout(function() {
+        window.location.reload();
+    }, 500);
+}
+
+/**
+ * Show loading state during operations
+ * Provides visual feedback for async operations
+ */
+function showLoadingState() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+/**
+ * Hide loading state after operations complete
+ */
+function hideLoadingState() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+/**
+ * Load saved user preferences from localStorage
+ * Restores previous session settings for better UX
+ */
+function loadUserPreferences() {
+    const savedMode = localStorage.getItem('tableLayoutMode');
+    if (savedMode && savedMode !== currentMode) {
+        setMode(savedMode);
+    }
+}
+
+/**
+ * Initialize keyboard shortcuts for power users
+ * Provides quick access to common functions
+ */
+function initializeKeyboardShortcuts() {
+    document.addEventListener('keydown', function(event) {
+        // Only process shortcuts when not typing in input fields
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        switch(event.key.toLowerCase()) {
+            case 'r':
+                setMode('reservation');
+                showNotification('Switched to Reservation Mode', 'info');
+                break;
+            case 'c':
+                setMode('contactless');
+                showNotification('Switched to Contactless Mode', 'info');
+                break;
+            case 'f5':
+            case ' ':
+                event.preventDefault();
+                refreshAllTables();
+                break;
+        }
+    });
+}
+
+/**
+ * Initialize table animations for enhanced visual appeal
+ * Adds staggered animations and micro-interactions
+ */
+function initializeTableAnimations() {
+    const tableCards = document.querySelectorAll('.table-card');
+    
+    // Add staggered entrance animation
+    tableCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 50);
+    });
+}
+
+/**
+ * Update current time display
+ * Shows real-time clock in header
+ */
+function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        timeElement.textContent = timeString;
+    }
+}
+
+/**
+ * Show click feedback animation
+ * Provides visual confirmation of user interactions
+ */
+function showClickFeedback(element) {
+    element.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        element.style.transform = '';
+    }, 150);
+}
+
+/**
+ * Show notification message to user
+ * Displays temporary messages for user feedback
+ */
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl z-50 transform translate-x-full`;
+    
+    // Style based on type
+    switch(type) {
+        case 'success':
+            notification.className += ' bg-green-500 text-white';
+            break;
+        case 'error':
+            notification.className += ' bg-red-500 text-white';
+            break;
+        case 'warning':
+            notification.className += ' bg-orange-500 text-white';
+            break;
+        default:
+            notification.className += ' bg-indigo-500 text-white';
+    }
+    
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="font-medium">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 hover:opacity-75">
+                ✕
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 100);
+    
+    /* Notifications now stay visible - removed auto-hide to prevent disappearing effect */
+    // User can manually close notifications using the X button
+}
+
+/**
+ * Cleanup function for page unload
+ * Prevents memory leaks and cleans up intervals
+ */
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    if (refreshCountdown) {
+        clearInterval(refreshCountdown);
+    }
+});
+
+// Error handling for network issues
+window.addEventListener('error', function(event) {
+    console.error('Table layout error:', event.error);
+    showNotification('An error occurred. Please refresh the page.', 'error');
+});
+
+// Log performance metrics
+window.addEventListener('load', function() {
+    const loadTime = performance.now();
+    console.log(`Table layout loaded in ${loadTime.toFixed(2)}ms`);
+});
+</script>
+{% endblock %}

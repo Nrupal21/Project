@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Not Found</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Error Message Container -->
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+            <!-- Error Icon -->
+            <div class="mb-6">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-red-100">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-4xl"></i>
+                </div>
+            </div>
+            
+            <!-- Error Title -->
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                Table Not Found
+            </h1>
+            
+            <!-- Error Message -->
+            <p class="text-gray-600 mb-6">
+                {{ message|default:"The QR code you scanned is invalid or the table is no longer active." }}
+            </p>
+            
+            <!-- Helpful Information -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-semibold text-blue-900 mb-2 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>What to do:
+                </h3>
+                <ul class="text-sm text-blue-800 space-y-2">
+                    <li class="flex items-start">
+                        <i class="fas fa-check mr-2 mt-1 flex-shrink-0"></i>
+                        <span>Make sure you're scanning the correct QR code from the table</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check mr-2 mt-1 flex-shrink-0"></i>
+                        <span>Try scanning the QR code again</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check mr-2 mt-1 flex-shrink-0"></i>
+                        <span>Contact the restaurant staff for assistance</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <button onclick="window.location.reload()" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg">
+                    <i class="fas fa-redo mr-2"></i>Try Again
+                </button>
+                
+                <a href="{% url 'customer:home' %}" 
+                   class="block w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all">
+                    <i class="fas fa-home mr-2"></i>Go to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

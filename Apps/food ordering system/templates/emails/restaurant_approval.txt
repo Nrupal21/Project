@@ -1,0 +1,40 @@
+🎉 Restaurant Approved!
+
+Dear {{ user.first_name|default:user.username }},
+
+Great news! Your restaurant "{{ restaurant.name }}" has been approved and is now live on {{ site_name }}!
+
+Congratulations on becoming part of our restaurant community. Your restaurant is now visible to customers and you can start receiving orders.
+
+What's Next?
+1. Login to your restaurant dashboard to manage your profile
+2. Add menu items and categories
+3. Set up your delivery options and pricing
+4. Start welcoming customers!
+
+Quick Links:
+- Restaurant Dashboard: {{ dashboard_url }}
+- Your Restaurant Page: {{ restaurant_url }}
+
+Restaurant Details:
+- Name: {{ restaurant.name }}
+- Cuisine: {{ restaurant.get_cuisine_type_display }}
+- Address: {{ restaurant.address }}
+- Phone: {{ restaurant.phone }}
+
+Tips for Success:
+- Keep your menu updated with accurate prices and availability
+- Upload high-quality photos of your dishes
+- Respond to customer reviews promptly
+- Monitor your orders and delivery times
+
+If you need any help getting started, please don't hesitate to contact our support team.
+
+Welcome to {{ site_name }}! We're excited to partner with you.
+
+Best regards,
+The {{ site_name }} Team
+
+---
+This is an automated message. Please do not reply to this email.
+© {{ current_year }} {{ site_name }}. All rights reserved.

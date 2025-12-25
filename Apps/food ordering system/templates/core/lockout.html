@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Locked - Security Protection{% endblock %}
+
+{% block content %}
+<!-- Account Lockout Page - Django Axes Protection -->
+<!-- This page displays when a user exceeds failed login attempts -->
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Lockout Icon and Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                <!-- Security Lock Icon -->
+                <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Account Temporarily Locked
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Security protection activated
+            </p>
+        </div>
+
+        <!-- Lockout Message Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6 border border-red-200">
+            <!-- Warning Message -->
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">
+                            Too Many Failed Login Attempts
+                        </h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>
+                                For your security, this account has been temporarily locked due to multiple failed login attempts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lockout Details -->
+            <div class="space-y-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">What happened?</h4>
+                    <p class="text-sm text-gray-600">
+                        Our security system detected multiple unsuccessful login attempts from your device or IP address.
+                        This protection helps prevent unauthorized access to your account.
+                    </p>
+                </div>
+
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-blue-700 mb-2">How long will it last?</h4>
+                    <p class="text-sm text-blue-600">
+                        The lockout is temporary and will automatically expire in <strong>15 minutes</strong>.
+                        After that time, you can try logging in again.
+                    </p>
+                </div>
+
+                <div class="bg-green-50 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-green-700 mb-2">What can you do?</h4>
+                    <ul class="text-sm text-green-600 space-y-1">
+                        <li>• Wait for the lockout to expire automatically</li>
+                        <li>• Try resetting your password if you've forgotten it</li>
+                        <li>• Contact support if you believe this is an error</li>
+                        <li>• Ensure you're using the correct login credentials</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 space-y-3">
+                <!-- Password Reset Link -->
+                <a href="{% url 'core:password_reset' %}" 
+                   class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
+                    Reset Password
+                </a>
+
+                <!-- Back to Login -->
+                <a href="{% url 'core:login' %}" 
+                   class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Security Information -->
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                <svg class="inline-block h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                Protected by Django Axes Security System
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+                IP Address: {{ request.META.REMOTE_ADDR }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

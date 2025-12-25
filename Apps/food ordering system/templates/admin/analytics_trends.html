@@ -1,0 +1,287 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .monitoring-nav {
+        @apply flex space-x-1 bg-gray-100 p-1 rounded-lg;
+    }
+    .monitoring-nav-item {
+        @apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+    }
+    .monitoring-nav-item.active {
+        @apply bg-white text-blue-600 shadow-sm;
+    }
+    .monitoring-nav-item:not(.active) {
+        @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50;
+    }
+    .chart-container {
+        @apply bg-white rounded-lg shadow-md p-6;
+    }
+    .chart-title {
+        @apply text-lg font-semibold text-gray-900 mb-4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Analytics Trends</h1>
+        <p class="text-gray-600 mt-2">Historical data and trend analysis (Privacy-safe aggregated statistics)</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mb-8">
+        <nav class="monitoring-nav">
+            <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="monitoring-nav-item">
+                Dashboard
+            </a>
+            <a href="{% url 'admin_monitoring:analytics_trends' %}" class="monitoring-nav-item active">
+                Analytics Trends
+            </a>
+            <a href="{% url 'admin_monitoring:content_monitoring' %}" class="monitoring-nav-item">
+                Content Monitoring
+            </a>
+            <a href="{% url 'admin_monitoring:health' %}" class="monitoring-nav-item">
+                System Health
+            </a>
+        </nav>
+    </div>
+
+    <!-- Time Range Selector -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Time Range</h2>
+                <p class="text-sm text-gray-600">Showing data for the last {{ days }} days</p>
+            </div>
+            <div class="flex space-x-2">
+                <a href="?days=7" class="px-4 py-2 text-sm font-medium rounded-md {% if days == 7 %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    7 Days
+                </a>
+                <a href="?days=30" class="px-4 py-2 text-sm font-medium rounded-md {% if days == 30 %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    30 Days
+                </a>
+                <a href="?days=90" class="px-4 py-2 text-sm font-medium rounded-md {% if days == 90 %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    90 Days
+                </a>
+                <a href="?days=365" class="px-4 py-2 text-sm font-medium rounded-md {% if days == 365 %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    1 Year
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- User Registration Trends -->
+        <div class="chart-container">
+            <h3 class="chart-title">User Registration Trends</h3>
+            <div class="relative h-64">
+                <canvas id="userRegistrationsChart"></canvas>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                Daily new user registrations over the selected period
+            </p>
+        </div>
+
+        <!-- Order Volume Trends -->
+        <div class="chart-container">
+            <h3 class="chart-title">Order Volume Trends</h3>
+            <div class="relative h-64">
+                <canvas id="orderTrendsChart"></canvas>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                Daily order volume and revenue trends
+            </p>
+        </div>
+    </div>
+
+    <!-- Additional Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
+        <!-- Review Activity Trends -->
+        <div class="chart-container">
+            <h3 class="chart-title">Review Activity Trends</h3>
+            <div class="relative h-64">
+                <canvas id="reviewTrendsChart"></canvas>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                Daily review submission trends (aggregated data only)
+            </p>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Summary Statistics (Last {{ days }} days)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">
+                    {{ user_registrations|length }}
+                </div>
+                <div class="text-sm text-gray-600">Days with Registrations</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">
+                    {{ order_trends|length }}
+                </div>
+                <div class="text-sm text-gray-600">Days with Orders</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-purple-600">
+                    {{ review_trends|length }}
+                </div>
+                <div class="text-sm text-gray-600">Days with Reviews</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-orange-600">
+                    {{ days }}
+                </div>
+                <div class="text-sm text-gray-600">Total Days Analyzed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Prepare data for charts
+const userRegistrationsData = JSON.parse('{{ user_registrations|safe }}');
+const orderTrendsData = JSON.parse('{{ order_trends|safe }}');
+const reviewTrendsData = JSON.parse('{{ review_trends|safe }}');
+
+// User Registration Chart
+const userRegistrationsCtx = document.getElementById('userRegistrationsChart').getContext('2d');
+new Chart(userRegistrationsCtx, {
+    type: 'line',
+    data: {
+        labels: userRegistrationsData.map(item => item.date),
+        datasets: [{
+            label: 'New Users',
+            data: userRegistrationsData.map(item => item.count),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0
+                }
+            }
+        }
+    }
+});
+
+// Order Trends Chart
+const orderTrendsCtx = document.getElementById('orderTrendsChart').getContext('2d');
+new Chart(orderTrendsCtx, {
+    type: 'line',
+    data: {
+        labels: orderTrendsData.map(item => item.date),
+        datasets: [{
+            label: 'Orders',
+            data: orderTrendsData.map(item => item.count),
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.4,
+            yAxisID: 'y'
+        }, {
+            label: 'Revenue (₹)',
+            data: orderTrendsData.map(item => item.revenue),
+            borderColor: 'rgb(168, 85, 247)',
+            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Orders'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Revenue (₹)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+
+// Review Trends Chart
+const reviewTrendsCtx = document.getElementById('reviewTrendsChart').getContext('2d');
+new Chart(reviewTrendsCtx, {
+    type: 'bar',
+    data: {
+        labels: reviewTrendsData.map(item => item.date),
+        datasets: [{
+            label: 'Reviews',
+            data: reviewTrendsData.map(item => item.count),
+            backgroundColor: 'rgba(251, 146, 60, 0.8)',
+            borderColor: 'rgb(251, 146, 60)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0
+                }
+            }
+        }
+    }
+});
+
+// Auto-refresh every 10 minutes
+setTimeout(function() {
+    location.reload();
+}, 600000);
+</script>
+{% endblock %}

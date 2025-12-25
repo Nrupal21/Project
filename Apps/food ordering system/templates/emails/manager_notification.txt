@@ -1,0 +1,34 @@
+New Restaurant Registration - Approval Required
+
+A new restaurant has been registered and is awaiting your approval.
+
+Restaurant Details:
+Name: {{ restaurant.name }}
+Owner: {{ restaurant.owner.username }} ({{ restaurant.owner.email }})
+Cuisine Type: {{ restaurant.get_cuisine_type_display }}
+Address: {{ restaurant.address }}
+Phone: {{ restaurant.phone }}
+Email: {{ restaurant.email|default:"Not provided" }}
+Registration Date: {{ restaurant.created_at|date:"F d, Y H:i" }}
+
+Description:
+{{ restaurant.description|truncatewords:50 }}
+
+Quick Actions:
+- Review Application: {{ admin_url }}restaurant/restaurant/{{ restaurant.id }}/change/
+- Contact Owner: {{ restaurant.owner.email }}
+
+Approval Checklist:
+□ Verify restaurant information is complete and accurate
+□ Check contact details (phone/email) are valid
+□ Confirm address matches service area
+□ Review cuisine classification
+□ Ensure compliance with platform guidelines
+
+Next Steps:
+1. Login to admin panel to review full application
+2. Approve or reject the restaurant registration
+3. System will automatically notify the owner of your decision
+
+This is an automated notification from {{ site_name }}.
+© {{ current_year }} {{ site_name }}. All rights reserved.

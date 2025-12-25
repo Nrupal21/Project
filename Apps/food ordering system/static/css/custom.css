@@ -1,0 +1,231 @@
+/**
+ * Custom CSS styles for Food Ordering System
+ * Airbnb-inspired design with clean, modern aesthetics
+ * Provides additional styling beyond Tailwind CSS
+ */
+
+/* 
+ * GLOBAL FIX: Remove all button disappearing animations
+ * Prevents buttons from moving/shifting when hovered
+ * Overrides all Tailwind transform utility classes and custom animations
+ */
+
+/* Disable GPU acceleration that can cause visual glitches */
+* {
+    will-change: auto !important;
+}
+
+/* Override all Tailwind transform utility classes */
+.hover\:scale-105:hover,
+.hover\:scale-\[1\.02\]:hover,
+.hover\:-translate-y-0\.5:hover,
+.hover\:-translate-y-1:hover,
+.hover\:-translate-y-2:hover,
+.hover\:-translate-y-4:hover,
+.hover\:-translate-y-8:hover,
+.hover\:translate-y-1:hover,
+.hover\:translate-y-2:hover,
+.hover\:translate-y-4:hover,
+.hover\:translate-x-1:hover,
+.hover\:translate-x-full:hover,
+.group:hover .group-hover\:scale-110,
+.group:hover .group-hover\:scale-105,
+.group:hover .group-hover\:translate-x-1,
+.group:hover .group-hover\:-translate-x-1,
+.group:hover .group-hover\:translate-x-full {
+    transform: none !important;
+}
+
+/* Override custom card/container animations that were missed */
+.order-card:hover,
+.order-tracking-card:hover,
+.table-card:hover,
+.menu-card:hover,
+.payment-method-card:hover,
+.menu-item-card:hover,
+.kpi-card-gradient:hover,
+.analytics-card:hover,
+.metric-badge:hover,
+.tab-btn:hover {
+    transform: none !important;
+}
+
+/* Override all rotate and skew transforms */
+.hover\:rotate-90:hover,
+.hover\:rotate-180:hover,
+.hover\:-skew-x-12:hover {
+    transform: none !important;
+}
+
+/* Disable all transition-transform classes */
+.transition-transform {
+    transition-property: none !important;
+}
+
+/* Disable all transform animations globally */
+[style*="transform"] {
+    transform: none !important;
+}
+
+/* Smooth scroll behavior for the entire page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Airbnb-style aspect ratio for images */
+.aspect-square {
+    aspect-ratio: 1 / 1;
+}
+
+/* Backdrop blur support for modern browsers */
+.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* Custom line clamp utility for truncating text */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Custom scrollbar styling for webkit browsers - Airbnb style */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Loading spinner animation */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4F46E5;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pulse animation for notifications */
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Image hover effect */
+img {
+    transition: transform 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.05);
+}
+
+/* Custom focus ring for better accessibility */
+*:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+/* Print styles for order receipts */
+@media print {
+    .no-print {
+        display: none;
+    }
+    
+    body {
+        background: white;
+    }
+    
+    .print-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 20px;
+    }
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Custom card hover effect */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Badge styles */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 9999px;
+}
+
+/* Gradient text */
+.gradient-text {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Mobile menu transition */
+.mobile-menu {
+    transition: transform 0.3s ease-in-out;
+}
+
+.mobile-menu-open {
+    transform: translateX(0);
+}
+
+.mobile-menu-closed {
+    transform: translateX(-100%);
+}

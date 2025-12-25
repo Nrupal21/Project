@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Review Details{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Review Details</h1>
+                    <p class="text-gray-600 mt-1">
+                        {% if review_type == 'restaurant' %}
+                            Restaurant Review
+                        {% else %}
+                            Menu Item Review
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'customer:my_reviews' %}" class="text-orange-600 hover:text-orange-700 font-medium">
+                    ← Back to My Reviews
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Review -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <!-- Review Header -->
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex items-center space-x-4">
+                    {% if review_type == 'restaurant' %}
+                            <img src="{{ review.restaurant|get_restaurant_image:'full' }}" 
+                                 alt="{{ review.restaurant.name }}" 
+                                 class="w-16 h-16 rounded-lg object-cover"
+                                 onerror="this.src='/media/placeholders/restaurant_default.jpg'">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ review.restaurant.name }}</h3>
+                            <p class="text-sm text-gray-600">{{ review.restaurant.cuisine_type|title }}</p>
+                        </div>
+                    {% else %}
+                        <img src="{{ review.menu_item|get_menu_item_image:'full' }}" 
+                             alt="{{ review.menu_item.name }}" 
+                             class="w-16 h-16 rounded-lg object-cover"
+                             onerror="this.src='/media/placeholders/food_default.jpg'">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ review.menu_item.name }}</h3>
+                            <p class="text-sm text-gray-600">{{ review.menu_item.restaurant.name }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Overall Rating -->
+                <div class="text-right">
+                    <div class="flex items-center justify-end">
+                        {% for i in "12345" %}
+                            <span class="{% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %} text-2xl">⭐</span>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">{{ review.rating }}/5</p>
+                </div>
+            </div>
+
+            <!-- Review Title and Content -->
+            {% if review.title %}
+                <h4 class="text-xl font-semibold text-gray-900 mb-3">{{ review.title }}</h4>
+            {% endif %}
+            <p class="text-gray-700 leading-relaxed mb-6">{{ review.comment }}</p>
+
+            <!-- Detailed Ratings -->
+            {% if review_type == 'restaurant' %}
+                {% if review.food_quality or review.service_quality or review.delivery_speed or review.value_for_money %}
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h5 class="text-sm font-semibold text-gray-900 mb-3">Detailed Ratings</h5>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            {% if review.food_quality %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Food Quality:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.food_quality %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.food_quality }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if review.service_quality %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Service Quality:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.service_quality %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.service_quality }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if review.delivery_speed %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Delivery Speed:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.delivery_speed %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.delivery_speed }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if review.value_for_money %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Value for Money:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.value_for_money %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.value_for_money }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if review.taste or review.presentation or review.portion_size %}
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h5 class="text-sm font-semibold text-gray-900 mb-3">Detailed Ratings</h5>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            {% if review.taste %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Taste:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.taste %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.taste }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if review.presentation %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Presentation:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.presentation %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.presentation }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if review.portion_size %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Portion Size:</span>
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <span class="{% if forloop.counter <= review.portion_size %}text-yellow-400{% else %}text-gray-300{% endif %}">⭐</span>
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-700">{{ review.portion_size }}/5</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Review Footer -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div class="text-sm text-gray-500">
+                    <div class="flex items-center space-x-4">
+                        <span>By {{ review.user.get_full_name|default:review.user.username }}</span>
+                        <span>{{ review.created_at|date:"M d, Y" }}</span>
+                        {% if review.is_verified_purchase %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                ✓ Verified Purchase
+                            </span>
+                        {% endif %}
+                        {% if review.is_flagged %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                ⚠ Under Review
+                            </span>
+                        {% endif %}
+                        {% if review.is_hidden %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                🚫 Hidden
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if review.updated_at != review.created_at %}
+                        <p class="mt-1">Updated {{ review.updated_at|timesince }} ago</p>
+                    {% endif %}
+                </div>
+
+                <!-- Review Actions -->
+                <div class="flex items-center space-x-2">
+                    {% if can_edit %}
+                        <a href="{% if review_type == 'restaurant' %}{% url 'customer:edit_restaurant_review' review.id %}{% else %}{% url 'customer:edit_menu_item_review' review.id %}{% endif %}" 
+                           class="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                            Edit
+                        </a>
+                    {% endif %}
+                    {% if can_respond %}
+                        <a href="{% url 'customer:create_review_response' review_type=review_type review_id=review.id %}" 
+                           class="px-3 py-1 text-sm text-green-600 hover:text-green-700 border border-green-300 rounded-lg hover:bg-green-50 transition-colors">
+                            Respond
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'customer:flag_review' review_type=review_type review_id=review.id %}" 
+                       class="px-3 py-1 text-sm text-orange-600 hover:text-orange-700 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors">
+                        Flag
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Owner Responses -->
+        {% if responses %}
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Owner Responses</h3>
+                <div class="space-y-4">
+                    {% for response in responses %}
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ response.responder.get_full_name|default:response.responder.username }}</p>
+                                    <p class="text-sm text-gray-500">{{ response.created_at|date:"M d, Y" }}</p>
+                                </div>
+                                {% if response.is_public %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Public
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Private
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-700">{{ response.response }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Flags -->
+        {% if flags %}
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Community Flags</h3>
+                <div class="space-y-3">
+                    {% for flag in flags %}
+                        <div class="border-l-4 border-orange-500 pl-4 py-2">
+                            <div class="flex items-start justify-between mb-1">
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ flag.get_reason_display }}</p>
+                                    <p class="text-sm text-gray-500">Flagged by {{ flag.flagged_by.get_full_name|default:flag.flagged_by.username }} • {{ flag.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            {% if flag.description %}
+                                <p class="text-gray-700 text-sm">{{ flag.description }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Order Information -->
+        {% if review.order %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-blue-900">Verified Purchase</p>
+                        <p class="text-sm text-blue-700">Order #{{ review.order.order_id }} • {{ review.order.created_at|date:"M d, Y" }} • ₹{{ review.order.total_amount }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

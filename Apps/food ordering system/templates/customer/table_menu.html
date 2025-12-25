@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>{{ restaurant.name }} - Table {{ table.table_number }}</title>
+    
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom styles for mobile optimization -->
+    <style>
+        /* Prevent text selection on double-tap (better mobile UX) */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Smooth scrolling for better user experience */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Sticky header animation */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            transition: all 0.3s ease;
+        }
+        
+        /* Menu item card hover effect */
+        .menu-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .menu-card:active {
+            transform: scale(0.98);
+        }
+        
+        /* Category pill styling */
+        .category-pill {
+            transition: all 0.3s ease;
+        }
+        
+        /* Floating cart button animation */
+        .cart-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Loading skeleton animation */
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+        
+        @keyframes skeleton-loading {
+            0% { background-color: hsl(200, 20%, 80%); }
+            100% { background-color: hsl(200, 20%, 95%); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Top Header Section - Restaurant Info and Table Number -->
+    <div class="sticky-header bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <!-- Restaurant Logo and Name -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- Restaurant Image -->
+                    {% if restaurant.get_image_url %}
+                    <img src="{{ restaurant.get_image_url }}" 
+                         alt="{{ restaurant.name }}"
+                         class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md">
+                    {% endif %}
+                    
+                    <!-- Restaurant Name and Table Info -->
+                    <div>
+                        <h1 class="text-lg font-bold">{{ restaurant.name }}</h1>
+                        <p class="text-sm text-indigo-100">
+                            <i class="fas fa-chair mr-1"></i>Table {{ table.table_number }}
+                            {% if table.location_description %}
+                            <span class="text-xs">• {{ table.location_description }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Cart Icon with Item Count -->
+                {% if user.is_authenticated %}
+                <a href="{% url 'customer:cart' %}" 
+                   class="relative bg-white text-indigo-600 rounded-full p-3 shadow-lg hover:shadow-xl transition-all">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    {% if cart_count > 0 %}
+                    <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
+                        {{ cart_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                {% else %}
+                <!-- Guest Checkout Button -->
+                {% if cart_count > 0 %}
+                <a href="{% url 'customer:guest_checkout' table.uuid %}" 
+                   class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all">
+                    <i class="fas fa-receipt mr-1"></i>Request Bill
+                </a>
+                {% else %}
+                <button disabled 
+                   class="bg-gray-400 text-gray-200 px-4 py-2 rounded-full text-sm font-semibold cursor-not-allowed">
+                    <i class="fas fa-shopping-cart mr-1"></i>Add Items First
+                </button>
+                {% endif %}
+                {% endif %}
+            </div>
+            
+            <!-- Restaurant Status Badge -->
+            <div class="mt-3 flex items-center justify-between">
+                {% if is_open %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                    <i class="fas fa-check-circle mr-1"></i>Open Now
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white">
+                    <i class="fas fa-times-circle mr-1"></i>Closed
+                </span>
+                {% endif %}
+                
+                <span class="text-xs text-indigo-100">
+                    <i class="far fa-clock mr-1"></i>{{ restaurant.opening_time|time:"g:i A" }} - {{ restaurant.closing_time|time:"g:i A" }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Bar Section -->
+    <div class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <form method="get" action="" class="relative">
+                <!-- Search Input -->
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}"
+                       placeholder="Search menu items..."
+                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                
+                <!-- Search Icon -->
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                
+                <!-- Clear Search Button (shown when search is active) -->
+                {% if search_query %}
+                <a href="{% url 'customer:table_menu' table.qr_code_uuid %}" 
+                   class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times-circle"></i>
+                </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <!-- Category Filter Pills -->
+    <div class="bg-white border-b sticky top-[140px] z-30">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex overflow-x-auto space-x-2 scrollbar-hide">
+                <!-- All Categories Pill -->
+                <a href="{% url 'customer:table_menu' table.qr_code_uuid %}" 
+                   class="category-pill whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all
+                          {% if not selected_category %}bg-indigo-600 text-white shadow-md{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+                    <i class="fas fa-th-large mr-1"></i>All Items
+                </a>
+                
+                <!-- Individual Category Pills -->
+                {% for category in categories %}
+                <a href="{% url 'customer:table_menu' table.qr_code_uuid %}?category={{ category.id }}" 
+                   class="category-pill whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all
+                          {% if selected_category.id == category.id %}bg-indigo-600 text-white shadow-md{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+                    {{ category.icon|default:"🍽️" }} {{ category.name }}
+                    <span class="ml-1 text-xs opacity-75">({{ category.item_count }})</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu Items Section -->
+    <div class="container mx-auto px-4 py-6 pb-24">
+        {% if search_query %}
+        <!-- Search Results Header -->
+        <div class="mb-4">
+            <h2 class="text-xl font-bold text-gray-800">
+                Search Results for "{{ search_query }}"
+            </h2>
+            <p class="text-sm text-gray-600">{{ menu_items.count }} item(s) found</p>
+        </div>
+        {% endif %}
+        
+        {% if menu_items %}
+        <!-- Menu Items Grid -->
+        <div class="space-y-4">
+            {% for item in menu_items %}
+            <!-- Menu Item Card -->
+            <div class="menu-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl">
+                <div class="flex">
+                    <!-- Item Image -->
+                    <div class="w-32 h-32 flex-shrink-0">
+                        <img src="{{ item.get_image_url }}" 
+                             alt="{{ item.name }}"
+                             class="w-full h-full object-cover"
+                             loading="lazy">
+                    </div>
+                    
+                    <!-- Item Details -->
+                    <div class="flex-1 p-4 flex flex-col justify-between">
+                        <!-- Item Name and Category -->
+                        <div>
+                            <div class="flex items-start justify-between">
+                                <h3 class="font-bold text-gray-800 text-lg">{{ item.name }}</h3>
+                                
+                                <!-- Dietary Type Badge -->
+                                <span class="ml-2 flex-shrink-0">
+                                    {% if item.dietary_type == 'veg' %}
+                                    <span class="text-green-600 text-xs">🌱</span>
+                                    {% elif item.dietary_type == 'vegan' %}
+                                    <span class="text-green-700 text-xs">🌿</span>
+                                    {% else %}
+                                    <span class="text-red-600 text-xs">🍖</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <p class="text-xs text-indigo-600 font-medium mt-1">
+                                {{ item.category.name }}
+                            </p>
+                            
+                            <!-- Item Description (truncated for mobile) -->
+                            <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                {{ item.description|truncatewords:15 }}
+                            </p>
+                            
+                            <!-- Preparation Time -->
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="far fa-clock mr-1"></i>{{ item.preparation_time }} mins
+                            </p>
+                        </div>
+                        
+                        <!-- Price and Add to Cart Button -->
+                        <div class="flex items-center justify-between mt-3">
+                            <div class="flex items-baseline">
+                                <span class="text-2xl font-bold text-indigo-600">₹{{ item.price }}</span>
+                            </div>
+                            
+                            {% if user.is_authenticated %}
+                            <!-- Add to Cart Form -->
+                            <form method="post" action="{% url 'customer:cart_add' item.id %}" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" 
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all active:scale-95">
+                                    <i class="fas fa-plus mr-1"></i>Add
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'core:login' %}?next={{ request.path }}"
+                               class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm">
+                                Login to Order
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% else %}
+        <!-- No Results Message -->
+        <div class="text-center py-12">
+            <div class="text-gray-400 text-6xl mb-4">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">No Items Found</h3>
+            <p class="text-gray-600">
+                {% if search_query %}
+                No menu items match your search "{{ search_query }}".
+                {% else %}
+                No menu items available in this category.
+                {% endif %}
+            </p>
+            <a href="{% url 'customer:table_menu' table.qr_code_uuid %}" 
+               class="inline-block mt-4 bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-all">
+                View All Items
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Floating Action Buttons (Bottom Right) -->
+    {% if user.is_authenticated and cart_count > 0 %}
+    <div class="fixed bottom-6 right-6 z-50">
+        <!-- View Cart Button (floating with animation) -->
+        <a href="{% url 'customer:cart' %}" 
+           class="cart-float block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-full shadow-2xl hover:shadow-3xl transition-all">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span class="font-bold">View Cart ({{ cart_count }})</span>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- Footer Section -->
+    <div class="bg-white border-t mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <!-- Restaurant Info -->
+            <div class="text-center mb-4">
+                <h3 class="font-bold text-gray-800 mb-2">{{ restaurant.name }}</h3>
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-map-marker-alt mr-1"></i>{{ restaurant.address }}
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    <i class="fas fa-phone mr-1"></i>{{ restaurant.phone }}
+                </p>
+            </div>
+            
+            <!-- Divider -->
+            <div class="border-t pt-4 text-center text-xs text-gray-500">
+                <p>Powered by Food Ordering System</p>
+                <p class="mt-1">Scan the QR code at your table to order</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Optional: Add smooth scroll behavior for category navigation -->
+    <script>
+        /**
+         * Initialize mobile menu interactions and smooth scrolling
+         * This script enhances the user experience on mobile devices
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide search bar on scroll down, show on scroll up
+            let lastScrollTop = 0;
+            const searchBar = document.querySelector('.bg-white.shadow-md');
+            
+            window.addEventListener('scroll', function() {
+                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Only apply this behavior on mobile screens
+                if (window.innerWidth < 768) {
+                    if (scrollTop > lastScrollTop && scrollTop > 100) {
+                        // Scrolling down
+                        searchBar.style.transform = 'translateY(-100%)';
+                        searchBar.style.transition = 'transform 0.3s';
+                    } else {
+                        // Scrolling up
+                        searchBar.style.transform = 'translateY(0)';
+                    }
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+            
+            // Add visual feedback when adding items to cart
+            const addToCartButtons = document.querySelectorAll('button[type="submit"]');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Add loading state
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Adding...';
+                    this.disabled = true;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Food Ordering System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gray-900 rounded-full flex items-center justify-center mb-4">
+                <span class="text-2xl">🍽️</span>
+            </div>
+            <h2 class="text-3xl font-semibold text-gray-900 mb-2">Welcome back</h2>
+            <p class="text-gray-600">Sign in to your account to continue</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <form method="post" id="loginForm">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
+                <div class="mb-6">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Username or Email
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.username.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-6">
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                    </label>
+                    <div class="relative">
+                        {{ form.password }}
+                        <button type="button" onclick="togglePassword('id_password')" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                            <svg id="login-password-eye" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="mt-2 text-sm text-red-600">
+                        {% for error in form.password.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Non-field Errors -->
+                {% if form.non_field_errors %}
+                <div class="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="text-sm text-red-600">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Remember Me Checkbox -->
+                <div class="mb-6 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember_me" 
+                               name="remember_me" 
+                               class="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900 focus:ring-2">
+                        <label for="remember_me" class="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+                            Remember me for 2 weeks
+                        </label>
+                    </div>
+                    <div>
+                        <a href="{% url 'core:password_reset' %}" 
+                           class="text-sm text-gray-600 hover:text-gray-900 font-medium transition duration-200 inline-flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                            </svg>
+                            Forgot password?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg transition duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="loginButtonText">Sign in</span>
+                    <svg id="loginSpinner" class="hidden animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Security Notice -->
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-medium mb-1">Security Notice</p>
+                        <p>For your security, this account is protected against brute force attacks. Multiple failed login attempts will temporarily lock access.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Link -->
+        <div class="text-center">
+            <p class="text-gray-600">
+                Don't have an account? 
+                <a href="{% url 'core:register' %}" class="text-gray-900 hover:text-gray-700 font-medium transition duration-200">
+                    Create account
+                </a>
+            </p>
+        </div>
+
+        <!-- Account Type Information -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center">Choose your account type</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Customer Info -->
+                <div class="text-center p-4 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <div class="text-3xl mb-2">🍽️</div>
+                    <h4 class="font-semibold text-gray-900 text-sm mb-1">Customer</h4>
+                    <p class="text-xs text-gray-600">Browse restaurants & order food</p>
+                </div>
+                
+                <!-- Restaurant Owner Info -->
+                <div class="text-center p-4 rounded-lg hover:bg-gray-50 transition duration-200">
+                    <div class="text-3xl mb-2">🏪</div>
+                    <h4 class="font-semibold text-gray-900 text-sm mb-1">Restaurant Owner</h4>
+                    <p class="text-xs text-gray-600">Manage menu & view orders</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="text-center">
+            <a href="{% url 'customer:home' %}" 
+               class="text-gray-500 hover:text-gray-700 text-sm transition duration-200 inline-flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to home
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Login JavaScript -->
+<script>
+// Enhanced password toggle with accessibility improvements
+function togglePassword(fieldId) {
+    const passwordField = document.getElementById(fieldId);
+    const eyeIcon = document.getElementById('login-password-eye');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+        `;
+        eyeIcon.setAttribute('aria-label', 'Hide password');
+    } else {
+        passwordField.type = 'password';
+        eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+        `;
+        eyeIcon.setAttribute('aria-label', 'Show password');
+    }
+}
+
+// Enhanced form submission with loading states and validation
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const submitButton = this.querySelector('button[type="submit"]');
+    const buttonText = document.getElementById('loginButtonText');
+    const spinner = document.getElementById('loginSpinner');
+    const rememberMeCheckbox = document.getElementById('remember_me');
+    
+    // Disable form and show loading state
+    submitButton.disabled = true;
+    buttonText.textContent = 'Signing in...';
+    spinner.classList.remove('hidden');
+    
+    // Store remember me preference in localStorage for future visits
+    if (rememberMeCheckbox.checked) {
+        localStorage.setItem('rememberMePreference', 'true');
+    } else {
+        localStorage.removeItem('rememberMePreference');
+    }
+    
+    // Auto-enable after 10 seconds in case of network issues
+    setTimeout(() => {
+        if (submitButton.disabled) {
+            submitButton.disabled = false;
+            buttonText.textContent = 'Sign in';
+            spinner.classList.add('hidden');
+        }
+    }, 10000);
+});
+
+// Restore remember me preference from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const rememberMeCheckbox = document.getElementById('remember_me');
+    const rememberMePreference = localStorage.getItem('rememberMePreference');
+    
+    if (rememberMePreference === 'true') {
+        rememberMeCheckbox.checked = true;
+    }
+    
+    // Auto-focus username field if empty
+    const usernameField = document.getElementById('id_username');
+    if (usernameField && !usernameField.value) {
+        usernameField.focus();
+    }
+    
+    // Add input validation feedback
+    if (usernameField) {
+        usernameField.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                this.classList.remove('border-red-300');
+                this.classList.add('border-gray-300');
+            }
+        });
+    }
+    
+    const passwordField = document.getElementById('id_password');
+    if (passwordField) {
+        passwordField.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                this.classList.remove('border-red-300');
+                this.classList.add('border-gray-300');
+            }
+        });
+    }
+});
+</script>
+
+<style>
+/* Focus states for better accessibility */
+input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
+}
+
+/* Link hover effects */
+a {
+    transition: color 0.2s ease-in-out;
+}
+
+/* Card hover effects */
+.hover\\:bg-gray-50:hover {
+    background-color: #f9fafb;
+}
+</style>
+{% endblock %}

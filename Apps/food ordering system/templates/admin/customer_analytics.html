@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}👥 Customer Engagement Analytics - Food Ordering System{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .analytics-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .metric-success { background: #10b981; color: white; }
+    .metric-warning { background: #f59e0b; color: white; }
+    .metric-danger { background: #ef4444; color: white; }
+    .metric-info { background: #3b82f6; color: white; }
+    .rating-stars {
+        color: #f59e0b;
+    }
+    .engagement-high { border-left: 4px solid #10b981; }
+    .engagement-medium { border-left: 4px solid #f59e0b; }
+    .engagement-low { border-left: 4px solid #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                    <p class="text-gray-600 mt-2">Customer engagement analytics, review trends, and satisfaction metrics</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">{{ last_updated }}</span></span>
+                    <button onclick="refreshDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Refresh
+                    </button>
+                    <a href="{% url 'admin_monitoring:export_csv' %}?type=customer" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Export CSV
+                    </a>
+                    <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        ← Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Reviews -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Reviews</p>
+                        <p class="text-3xl font-bold mt-2">{{ customer_data.total_restaurant_reviews|add:customer_data.total_menu_reviews }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-success">{{ customer_data.total_restaurant_reviews }}</span>
+                            <span class="text-white/70 text-xs ml-2">restaurants</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Reviews -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Menu Reviews</p>
+                        <p class="text-3xl font-bold mt-2">{{ customer_data.total_menu_reviews }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-info">Detailed</span>
+                            <span class="text-white/70 text-xs ml-2">feedback</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Wishlists -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Total Wishlists</p>
+                        <p class="text-3xl font-bold mt-2">{{ customer_data.total_wishlists }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="metric-badge metric-warning">Saved</span>
+                            <span class="text-white/70 text-xs ml-2">items</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Rate -->
+            <div class="kpi-card text-white p-6 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm font-medium">Engagement Rate</p>
+                        <p class="text-3xl font-bold mt-2">{{ customer_data.engagement_rate }}%</p>
+                        <div class="flex items-center mt-2">
+                            {% if customer_data.engagement_rate > 70 %}
+                                <span class="metric-badge metric-success">High</span>
+                            {% elif customer_data.engagement_rate > 40 %}
+                                <span class="metric-badge metric-warning">Medium</span>
+                            {% else %}
+                                <span class="metric-badge metric-danger">Low</span>
+                            {% endif %}
+                            <span class="text-white/70 text-xs ml-2">engagement</span>
+                        </div>
+                    </div>
+                    <div class="text-white/20">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Restaurant Rating Distribution -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">⭐ Restaurant Rating Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="restaurantRatingsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Menu Item Rating Distribution -->
+            <div class="analytics-section">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">🍽️ Menu Item Rating Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="menuRatingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Trends Chart -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Customer Review Trends (Last 30 Days)</h3>
+            <div class="chart-container">
+                <canvas id="reviewTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Popular Restaurants (Wishlist) -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">❤️ Most Saved Restaurants (Wishlist)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for restaurant in customer_data.popular_restaurants %}
+                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">{{ restaurant.restaurant__name }}</h4>
+                        <span class="metric-badge metric-info">{{ restaurant.count }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ restaurant.count }} customers saved</p>
+                    <div class="mt-3 flex items-center">
+                        <svg class="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm text-gray-500">Popular choice</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Review Analytics Summary -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Review Analytics Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Restaurant Reviews</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ customer_data.total_restaurant_reviews }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Total reviews</p>
+                </div>
+                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Menu Item Reviews</h4>
+                    <p class="text-3xl font-bold text-blue-600">{{ customer_data.total_menu_reviews }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Detailed feedback</p>
+                </div>
+                <div class="text-center p-6 bg-purple-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Pending Reviews</h4>
+                    <p class="text-3xl font-bold text-purple-600">{{ customer_data.pending_reviews }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Need moderation</p>
+                </div>
+                <div class="text-center p-6 bg-orange-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Total Wishlists</h4>
+                    <p class="text-3xl font-bold text-orange-600">{{ customer_data.total_wishlists }}</p>
+                    <p class="text-sm text-gray-500 mt-2">Customer saves</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Satisfaction Metrics -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">😊 Customer Satisfaction Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Rating Breakdown -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Rating Breakdown</h4>
+                    <div class="space-y-3">
+                        {% for rating in customer_data.restaurant_ratings %}
+                        <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-700 w-12">{{ rating.rating }} ⭐</span>
+                            <div class="flex-1 mx-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-yellow-400 h-2 rounded-full" style="width: {{ rating.count|div:customer_data.total_restaurant_reviews|mul:100 }}%"></div>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-500 w-12 text-right">{{ rating.count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Engagement Insights -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Engagement Insights</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Review Activity</span>
+                            <span class="metric-badge metric-success">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Wishlist Usage</span>
+                            <span class="metric-badge metric-info">{{ customer_data.total_wishlists }} items</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Moderation Queue</span>
+                            {% if customer_data.pending_reviews > 10 %}
+                                <span class="metric-badge metric-danger">High</span>
+                            {% elif customer_data.pending_reviews > 5 %}
+                                <span class="metric-badge metric-warning">Medium</span>
+                            {% else %}
+                                <span class="metric-badge metric-success">Low</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Engagement Rate</span>
+                            <span class="metric-badge metric-success">{{ customer_data.engagement_rate }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="analytics-section">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔗 Quick Navigation</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'admin_monitoring:authentication_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🔐</div>
+                    <h4 class="font-semibold text-gray-900">Authentication</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:business_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">💰</div>
+                    <h4 class="font-semibold text-gray-900">Business Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:restaurant_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">🍽️</div>
+                    <h4 class="font-semibold text-gray-900">Restaurant Analytics</h4>
+                </a>
+                <a href="{% url 'admin_monitoring:system_health_analytics' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 text-center">
+                    <div class="text-2xl mb-2">⚙️</div>
+                    <h4 class="font-semibold text-gray-900">System Health</h4>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js Configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Restaurant Ratings Chart
+const restaurantRatingsCtx = document.getElementById('restaurantRatingsChart').getContext('2d');
+/* eslint-disable */
+const restaurantRatingsData = {{ customer_data.restaurant_ratings|safe }};
+/* eslint-enable */
+const restaurantRatingsChart = new Chart(restaurantRatingsCtx, {
+    type: 'bar',
+    data: {
+        labels: restaurantRatingsData.map(item => item.rating + ' ⭐'),
+        datasets: [{
+            label: 'Number of Reviews',
+            data: restaurantRatingsData.map(item => item.count),
+            backgroundColor: [
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(251, 191, 36, 0.8)',
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(16, 185, 129, 0.8)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Menu Ratings Chart
+const menuRatingsCtx = document.getElementById('menuRatingsChart').getContext('2d');
+/* eslint-disable */
+const menuRatingsData = {{ customer_data.menu_ratings|safe }};
+/* eslint-enable */
+const menuRatingsChart = new Chart(menuRatingsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: menuRatingsData.map(item => item.rating + ' ⭐'),
+        datasets: [{
+            data: menuRatingsData.map(item => item.count),
+            backgroundColor: [
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(251, 191, 36, 0.8)',
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(16, 185, 129, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+            }
+        }
+    }
+});
+
+// Review Trends Chart
+const reviewTrendsCtx = document.getElementById('reviewTrendsChart').getContext('2d');
+/* eslint-disable */
+const reviewTrendsData = {{ customer_data.review_trends|safe }};
+/* eslint-enable */
+const reviewTrendsChart = new Chart(reviewTrendsCtx, {
+    type: 'line',
+    data: {
+        labels: reviewTrendsData.map(item => item.date),
+        datasets: [{
+            label: 'Daily Reviews',
+            data: reviewTrendsData.map(item => item.count),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Refresh functionality
+function refreshDashboard() {
+    fetch('{% url "admin_monitoring:api_stats" %}?type=customer')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            
+            // Update KPI cards
+            const totalReviews = data.data.customer.total_restaurant_reviews + data.data.customer.total_menu_reviews;
+            document.querySelector('.kpi-card:nth-child(1) .text-3xl').textContent = totalReviews;
+            document.querySelector('.kpi-card:nth-child(2) .text-3xl').textContent = data.data.customer.total_menu_reviews;
+            document.querySelector('.kpi-card:nth-child(3) .text-3xl').textContent = data.data.customer.total_wishlists;
+            document.querySelector('.kpi-card:nth-child(4) .text-3xl').textContent = data.data.customer.engagement_rate + '%';
+            
+            // Update charts
+            restaurantRatingsChart.data.datasets[0].data = data.data.customer.restaurant_ratings.map(item => item.count);
+            restaurantRatingsChart.update();
+            
+            menuRatingsChart.data.datasets[0].data = data.data.customer.menu_ratings.map(item => item.count);
+            menuRatingsChart.update();
+            
+            reviewTrendsChart.data.datasets[0].data = data.data.customer.review_trends.map(item => item.count);
+            reviewTrendsChart.update();
+        })
+        .catch(error => {
+            console.error('Error refreshing dashboard:', error);
+        });
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshDashboard, 60000);
+
+// Custom template filters
+const div = (a, b) => b !== 0 ? a / b : 0;
+const mul = (a, b) => a * b;
+const add = (a, b) => a + b;
+</script>
+{% endblock %}

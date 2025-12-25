@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seasonal Promotions - Admin{% endblock %}
+
+{% block content %}
+<!-- Seasonal Promotions Header -->
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Seasonal Promotions</h1>
+            <p class="text-gray-600 mt-2">Manage flash sales and seasonal campaigns across all restaurants</p>
+        </div>
+        <a href="{% url 'orders:create_seasonal_promotion' %}" 
+           class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center space-x-2 shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Create Campaign</span>
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-green-100 rounded-lg">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Active Campaigns</p>
+                <p class="text-2xl font-bold text-gray-900">{{ active_campaigns }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-blue-100 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Campaigns</p>
+                <p class="text-2xl font-bold text-gray-900">{{ promotions|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-purple-100 rounded-lg">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Codes Generated</p>
+                <p class="text-2xl font-bold text-gray-900">{{ total_codes_generated }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-yellow-100 rounded-lg">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Upcoming Campaigns</p>
+                <p class="text-2xl font-bold text-gray-900">{{ upcoming_campaigns }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seasonal Promotions List -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">All Campaigns</h2>
+    </div>
+    
+    {% if promotions %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Campaign
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Discount
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Schedule
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Restaurants
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for promotion in promotions %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ promotion.name }}</p>
+                            {% if promotion.description %}
+                            <p class="text-sm text-gray-500">{{ promotion.description|truncatechars:60 }}</p>
+                            {% endif %}
+                            <p class="text-xs text-gray-400 mt-1">Code prefix: {{ promotion.code_prefix|upper }}</p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if promotion.promotion_type == 'flash_sale' %}bg-red-100 text-red-800
+                            {% elif promotion.promotion_type == 'seasonal' %}bg-blue-100 text-blue-800
+                            {% else %}bg-purple-100 text-purple-800{% endif %}">
+                            {% if promotion.promotion_type == 'flash_sale' %}
+                                ⚡ Flash Sale
+                            {% elif promotion.promotion_type == 'seasonal' %}
+                                🎄 Seasonal
+                            {% else %}
+                                🎉 Special Event
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            {% if promotion.discount_type == 'percentage' %}
+                                {{ promotion.discount_value }}% off
+                            {% elif promotion.discount_type == 'fixed' %}
+                                ₹{{ promotion.discount_value }} off
+                            {% elif promotion.discount_type == 'free_delivery' %}
+                                Free delivery
+                            {% endif %}
+                        </div>
+                        {% if promotion.minimum_order_amount > 0 %}
+                        <p class="text-xs text-gray-500">Min: ₹{{ promotion.minimum_order_amount }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if promotion.is_current %}bg-green-100 text-green-800
+                            {% elif promotion.days_until_start > 0 %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if promotion.is_current %}
+                                🟢 Active
+                            {% elif promotion.days_until_start > 0 %}
+                                🟡 Starts in {{ promotion.days_until_start }} days
+                            {% else %}
+                                🔴 Ended
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div class="flex flex-col space-y-1">
+                            <span>{{ promotion.start_date|date:"M d, Y H:i" }}</span>
+                            <span class="text-xs text-gray-500">to {{ promotion.end_date|date:"M d, Y H:i" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {% if promotion.restaurants.count == 0 %}
+                            <span class="text-gray-500">All restaurants</span>
+                        {% else %}
+                            <span>{{ promotion.restaurants.count }} selected</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="viewCampaignDetails('{{ promotion.id }}')" 
+                                    class="text-purple-600 hover:text-purple-900">
+                                View
+                            </button>
+                            {% if not promotion.is_current %}
+                            <button onclick="editCampaign('{{ promotion.id }}')" 
+                                    class="text-blue-600 hover:text-blue-900">
+                                Edit
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <div class="text-6xl mb-4">🎯</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No seasonal campaigns yet</h3>
+        <p class="text-gray-500 mb-6">Create your first seasonal promotion or flash sale to drive customer engagement.</p>
+        <a href="{% url 'orders:create_seasonal_promotion' %}" 
+           class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-lg">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Your First Campaign
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Flash Sale Banner Preview -->
+<div class="mt-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-6 text-white">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-xl font-bold mb-2">⚡ Flash Sale Preview</h3>
+            <p class="text-red-100">Active flash sales appear as countdown banners on customer pages</p>
+        </div>
+        <div class="text-right">
+            <div class="text-3xl font-bold">02:45:30</div>
+            <p class="text-red-100 text-sm">Time Remaining</p>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Admin Dashboard -->
+<div class="mt-8">
+    <a href="/admin/" 
+       class="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Admin Dashboard
+    </a>
+</div>
+
+<!-- Campaign Details Modal -->
+<div id="campaignModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-xl bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Campaign Details</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div id="campaignDetails" class="space-y-4">
+            <!-- Campaign details will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+function viewCampaignDetails(promotionId) {
+    // In a real implementation, this would fetch details via AJAX
+    const modal = document.getElementById('campaignModal');
+    const details = document.getElementById('campaignDetails');
+    
+    details.innerHTML = `
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600">Campaign details would be loaded here...</p>
+            <p class="text-sm text-gray-600 mt-2">Promotion ID: ${promotionId}</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+}
+
+function editCampaign(promotionId) {
+    window.location.href = `/orders/seasonal-promotions/${promotionId}/edit/`;
+}
+
+function closeModal() {
+    document.getElementById('campaignModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Approved! 🎉</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #34a853;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .celebration {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #34a853;
+            text-align: center;
+        }
+        .celebration h2 {
+            color: #34a853;
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        .details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .details h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+            font-size: 16px;
+        }
+        .details p {
+            margin: 8px 0;
+            color: #5f6368;
+        }
+        .details strong {
+            color: #202124;
+        }
+        .steps {
+            margin: 25px 0;
+        }
+        .steps h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .steps li {
+            margin-bottom: 8px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #34a853;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 10px;
+        }
+        .button:hover {
+            background-color: #2d8e47;
+        }
+        .button-secondary {
+            background-color: #1a73e8;
+        }
+        .button-secondary:hover {
+            background-color: #1557b0;
+        }
+        .tips {
+            background-color: #fff8e1;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #fbbc04;
+        }
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #9e6a00;
+        }
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .tips li {
+            margin-bottom: 6px;
+        }
+        .buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #f1f3f4;
+            color: #5f6368;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎉</div>
+            <h1 class="title">Restaurant Approved!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ user.first_name|default:user.username }},</p>
+            
+            <div class="celebration">
+                <h2>🎉 Great News! Your restaurant is now live!</h2>
+                <p><strong>"{{ restaurant.name }}"</strong> has been approved and is now visible to customers on {{ site_name }}!</p>
+            </div>
+            
+            <p>Congratulations on becoming part of our restaurant community. Your restaurant is now ready to start receiving orders from hungry customers!</p>
+            
+            <div class="details">
+                <h4>Restaurant Details:</h4>
+                <p><strong>Name:</strong> {{ restaurant.name }}</p>
+                <p><strong>Cuisine:</strong> {{ restaurant.get_cuisine_type_display }}</p>
+                <p><strong>Address:</strong> {{ restaurant.address }}</p>
+                <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
+            </div>
+            
+            <div class="steps">
+                <h4>What's Next?</h4>
+                <ol>
+                    <li>Login to your restaurant dashboard to manage your profile</li>
+                    <li>Add delicious menu items and categories</li>
+                    <li>Set up your delivery options and pricing</li>
+                    <li>Start welcoming customers and receiving orders!</li>
+                </ol>
+            </div>
+            
+            <div class="buttons">
+                <a href="{{ dashboard_url }}" class="button">Restaurant Dashboard</a>
+                <a href="{{ restaurant_url }}" class="button button-secondary">View Your Restaurant</a>
+            </div>
+            
+            <div class="tips">
+                <h4>💡 Tips for Success:</h4>
+                <ul>
+                    <li>Keep your menu updated with accurate prices and availability</li>
+                    <li>Upload high-quality photos of your dishes</li>
+                    <li>Respond to customer reviews promptly</li>
+                    <li>Monitor your orders and delivery times</li>
+                </ul>
+            </div>
+            
+            <p>If you need any help getting started, please don't hesitate to contact our support team. We're here to help you succeed!</p>
+            
+            <p>Welcome to {{ site_name }}! We're excited to partner with you.</p>
+            
+            <p>Best regards,<br>
+            The {{ site_name }} Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>© {{ current_year }} {{ site_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

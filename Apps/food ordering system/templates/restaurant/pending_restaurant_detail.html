@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pending Restaurant Details - Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header with Breadcrumb -->
+    <div class="mb-8">
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="{% url 'customer:home' %}" class="hover:text-orange-500">Home</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'restaurant:manager_dashboard' %}" class="hover:text-orange-500">Manager Dashboard</a>
+            <span class="mx-2">/</span>
+            <span class="text-orange-600 font-medium">Application Details</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">Restaurant Application Details</h1>
+        <p class="text-gray-600 mt-2">Review the complete restaurant application</p>
+    </div>
+
+    <!-- Application Details Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ pending_restaurant.restaurant_name }}</h2>
+                    <div class="flex items-center space-x-3 mt-2">
+                        <span class="px-3 py-1 text-sm font-medium bg-orange-100 text-orange-800 rounded-full">
+                            {{ pending_restaurant.get_cuisine_type_display }}
+                        </span>
+                        <span class="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                            Pending Approval
+                        </span>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'restaurant:approve_restaurant' pending_restaurant.id %}" 
+                       class="px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                        Approve Application
+                    </a>
+                    <a href="{% url 'restaurant:reject_restaurant' pending_restaurant.id %}" 
+                       class="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                        Reject Application
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <!-- Applicant Information -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Applicant Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <p class="text-gray-900">{{ pending_restaurant.user.username }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <p class="text-gray-900">{{ pending_restaurant.user.email }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+                        <p class="text-gray-900">{{ pending_restaurant.phone }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Restaurant Email</label>
+                        <p class="text-gray-900">{{ pending_restaurant.email|default:"Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restaurant Details -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Restaurant Details</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <p class="text-gray-900">{{ pending_restaurant.description }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <p class="text-gray-900">{{ pending_restaurant.address }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cuisine Type</label>
+                        <p class="text-gray-900">{{ pending_restaurant.get_cuisine_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Information -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Opening Time</label>
+                        <p class="text-gray-900">{{ pending_restaurant.opening_time }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Closing Time</label>
+                        <p class="text-gray-900">{{ pending_restaurant.closing_time }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Order</label>
+                        <p class="text-gray-900">₹{{ pending_restaurant.minimum_order }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Fee</label>
+                        <p class="text-gray-900">₹{{ pending_restaurant.delivery_fee }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restaurant Image -->
+            {% if pending_restaurant.image %}
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Restaurant Image</h3>
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <img src="{{ pending_restaurant.image.url }}" alt="{{ pending_restaurant.restaurant_name }}" 
+                         class="w-full h-64 object-cover">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Application Timeline -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Application Timeline</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Application Submitted</p>
+                            <p class="text-sm text-gray-600">by {{ pending_restaurant.user.username }} (ID: {{ pending_restaurant.user.id }}) on {{ pending_restaurant.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-gray-300 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Awaiting Review</p>
+                            <p class="text-sm text-gray-600">Pending manager approval</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Current Manager</p>
+                            <p class="text-sm text-gray-600">{{ request.user.username }} (ID: {{ request.user.id }}) reviewing this application</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-8 flex justify-between items-center">
+        <a href="{% url 'restaurant:manager_dashboard' %}" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            ← Back to Dashboard
+        </a>
+        <div class="flex space-x-3">
+            <a href="{% url 'restaurant:reject_restaurant' pending_restaurant.id %}" 
+               class="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                Reject Application
+            </a>
+            <a href="{% url 'restaurant:approve_restaurant' pending_restaurant.id %}" 
+               class="px-6 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                Approve Application
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

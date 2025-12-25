@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Tetech Food Ordering</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #111827;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin: 5px 0 0 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .welcome-section {
+            background-color: #f3f4f6;
+            border-left: 4px solid #111827;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .feature-list {
+            margin: 20px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .feature-icon {
+            color: #111827;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .cta-section {
+            background-color: #111827;
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .cta-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .cta-description {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #ffffff;
+            color: #111827;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .account-info {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .account-info strong {
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Personalized Welcome Section -->
+        <div class="text-center mb-8">
+            <h1 style="font-size: 32px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
+                Welcome, {{ user.profile.full_name|default:user.username }}! 🎉
+            </h1>
+            <p style="font-size: 18px; color: #6b7280; margin: 0;">
+                Your Food Ordering journey begins now
+            </p>
+        </div>
+
+        <!-- Account Details Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center;">
+                <span style="margin-right: 8px;">👤</span> Your Account Details
+            </h2>
+            <div style="background-color: #f9fafb; padding: 16px; border-radius: 8px; font-family: 'Courier New', monospace;">
+                <p style="margin: 4px 0; color: #374151;"><strong>Username:</strong> {{ user.username }}</p>
+                <p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> {{ user.email }}</p>
+                {% if user.profile.full_name %}
+                <p style="margin: 4px 0; color: #374151;"><strong>Full Name:</strong> {{ user.profile.full_name }}</p>
+                {% endif %}
+                {% if user.profile.phone_number %}
+                <p style="margin: 4px 0; color: #374151;"><strong>Phone:</strong> {{ user.profile.phone_number }}</p>
+                {% endif %}
+                <p style="margin: 4px 0; color: #374151;"><strong>Registration Date:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <p>Dear {{ user.username }},</p>
+            
+            <p>Thank you for joining Tetech Food Ordering! We're excited to have you on board and can't wait for you to discover amazing restaurants and delicious food.</p>
+
+            <!-- Welcome Message -->
+            <div class="welcome-section">
+                <h3>What's Next?</h3>
+                <p>Your account is now active and ready to use! You can immediately start exploring restaurants, browsing menus, and placing orders.</p>
+            </div>
+
+            <!-- Features -->
+            <div class="feature-list">
+                <h3>What You Can Do Now:</h3>
+                <div class="feature-item">
+                    <span class="feature-icon">🍕</span>
+                    <span><strong>Browse Restaurants</strong> - Discover local eateries and their specialties</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <span><strong>Order Online</strong> - Place orders from your favorite restaurants</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🛒</span>
+                    <span><strong>Track Orders</strong> - Monitor your delivery status in real-time</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⭐</span>
+                    <span><strong>Rate & Review</strong> - Share your dining experiences</span>
+                </div>
+            </div>
+
+            <!-- Restaurant Owner CTA -->
+            <div class="cta-section">
+                <h3 class="cta-title">🏪 Want to Register Your Restaurant?</h3>
+                <p class="cta-description">
+                    If you're a restaurant owner, you can easily upgrade your account to start receiving orders from our platform!
+                </p>
+                <a href="{{ site_url }}{% url 'customer:profile' %}" class="cta-button">
+                    Visit Your Profile to Upgrade
+                </a>
+                <p style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                    Go to your profile page and submit your restaurant application for approval.
+                </p>
+            </div>
+
+            <p>If you have any questions or need assistance, feel free to contact our support team. We're here to help make your food ordering experience amazing!</p>
+
+            <p>Happy ordering!</p>
+            <p>
+                <strong>The Tetech Food Ordering Team</strong><br>
+                🍽️ Delicious food, delivered with care
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>This email was sent to {{ user.email }} because you registered for an account on Tetech Food Ordering.</p>
+            <p>© 2024 Tetech Food Ordering. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

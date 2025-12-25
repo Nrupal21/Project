@@ -1,0 +1,677 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load url_filters %}
+
+{% block title %}Order Food Online - Best Restaurants Near You{% endblock %}
+
+{% block content %}
+<!-- Enhanced Search and Filter Container -->
+<div class="min-h-screen bg-white">
+    <!-- Airbnb-style Hero Section -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="container mx-auto px-4 py-12">
+            <div class="max-w-4xl mx-auto text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    Find your next favorite meal
+                </h1>
+                <p class="text-xl text-gray-600 font-normal">
+                    Choose from {{ total_results }} amazing restaurants and get food delivered to your door
+                </p>
+            </div>
+            
+            <!-- Clean Airbnb-style Search Bar -->
+            <form method="get" class="max-w-3xl mx-auto">
+                <div class="relative">
+                    <div class="flex items-center bg-white border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                value="{{ search_query }}"
+                                placeholder="Search for restaurants or cuisines..."
+                                class="w-full px-6 py-4 pr-12 text-gray-900 placeholder-gray-500 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent"
+                            >
+                            <svg class="absolute right-4 top-4 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-medium transition duration-200 mr-2">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popular Dishes Section - Horizontal Scrolling -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-gray-900">Popular Dishes</h2>
+                <a href="{% url 'customer:menu' %}" class="text-rose-600 hover:text-rose-700 font-medium transition-colors duration-200">
+                    View all dishes →
+                </a>
+            </div>
+            
+            <!-- Horizontal Scrolling Container -->
+            <div class="overflow-x-auto pb-4">
+                <div class="flex gap-4" style="width: max-content;">
+                    {% for item in popular_menu_items %}
+                    <!-- Food Item Card -->
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 w-64 flex-shrink-0">
+                        <!-- Food Image -->
+                        <div class="h-40 bg-gradient-to-br from-rose-50 to-orange-50 rounded-t-2xl flex items-center justify-center relative">
+                            {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover rounded-t-2xl">
+                            {% else %}
+                            <span class="text-5xl">🍽️</span>
+                            {% endif %}
+                            
+                            <!-- Restaurant Badge -->
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                                    {{ item.restaurant.name }}
+                                </span>
+                            </div>
+                            
+                            <!-- Dietary Type Badge -->
+                            <div class="absolute top-3 right-3">
+                                <span class="inline-block px-2 py-1 text-xs rounded-full font-medium
+                                    {% if item.dietary_type == 'veg' %}bg-green-100 text-green-800
+                                    {% elif item.dietary_type == 'vegan' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ item.get_dietary_type_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Food Details -->
+                        <div class="p-4">
+                            <!-- Item Name and Category -->
+                            <div class="mb-2">
+                                <h3 class="font-semibold text-gray-900 text-sm line-clamp-1">{{ item.name }}</h3>
+                                <p class="text-xs text-gray-500">{{ item.category.name }}</p>
+                            </div>
+                            
+                            <!-- Item Description -->
+                            <p class="text-gray-600 text-xs mb-3 line-clamp-2">{{ item.description }}</p>
+                            
+                            <!-- Price and Add to Cart -->
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-lg font-semibold text-gray-900">₹{{ item.price }}</span>
+                                    <div class="text-xs text-gray-500">
+                                        ⏱️ {{ item.preparation_time }} mins
+                                    </div>
+                                </div>
+                                
+                                {% if item.is_available %}
+                                <form method="post" action="{% url 'customer:cart_add' item.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-full transition-colors duration-200 text-sm font-medium">
+                                        Add +
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button disabled class="bg-gray-100 text-gray-400 px-3 py-2 rounded-full text-sm font-medium cursor-not-allowed">
+                                    Sold Out
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 text-gray-500">
+                        <p>No popular dishes available at the moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    <!-- Main Content with Sidebar -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Popular Cuisines Quick Filter -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Popular cuisines</h2>
+            <div class="flex flex-wrap gap-3">
+                <a href="?cuisine=italian" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🍕</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Italian</span>
+                </a>
+                <a href="?cuisine=indian" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🍛</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Indian</span>
+                </a>
+                <a href="?cuisine=american" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🍔</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">American</span>
+                </a>
+                <a href="?cuisine=chinese" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🥡</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Chinese</span>
+                </a>
+                <a href="?cuisine=japanese" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🍱</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Japanese</span>
+                </a>
+                <a href="?cuisine=mexican" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🌮</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Mexican</span>
+                </a>
+                <a href="?cuisine=thai" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🥘</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Thai</span>
+                </a>
+                <a href="?cuisine=mediterranean" class="group bg-white border border-gray-300 hover:border-gray-900 hover:shadow-md rounded-full px-6 py-3 flex items-center space-x-2 transition-all duration-200">
+                    <span class="text-xl">🥙</span>
+                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Mediterranean</span>
+                </a>
+            </div>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Filter Sidebar (Desktop) -->
+            <aside class="lg:w-80 flex-shrink-0">
+                <!-- Mobile Filter Toggle Button -->
+                <div class="lg:hidden mb-4">
+                    <button onclick="toggleMobileFilters()" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition duration-200">
+                        <span class="font-semibold text-gray-700">Filters & Sorting</span>
+                        <svg id="filterToggleIcon" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Filter Panel -->
+                <div id="filterPanel" class="bg-white rounded-2xl shadow-sm p-6 hidden lg:block">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Filters</h2>
+                        {% if search_query or selected_cuisine or selected_price_range or selected_delivery_fee or selected_rating %}
+                        <a href="{% url 'customer:home' %}" class="text-sm text-gray-600 hover:text-gray-900 underline font-medium">
+                            Clear all
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <form method="get" id="filterForm">
+                        <!-- Preserve search query -->
+                        {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                        {% endif %}
+
+                        <!-- Cuisine Type Filter -->
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Cuisine type</h3>
+                            <select name="cuisine" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent">
+                                <option value="">All cuisines</option>
+                                {% for cuisine_value, cuisine_label in cuisine_choices %}
+                                <option value="{{ cuisine_value }}" {% if selected_cuisine == cuisine_value %}selected{% endif %}>
+                                    {{ cuisine_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Minimum order</h3>
+                            <select name="price_range" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent">
+                                <option value="">Any price</option>
+                                <option value="low" {% if selected_price_range == 'low' %}selected{% endif %}>Under ₹100</option>
+                                <option value="medium" {% if selected_price_range == 'medium' %}selected{% endif %}>₹100 - ₹200</option>
+                                <option value="high" {% if selected_price_range == 'high' %}selected{% endif %}>Above ₹200</option>
+                            </select>
+                        </div>
+
+                        <!-- Delivery Fee Filter -->
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Delivery fee</h3>
+                            <select name="delivery_fee" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent">
+                                <option value="">Any delivery fee</option>
+                                <option value="free" {% if selected_delivery_fee == 'free' %}selected{% endif %}>Free delivery</option>
+                                <option value="low" {% if selected_delivery_fee == 'low' %}selected{% endif %}>Under ₹50</option>
+                                <option value="medium" {% if selected_delivery_fee == 'medium' %}selected{% endif %}>₹50 - ₹100</option>
+                                <option value="high" {% if selected_delivery_fee == 'high' %}selected{% endif %}>Above ₹100</option>
+                            </select>
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Minimum rating</h3>
+                            <select name="rating" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent">
+                                <option value="">Any rating</option>
+                                <option value="4.5" {% if selected_rating == '4.5' %}selected{% endif %}>4.5+ stars</option>
+                                <option value="4.0" {% if selected_rating == '4.0' %}selected{% endif %}>4.0+ stars</option>
+                                <option value="3.5" {% if selected_rating == '3.5' %}selected{% endif %}>3.5+ stars</option>
+                                <option value="3.0" {% if selected_rating == '3.0' %}selected{% endif %}>3.0+ stars</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Sort by</h3>
+                            <select name="sort" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent">
+                                <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Top rated</option>
+                                <option value="name" {% if selected_sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                                <option value="min_order" {% if selected_sort == 'min_order' %}selected{% endif %}>Lowest minimum order</option>
+                                <option value="delivery_fee" {% if selected_sort == 'delivery_fee' %}selected{% endif %}>Lowest delivery fee</option>
+                                <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest first</option>
+                            </select>
+                        </div>
+
+                        <!-- Apply Filters Button -->
+                        <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg transition duration-200">
+                            Apply filters
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Restaurant Listings -->
+            <main class="flex-1">
+                <!-- Results Header -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-900">
+                                {{ total_results }} restaurant{{ total_results|pluralize }}
+                            </h2>
+                            {% if search_query %}
+                            <p class="text-gray-600 mt-1">Showing results for "{{ search_query }}"</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Active Filter Tags -->
+                        <div class="flex flex-wrap gap-2">
+                            {% if selected_cuisine %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                                {{ selected_cuisine|title }}
+                                <a href="{% current_url_without_param request 'cuisine' %}" class="ml-2 hover:text-gray-900">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            {% endif %}
+                            
+                            {% if selected_price_range %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                                {% if selected_price_range == 'low' %}Under ₹100{% elif selected_price_range == 'medium' %}₹100-₹200{% else %}Above ₹200{% endif %}
+                                <a href="{% current_url_without_param request 'price_range' %}" class="ml-2 hover:text-gray-900">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            {% endif %}
+                            
+                            {% if selected_delivery_fee %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                                {% if selected_delivery_fee == 'free' %}Free delivery{% elif selected_delivery_fee == 'low' %}Under ₹50{% elif selected_delivery_fee == 'medium' %}₹50-₹100{% else %}Above ₹100{% endif %}
+                                <a href="{% current_url_without_param request 'delivery_fee' %}" class="ml-2 hover:text-gray-900">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            {% endif %}
+                            
+                            {% if selected_rating %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200">
+                                {{ selected_rating }}+ stars
+                                <a href="{% current_url_without_param request 'rating' %}" class="ml-2 hover:text-gray-900">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Restaurant Grid -->
+                {% if restaurants %}
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {% for restaurant in restaurants %}
+                    <!-- Airbnb-style Restaurant Card -->
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer">
+                        <!-- Restaurant Image with Overlay -->
+                        <div class="relative h-48 overflow-hidden">
+                            {% if restaurant.image %}
+                            <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            {% else %}
+                            <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <span class="text-6xl opacity-50">🏪</span>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Cuisine Badge Overlay -->
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium text-gray-900 shadow-sm">
+                                    {{ restaurant.get_cuisine_type_display }}
+                                </span>
+                            </div>
+                            
+                            <!-- Open/Closed Status -->
+                            <div class="absolute top-3 right-3">
+                                {% if restaurant.is_open %}
+                                <span class="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium text-green-600 shadow-sm flex items-center">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                    Open
+                                </span>
+                                {% else %}
+                                <span class="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium text-red-600 shadow-sm">
+                                    Closed
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Restaurant Information -->
+                        <div class="p-5">
+                            <!-- Restaurant Name and Rating -->
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-lg font-semibold text-gray-900 group-hover:underline transition-colors">
+                                    {{ restaurant.name }}
+                                </h3>
+                                <div class="flex items-center bg-white border border-gray-300 px-2 py-1 rounded-lg">
+                                    <svg class="w-4 h-4 text-gray-700 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">{{ restaurant.rating }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Restaurant Description -->
+                            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                                {{ restaurant.description|truncatewords:15 }}
+                            </p>
+                            
+                            <!-- Delivery Information -->
+                            <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Min: ₹{{ restaurant.minimum_order }}
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
+                                    </svg>
+                                    {% if restaurant.delivery_fee == 0 %}Free{% else %}₹{{ restaurant.delivery_fee }}{% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- View Restaurant Button -->
+                            <a href="{% url 'customer:restaurant_detail' restaurant.id %}" class="block w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg text-center transition duration-200">
+                                View menu
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- No Results Found -->
+                <div class="bg-white rounded-2xl shadow-sm p-12 text-center">
+                    <div class="text-6xl mb-4">🔍</div>
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-2">No restaurants found</h3>
+                    <p class="text-gray-600 mb-6">
+                        {% if search_query %}
+                        We couldn't find any restaurants matching "{{ search_query }}". Try adjusting your search or filters.
+                        {% else %}
+                        No restaurants match your current filters. Try adjusting your criteria.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'customer:home' %}" class="inline-block bg-gray-900 hover:bg-gray-800 text-white font-medium px-6 py-3 rounded-lg transition duration-200">
+                        Clear all filters
+                    </a>
+                </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Deals Section -->
+<div class="bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="bg-gray-900 text-white p-3 rounded-lg mr-4">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-900">Today's special deals</h2>
+                    <p class="text-gray-600">Limited time offers from your favorite restaurants</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Deal Card 1 -->
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium">20% OFF</span>
+                        <span class="text-gray-500 text-sm">Today only</span>
+                    </div>
+                    <h3 class="font-semibold text-lg text-gray-900 mb-2">Italian Bistro Special</h3>
+                    <p class="text-gray-600 text-sm mb-4">Get 20% off on all pasta dishes and family meals</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Min order: ₹200</span>
+                        <a href="{% url 'customer:restaurant_detail' 3 %}" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                            Order now
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Deal Card 2 -->
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium">FREE DELIVERY</span>
+                        <span class="text-gray-500 text-sm">This week</span>
+                    </div>
+                    <h3 class="font-semibold text-lg text-gray-900 mb-2">Spice Garden Offer</h3>
+                    <p class="text-gray-600 text-sm mb-4">Free delivery on all orders above ₹300</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Min order: ₹150</span>
+                        <a href="{% url 'customer:restaurant_detail' 1 %}" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                            Order now
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Deal Card 3 -->
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium">BUY 1 GET 1</span>
+                        <span class="text-gray-500 text-sm">Weekend special</span>
+                    </div>
+                    <h3 class="font-semibold text-lg text-gray-900 mb-2">Burger Palace Deal</h3>
+                    <p class="text-gray-600 text-sm mb-4">Buy one burger, get second one 50% off</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Min order: ₹100</span>
+                        <a href="{% url 'customer:restaurant_detail' 4 %}" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                            Order now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="mt-12 bg-white rounded-2xl shadow-sm p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-semibold text-gray-900 mb-4">How it works</h2>
+                <p class="text-gray-600 text-lg">Order your favorite food in 3 simple steps</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="text-center group">
+                    <div class="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-200 transition duration-300">
+                        <span class="text-3xl">🔍</span>
+                    </div>
+                    <h3 class="font-semibold text-xl text-gray-900 mb-2">1. Browse restaurants</h3>
+                    <p class="text-gray-600">Search and filter through our wide selection of restaurants and cuisines</p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="text-center group">
+                    <div class="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-200 transition duration-300">
+                        <span class="text-3xl">🛒</span>
+                    </div>
+                    <h3 class="font-semibold text-xl text-gray-900 mb-2">2. Place your order</h3>
+                    <p class="text-gray-600">Add items to your cart and customize your order with special instructions</p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="text-center group">
+                    <div class="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-200 transition duration-300">
+                        <span class="text-3xl">🚚</span>
+                    </div>
+                    <h3 class="font-semibold text-xl text-gray-900 mb-2">3. Enjoy your meal</h3>
+                    <p class="text-gray-600">Sit back and relax as we deliver your food hot and fresh to your doorstep</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Mobile Filter Toggle -->
+<script>
+function toggleMobileFilters() {
+    const filterPanel = document.getElementById('filterPanel');
+    const toggleIcon = document.getElementById('filterToggleIcon');
+    
+    if (filterPanel.classList.contains('hidden')) {
+        filterPanel.classList.remove('hidden');
+        filterPanel.classList.add('absolute', 'top-full', 'left-0', 'right-0', 'bg-white', 'shadow-xl', 'rounded-b-xl', 'z-50', 'mt-2');
+        toggleIcon.classList.add('rotate-180');
+    } else {
+        filterPanel.classList.add('hidden');
+        filterPanel.classList.remove('absolute', 'top-full', 'left-0', 'right-0', 'bg-white', 'shadow-xl', 'rounded-b-xl', 'z-50', 'mt-2');
+        toggleIcon.classList.remove('rotate-180');
+    }
+}
+
+// Close mobile filters when clicking outside
+document.addEventListener('click', function(event) {
+    const filterPanel = document.getElementById('filterPanel');
+    const filterToggle = event.target.closest('button[onclick="toggleMobileFilters()"]');
+    
+    if (!filterPanel.contains(event.target) && !filterToggle && !filterPanel.classList.contains('hidden')) {
+        toggleMobileFilters();
+    }
+});
+
+// Auto-submit filters on change for better UX
+document.querySelectorAll('#filterForm select').forEach(select => {
+    select.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+});
+</script>
+
+<!-- Custom Styles for Enhanced UI -->
+<style>
+/* Line clamp utility with vendor prefixes for compatibility */
+.line-clamp-2 {
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    -webkit-line-clamp: 2;
+    -moz-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Fallback for browsers that don't support line-clamp */
+@supports not (-webkit-line-clamp: 2) {
+    .line-clamp-2 {
+        max-height: 3em; /* Approximately 2 lines of text */
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .line-clamp-2::after {
+        content: "...";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding-left: 40px;
+        background: linear-gradient(to right, transparent, white 50%);
+    }
+}
+
+/* Smooth transitions for hover effects */
+.group:hover .group-hover\:scale-105 {
+    transform: scale(1.05);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 1024px) {
+    .lg\:w-80 {
+        width: 100%;
+    }
+    
+    .lg\:block {
+        display: none;
+    }
+}
+
+/* Filter panel animations */
+#filterPanel {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Enhanced focus states */
+select:focus, input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
+}
+
+/* Additional utility classes for better compatibility */
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Improved mobile filter panel */
+@media (max-width: 768px) {
+    #filterPanel.mobile-open {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+}
+
+/* Enhanced button hover states */
+.btn-hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.btn-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+</style>
+{% endblock %}

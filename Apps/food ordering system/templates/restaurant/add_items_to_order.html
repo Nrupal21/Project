@@ -1,0 +1,441 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Add items to order custom styles - no animation to prevent disappearing effect */
+    .menu-item-card {
+        cursor: pointer;
+    }
+    
+    .menu-item-card.selected {
+        border-color: #4F46E5;
+        background: linear-gradient(to right, #EEF2FF, #F9FAFB);
+    }
+    
+    .quantity-input {
+        width: 80px;
+    }
+    
+    .category-section {
+        margin-bottom: 2rem;
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .selected-items-summary {
+        position: sticky;
+        top: 80px;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+    }
+    
+    .item-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        background: #4F46E5;
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        margin: 0.25rem;
+    }
+    
+    .item-badge button {
+        margin-left: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .item-badge button:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<div class="min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        🍽️ {{ title }}
+                    </h1>
+                    <p class="mt-2 text-gray-600">
+                        Add items to order for {{ order.customer_name }}
+                    </p>
+                </div>
+                <a href="{% url 'restaurant:order_detail' order.order_id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    ← Back to Order
+                </a>
+            </div>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <span class="text-sm text-gray-500">Order ID</span>
+                    <p class="font-semibold">#{{ order.order_id|slice:":8" }}</p>
+                </div>
+                {% if order.table %}
+                <div>
+                    <span class="text-sm text-gray-500">Table</span>
+                    <p class="font-semibold">Table {{ order.table.table_number }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <span class="text-sm text-gray-500">Current Total</span>
+                    <p class="font-semibold text-green-600">₹{{ order.total_amount }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Status</span>
+                    <p class="font-semibold">
+                        <span class="px-2 py-1 text-xs rounded-full {{ order.get_status_display_class }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Menu Items Section -->
+            <div class="lg:col-span-3">
+                <form method="post" id="add-items-form">
+                    {% csrf_token %}
+                    
+                    <!-- Search Bar -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" 
+                                   id="menu-search" 
+                                   placeholder="Search menu items..." 
+                                   class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Categories -->
+                    <div id="menu-categories">
+                        {% for category, items in items_by_category.items %}
+                        <div class="category-section" data-category="{{ category.name|lower }}">
+                            <div class="category-header">
+                                <h3 class="text-lg font-semibold">{{ category.name }}</h3>
+                                <p class="text-sm opacity-90">{{ items|length }} items available</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {% for item in items %}
+                                <div class="menu-item-card bg-white rounded-lg border-2 border-gray-200 p-4" 
+                                     data-item-id="{{ item.id }}"
+                                     data-item-name="{{ item.name }}"
+                                     data-item-price="{{ item.price }}">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h4 class="font-semibold text-gray-900">{{ item.name }}</h4>
+                                            <p class="text-sm text-gray-600 mt-1">{{ item.description|truncatewords:15 }}</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="text-lg font-bold text-green-600">₹{{ item.price }}</span>
+                                                {% if item.is_spicy %}
+                                                <span class="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">🌶️ Spicy</span>
+                                                {% endif %}
+                                                {% if item.is_vegetarian %}
+                                                <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">🥬 Veg</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if item.image %}
+                                        <img src="{{ item.image.url }}" 
+                                             alt="{{ item.name }}" 
+                                             class="w-20 h-20 object-cover rounded-lg ml-4">
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Quantity Selector (Hidden by default) -->
+                                    <div class="quantity-selector mt-4 hidden">
+                                        <div class="flex items-center space-x-3">
+                                            <label class="text-sm font-medium text-gray-700">Quantity:</label>
+                                            <input type="number" 
+                                                   name="quantities[]" 
+                                                   min="1" 
+                                                   max="20" 
+                                                   value="1" 
+                                                   class="quantity-input px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                                            <!-- Hidden input for item ID - only added when item is selected -->
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No menu items available</h3>
+                            <p class="mt-1 text-sm text-gray-500">Please add some items to your menu first.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="mt-8">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            Special Instructions (Optional)
+                        </label>
+                        <textarea id="notes" 
+                                  name="notes" 
+                                  rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                                  placeholder="Add any special instructions for these items..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mt-8 flex justify-end">
+                        <button type="submit" 
+                                id="submit-btn"
+                                class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
+                            Add Selected Items
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Selected Items Summary -->
+            <div class="lg:col-span-1">
+                <div class="selected-items-summary">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        🛒 Selected Items
+                    </h3>
+                    
+                    <div id="selected-items-list">
+                        <p class="text-sm text-gray-500 text-center py-4">
+                            No items selected yet
+                        </p>
+                    </div>
+                    
+                    <div id="additional-total" class="mt-4 pt-4 border-t border-gray-200 hidden">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Additional Total:</span>
+                            <span class="font-bold text-green-600" id="additional-amount">₹0</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="font-medium">New Order Total:</span>
+                            <span class="font-bold text-lg text-green-600" id="new-total">₹{{ order.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Add items to order JavaScript functionality
+ * Handles item selection, quantity management, and form submission
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedItems = new Map(); // item_id -> {name, price, quantity}
+    const menuCards = document.querySelectorAll('.menu-item-card');
+    const submitBtn = document.getElementById('submit-btn');
+    const searchInput = document.getElementById('menu-search');
+    
+    // Handle menu item card clicks
+    menuCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't select if clicking on quantity input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') {
+                return;
+            }
+            
+            toggleItemSelection(this);
+        });
+    });
+    
+    /**
+     * Toggle item selection
+     */
+    function toggleItemSelection(card) {
+        const itemId = card.dataset.itemId;
+        const itemName = card.dataset.itemName;
+        const itemPrice = parseFloat(card.dataset.itemPrice);
+        const quantitySelector = card.querySelector('.quantity-selector');
+        const quantityInput = card.querySelector('input[type="number"]');
+        
+        if (selectedItems.has(itemId)) {
+            // Deselect item
+            selectedItems.delete(itemId);
+            card.classList.remove('selected');
+            quantitySelector.classList.add('hidden');
+            quantityInput.value = 1;
+            
+            // Remove hidden input for item ID
+            const hiddenInput = quantitySelector.querySelector('input[name="menu_items[]"]');
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+        } else {
+            // Select item
+            selectedItems.set(itemId, {
+                name: itemName,
+                price: itemPrice,
+                quantity: 1
+            });
+            card.classList.add('selected');
+            quantitySelector.classList.remove('hidden');
+            
+            // Add hidden input for item ID
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'menu_items[]';
+            hiddenInput.value = itemId;
+            quantitySelector.appendChild(hiddenInput);
+        }
+        
+        updateSelectedItemsSummary();
+        updateSubmitButton();
+    }
+    
+    /**
+     * Handle quantity changes
+     */
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const card = this.closest('.menu-item-card');
+            const itemId = card.dataset.itemId;
+            const quantity = parseInt(this.value) || 1;
+            
+            if (selectedItems.has(itemId)) {
+                selectedItems.get(itemId).quantity = quantity;
+                updateSelectedItemsSummary();
+            }
+        });
+    });
+    
+    /**
+     * Update selected items summary
+     */
+    function updateSelectedItemsSummary() {
+        const summaryList = document.getElementById('selected-items-list');
+        const additionalTotal = document.getElementById('additional-total');
+        const additionalAmount = document.getElementById('additional-amount');
+        const newTotal = document.getElementById('new-total');
+        
+        if (selectedItems.size === 0) {
+            summaryList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No items selected yet</p>';
+            additionalTotal.classList.add('hidden');
+            return;
+        }
+        
+        let html = '';
+        let total = 0;
+        
+        selectedItems.forEach((item, itemId) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            
+            html += `
+                <div class="item-badge">
+                    ${item.name} x${item.quantity} - ₹${itemTotal.toFixed(2)}
+                    <button type="button" onclick="removeItem('${itemId}')">×</button>
+                </div>
+            `;
+        });
+        
+        summaryList.innerHTML = html;
+        
+        // Update totals
+        const currentTotal = parseFloat('{{ order.total_amount }}');
+        additionalAmount.textContent = `₹${total.toFixed(2)}`;
+        newTotal.textContent = `₹${(currentTotal + total).toFixed(2)}`;
+        additionalTotal.classList.remove('hidden');
+    }
+    
+    /**
+     * Remove item from selection
+     */
+    window.removeItem = function(itemId) {
+        const card = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (card) {
+            toggleItemSelection(card);
+        }
+    };
+    
+    /**
+     * Update submit button state
+     */
+    function updateSubmitButton() {
+        submitBtn.disabled = selectedItems.size === 0;
+    }
+    
+    /**
+     * Search functionality
+     */
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        document.querySelectorAll('.category-section').forEach(section => {
+            const category = section.dataset.category;
+            const items = section.querySelectorAll('.menu-item-card');
+            let hasVisibleItems = false;
+            
+            items.forEach(card => {
+                const itemName = card.dataset.itemName.toLowerCase();
+                const itemDesc = card.querySelector('.text-gray-600').textContent.toLowerCase();
+                
+                if (itemName.includes(searchTerm) || itemDesc.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    hasVisibleItems = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            section.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+    });
+    
+    /**
+     * Form submission validation
+     */
+    document.getElementById('add-items-form').addEventListener('submit', function(e) {
+        if (selectedItems.size === 0) {
+            e.preventDefault();
+            alert('Please select at least one item to add.');
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Adding Items...';
+    });
+});
+</script>
+{% endblock %}

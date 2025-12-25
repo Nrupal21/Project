@@ -1,0 +1,138 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}All Orders - Restaurant Dashboard{% endblock %}
+
+{% block restaurant_content %}
+<!-- Page Header - Airbnb Style -->
+<div class="mb-8">
+    <h1 class="text-3xl lg:text-4xl font-semibold text-gray-900 mb-2">All Orders</h1>
+    <p class="text-lg text-gray-600">Manage and track all customer orders</p>
+</div>
+
+<!-- Filters Section - Airbnb Style -->
+<div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Status Filter -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">Filter by Status</label>
+            <select name="status" onchange="this.form.submit()" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 transition-colors duration-200">
+                <option value="">All Statuses</option>
+                {% for value, display in status_choices %}
+                <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                    {{ display }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Search Filter -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-900 uppercase tracking-wide mb-2">Search Orders</label>
+            <div class="flex gap-2">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name, phone, or order ID" class="flex-grow px-4 py-3 rounded-lg border border-gray-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 transition-colors duration-200">
+                <button type="submit" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-full transition-colors duration-200 font-medium">
+                    🔍 Search
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Clear Filters -->
+    {% if current_status or search_query %}
+    <div class="mt-4">
+        <a href="{% url 'restaurant:order_list' %}">
+            <button class="text-rose-600 hover:text-rose-700 font-medium transition-colors duration-200">
+                ✕ Clear Filters
+            </button>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Orders List - Airbnb Style -->
+{% if orders %}
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Order ID</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Customer Details</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Items</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Amount</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Status</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Order Time</th>
+                    <th class="text-left py-4 px-6 text-xs font-semibold text-gray-900 uppercase tracking-wide">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-t border-gray-100 hover:bg-gray-50 transition-colors duration-200">
+                    <td class="py-4 px-6">
+                        <span class="font-mono text-sm font-medium text-gray-700">#{{ order.order_id|slice:":8" }}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
+                            <p class="text-sm text-gray-600">📞 {{ order.customer_phone }}</p>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="text-gray-700">{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="text-lg font-semibold text-gray-900">₹{{ order.total_amount }}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{ order.get_status_display_class }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="text-sm">
+                            <p class="text-gray-700">{{ order.created_at|date:"M d, Y" }}</p>
+                            <p class="text-gray-500">{{ order.created_at|time:"h:i A" }}</p>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <a href="{% url 'restaurant:order_detail' order.order_id %}">
+                            <button class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full transition-colors duration-200 text-sm font-medium">
+                                View Details
+                            </button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Count -->
+<div class="mt-6 text-center text-gray-600">
+    <p>Showing <span class="font-semibold">{{ orders.count }}</span> order{{ orders.count|pluralize }}</p>
+</div>
+
+{% else %}
+<!-- Empty State - Airbnb Style -->
+<div class="bg-white rounded-2xl shadow-sm p-12 text-center border border-gray-100">
+    <div class="text-6xl mb-4">📦</div>
+    <h3 class="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
+    <p class="text-gray-600 mb-6">
+        {% if current_status or search_query %}
+        No orders match your current filters. Try adjusting your search.
+        {% else %}
+        No orders have been placed yet. They will appear here once customers place orders.
+        {% endif %}
+    </p>
+    {% if current_status or search_query %}
+    <a href="{% url 'restaurant:order_list' %}">
+        <button class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-full transition-colors duration-200 font-medium">
+            Clear Filters
+        </button>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

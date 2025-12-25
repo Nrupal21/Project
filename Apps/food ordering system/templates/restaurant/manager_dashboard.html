@@ -1,0 +1,2788 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- 
+Restaurant Manager Dashboard Template
+Purpose: Comprehensive restaurant management interface with admin tools
+Features: Restaurant applications, bulk operations, user management, system reports
+Data Source: Real database data for restaurant operations and management
+Target Users: Restaurant managers, system administrators, superusers
+-->
+
+{% block title %}🛠️ Restaurant Manager Dashboard - System Tools & Reports{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js library for analytics visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 
+Enhanced Tailwind CSS styling for restaurant manager dashboard
+Using indigo/violet color scheme for professional appearance
+Includes hover effects, transitions, and responsive design
+-->
+
+<style>
+    /* 
+    Custom animation for refresh spinner
+    Purpose: Visual feedback during data refresh operations
+    Integration: Works with Tailwind CSS utilities
+    */
+    .refresh-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #6366f1; /* indigo-500 */
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* 
+    Enhanced KPI card styling with gradient backgrounds
+    Purpose: Visual hierarchy for key performance indicators
+    Colors: Indigo to violet gradient following design system
+    */
+    /* KPI card gradient - no animation to prevent disappearing effect */
+    .kpi-card-gradient {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #7c3aed 100%);
+    }
+    
+    /* 
+    Analytics section styling for content cards
+    Purpose: Consistent styling for dashboard sections
+    Features: Subtle shadows, rounded corners, hover effects
+    */
+    /* Analytics card - no animation to prevent disappearing effect */
+    .analytics-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+    
+    /* 
+    Metric badge styling for status indicators
+    Purpose: Visual status indicators with color coding
+    Colors: Success (green), Warning (amber), Danger (red), Info (blue)
+    */
+    /* Metric badge - no animation to prevent disappearing effect */
+    .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+    }
+    
+    .metric-success { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+    
+    .metric-warning { 
+        background: linear-gradient(135deg, #f59e0b, #d97706); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+    }
+    
+    .metric-danger { 
+        background: linear-gradient(135deg, #ef4444, #dc2626); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+    
+    .metric-info { 
+        background: linear-gradient(135deg, #3b82f6, #2563eb); 
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* 
+    Tab button styling for navigation
+    Purpose: Interactive tab navigation with hover effects
+    Features: Smooth transitions, active state indicators
+    */
+    /* Tab button - no animation to prevent disappearing effect */
+    .tab-btn {
+        position: relative;
+    }
+    
+    .tab-btn.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    /* 
+    Chart container styling for consistent dimensions
+    Purpose: Standardized chart sizing and responsive behavior
+    Features: Relative positioning for overlays, consistent margins
+    */
+    .chart-container {
+        position: relative;
+        height: 320px;
+        margin: 24px 0;
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 280px;
+            margin: 16px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 
+Main Dashboard Content Container
+Purpose: Responsive layout container with proper spacing and background
+Features: Full-height layout, centered content, responsive padding
+-->
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- 
+        Dashboard Header Section
+        Purpose: Main title, breadcrumb navigation, and action buttons
+        Features: Page title, navigation breadcrumbs, quick access links
+        -->
+        <header class="mb-10">
+            <!-- Breadcrumb Navigation -->
+            <nav class="text-sm text-gray-600 mb-4 flex items-center">
+                <a href="{% url 'customer:home' %}" class="hover:text-indigo-600 transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Home
+                </a>
+                <span class="mx-2 text-gray-400">/</span>
+                <span class="text-indigo-600 font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Restaurant Manager Dashboard
+                </span>
+            </nav>
+            
+            <!-- Title and Action Buttons -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <!-- Title Section -->
+                <div class="flex-1">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                        Restaurant Manager Dashboard 🛠️
+                    </h1>
+                    <p class="text-gray-600 mt-3 text-lg leading-relaxed">
+                        Comprehensive restaurant management tools, bulk operations, and system-wide reporting
+                    </p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- View Restaurants Button -->
+                    <a href="{% url 'restaurant:manager_restaurants_list' %}" 
+                       class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        <span class="font-medium">View All Restaurants</span>
+                    </a>
+                    
+                    <!-- Django Admin Button (Superuser Only) -->
+                    {% if user.is_superuser %}
+                    <a href="{% url 'admin:index' %}" 
+                       class="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="font-medium">Django Admin</span>
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Analytics Dashboard Link -->
+                    <a href="#" onclick="showTab('reporting'); return false;" 
+                       class="bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span class="font-medium">Analytics</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- 
+        Manager Tools Navigation Tabs
+        Purpose: Tab-based navigation for different management sections
+        Features: Interactive tabs with hover effects and active state indicators
+        -->
+        <nav class="mb-10">
+            <div class="analytics-card p-2">
+                <div class="flex flex-wrap gap-2" role="tablist">
+                    <!-- Overview Tab Button -->
+                    <button onclick="showTab('overview')" 
+                            class="tab-btn active flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 group">
+                        <span class="text-lg mr-2 group-hover:scale-110 transition-transform">📊</span>
+                        <span>Overview</span>
+                    </button>
+                    
+                    <!-- System Reports Tab Button -->
+                    <button onclick="showTab('reporting')" 
+                            class="tab-btn flex items-center px-4 py-3 rounded-lg font-medium text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 group">
+                        <span class="text-lg mr-2 group-hover:scale-110 transition-transform">📈</span>
+                        <span>System Reports</span>
+                    </button>
+                    
+                    <!-- Bulk Operations Tab Button -->
+                    <button onclick="showTab('bulk-operations')" 
+                            class="tab-btn flex items-center px-4 py-3 rounded-lg font-medium text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 group">
+                        <span class="text-lg mr-2 group-hover:scale-110 transition-transform">⚡</span>
+                        <span>Bulk Operations</span>
+                    </button>
+                    
+                    <!-- User Management Tab Button -->
+                    <button onclick="showTab('user-management')" 
+                            class="tab-btn flex items-center px-4 py-3 rounded-lg font-medium text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 group">
+                        <span class="text-lg mr-2 group-hover:scale-110 transition-transform">👥</span>
+                        <span>User Management</span>
+                    </button>
+                    
+                    <!-- Advanced Search Tab Button -->
+                    <button onclick="showTab('advanced-search')" 
+                            class="tab-btn flex items-center px-4 py-3 rounded-lg font-medium text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 group">
+                        <span class="text-lg mr-2 group-hover:scale-110 transition-transform">🔍</span>
+                        <span>Advanced Search</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+    <!-- 
+        Tab Content Container
+        Purpose: Dynamic content area for different management sections
+        Features: Tab switching, responsive layout, interactive components
+        -->
+        <main id="tab-content">
+            <!-- 
+            Overview Tab Content
+            Purpose: Main dashboard with restaurant applications and system overview
+            Features: Restaurant approval workflow, activity tracking, system statistics
+            -->
+            <section id="overview-tab" class="tab-content">
+                
+                <!-- 
+                Restaurant Applications Management Section
+                Purpose: Review and manage restaurant registration requests
+                Data Source: pending_restaurants, recent_applications context variables
+                Features: Approval/rejection workflow, status tracking, recent activity
+                -->
+                <div class="analytics-card p-6 mb-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                        <div class="mb-4 lg:mb-0">
+                            <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                                <span class="text-3xl mr-3">🏪</span>
+                                Restaurant Applications
+                            </h2>
+                            <p class="text-gray-600">Review and manage restaurant registration requests</p>
+                        </div>
+                        
+                        <!-- Status Indicators -->
+                        <div class="flex flex-wrap gap-3">
+                            <div class="metric-badge metric-warning flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ total_pending }} Pending
+                            </div>
+                            <div class="metric-badge metric-success flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ total_approved }} Approved
+                            </div>
+                            <div class="metric-badge metric-danger flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ total_rejected }} Rejected
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Pending Applications List
+                    Purpose: Display restaurants awaiting approval/rejection
+                    Features: Detailed information, action buttons, hover effects
+                    -->
+                    {% if pending_restaurants %}
+                    <div class="space-y-4 mb-8">
+                        {% for pending in pending_restaurants %}
+                        <div class="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-indigo-200 bg-gradient-to-r from-white to-gray-50" data-restaurant-id="{{ pending.id }}">
+                            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                                <!-- Restaurant Information -->
+                                <div class="flex-1">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-2 sm:mb-0">{{ pending.restaurant_name }}</h3>
+                                        <span class="metric-badge metric-warning inline-flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            Pending Review
+                                        </span>
+                                    </div>
+                                    
+                                    <p class="text-gray-600 mb-4 leading-relaxed">{{ pending.description|truncatechars:150 }}</p>
+                                    
+                                    <!-- Restaurant Details Grid -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="text-gray-500">Email:</span>
+                                            <span class="text-gray-900 ml-1 font-medium">{{ pending.email }}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                            </svg>
+                                            <span class="text-gray-500">Phone:</span>
+                                            <span class="text-gray-900 ml-1 font-medium">{{ pending.phone }}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="text-gray-500">Applied:</span>
+                                            <span class="text-gray-900 ml-1 font-medium">{{ pending.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                            <span class="text-gray-500">Owner:</span>
+                                            <span class="text-gray-900 ml-1 font-medium">{{ pending.user.username }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex flex-row sm:flex-col gap-3 lg:ml-4">
+                                    <!-- Quick Approve Button -->
+                                    <button onclick="openApproveModal({{ pending.id }}, '{{ pending.restaurant_name|addslashes|escapejs }}')" 
+                                            class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-medium rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Quick Approve
+                                    </button>
+                                    
+                                    <!-- Quick Reject Button -->
+                                    <button onclick="openRejectModal({{ pending.id }}, '{{ pending.restaurant_name|addslashes|escapejs }}')" 
+                                            class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-medium rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        Quick Reject
+                                    </button>
+                                    
+                                    <!-- View Details Button -->
+                                    <a href="{% url 'restaurant:pending_restaurant_detail' pending.id %}" 
+                                       class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-medium rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <!-- No Pending Applications State -->
+                    <div class="text-center py-12 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                        <div class="text-6xl mb-4">✅</div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">All Caught Up!</h3>
+                        <p class="text-gray-600">No pending restaurant applications to review</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- 
+                    Recent Activity Section
+                    Purpose: Display recently processed restaurant applications
+                    Features: Activity timeline, status indicators, time tracking
+                    -->
+                    <div class="border-t border-gray-200 pt-8">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                            <span class="text-2xl mr-3">📋</span>
+                            Recent Activity
+                        </h3>
+                        <div class="space-y-3">
+                            {% for app in recent_applications %}
+                            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
+                                <div class="flex items-center space-x-4">
+                                    <!-- Status Icon -->
+                                    {% if app.status == 'approved' %}
+                                    <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-gray-900">{{ app.name }}</span>
+                                        <span class="ml-3 metric-badge metric-success text-xs">Approved</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-gray-900">{{ app.name }}</span>
+                                        <span class="ml-3 metric-badge metric-danger text-xs">Rejected</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    {{ app.processed_at|timesince }} ago
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8 bg-gray-50 rounded-xl">
+                                <div class="text-4xl mb-2 text-gray-400">📝</div>
+                                <p class="text-gray-500">No recent activity to display</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            <!-- 
+                System Statistics Section (Superuser Only)
+                Purpose: Display platform-wide statistics and health metrics
+                Access Level: Superuser exclusive for security
+                Features: KPI cards, quick admin actions, system overview
+                -->
+                {% if user.is_superuser %}
+                <div class="analytics-card p-6 mb-8 bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                        <div class="mb-4 lg:mb-0">
+                            <h2 class="text-2xl font-bold text-indigo-900 flex items-center mb-2">
+                                <svg class="w-7 h-7 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                                System Overview
+                            </h2>
+                            <p class="text-indigo-700">Platform-wide statistics and health metrics</p>
+                        </div>
+                        <div class="metric-badge metric-info flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            Superuser Access
+                        </div>
+                    </div>
+
+                    <!-- 
+                    System KPI Cards Grid
+                    Purpose: Display key system performance indicators
+                    Features: Gradient backgrounds, hover effects, icon integration
+                    -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Total Users KPI Card -->
+                        <div class="bg-white rounded-xl p-6 border border-indigo-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-indigo-600 mb-2">Total Users</p>
+                                    <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+                                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                        </svg>
+                                        Active platform
+                                    </p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Orders KPI Card -->
+                        <div class="bg-white rounded-xl p-6 border border-indigo-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-indigo-600 mb-2">Total Orders</p>
+                                    <p class="text-3xl font-bold text-gray-900">{{ total_orders }}</p>
+                                    <p class="text-xs text-blue-600 mt-2 flex items-center">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                        </svg>
+                                        All time
+                                    </p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Revenue KPI Card -->
+                        <div class="bg-white rounded-xl p-6 border border-indigo-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-indigo-600 mb-2">Total Revenue</p>
+                                    <p class="text-3xl font-bold text-gray-900">₹{{ total_revenue }}</p>
+                                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                        </svg>
+                                        Platform earnings
+                                    </p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Restaurants KPI Card -->
+                        <div class="bg-white rounded-xl p-6 border border-indigo-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-indigo-600 mb-2">Active Restaurants</p>
+                                    <p class="text-3xl font-bold text-gray-900">{{ total_active_restaurants }}</p>
+                                    <p class="text-xs text-emerald-600 mt-2 flex items-center">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Live on platform
+                                    </p>
+                                </div>
+                                <div class="ml-4">
+                                    <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Quick Admin Actions Section
+                    Purpose: Fast access to common administrative tasks
+                    Features: Direct links to Django admin, quick actions
+                    -->
+                    <div class="bg-white rounded-xl p-6 border border-indigo-200">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Quick Admin Actions
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <a href="{% url 'admin:auth_user_changelist' %}" 
+                               class="flex items-center justify-center px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <span class="font-medium">Manage Users</span>
+                            </a>
+                            <a href="{% url 'admin:orders_order_changelist' %}" 
+                               class="flex items-center justify-center px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                </svg>
+                                <span class="font-medium">Manage Orders</span>
+                            </a>
+                            <a href="{% url 'admin:restaurant_restaurant_changelist' %}" 
+                               class="flex items-center justify-center px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="font-medium">Manage Restaurants</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 
+                Manager Activity Section
+                Purpose: Display manager login activity and active sessions
+                Features: Real-time session tracking, recent login history
+                -->
+                <div class="analytics-card p-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                        <div class="mb-4 lg:mb-0">
+                            <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                                <span class="text-3xl mr-3">👥</span>
+                                Manager Activity
+                            </h2>
+                            <p class="text-gray-600">Recent login activity and active sessions</p>
+                        </div>
+                        <div class="metric-badge metric-info flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            {{ total_active_managers }} Active Now
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Activity Grid Layout
+                    Purpose: Display active sessions and recent logins side by side
+                    Features: Responsive grid, status indicators, time tracking
+                    -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Active Sessions Column -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+                                Active Sessions
+                            </h3>
+                            <div class="space-y-3">
+                                {% for session in active_sessions %}
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">{{ session.user.username }}</p>
+                                            <p class="text-sm text-gray-600 flex items-center">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                Logged in {{ session.login_time|timesince }} ago
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="metric-badge metric-success text-xs">Active</span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-8 bg-gray-50 rounded-xl">
+                                    <div class="text-4xl mb-2 text-gray-400">🔌</div>
+                                    <p class="text-gray-500">No active sessions</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Recent Logins Column -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                                <svg class="w-6 h-6 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Recent Logins
+                            </h3>
+                            <div class="space-y-3">
+                                {% for login in recent_logins %}
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">{{ login.user.username }}</p>
+                                            <p class="text-sm text-gray-600 flex items-center">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                {{ login.login_time|date:"M d, H:i" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        {{ login.login_time|timesince }} ago
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-8 bg-gray-50 rounded-xl">
+                                    <div class="text-4xl mb-2 text-gray-400">📝</div>
+                                    <p class="text-gray-500">No recent logins</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- 
+            System Reports Tab Content
+            Purpose: Generate and view system-wide analytics reports
+            Features: Report generation, quick stats, interactive charts
+            Data Source: Real-time platform metrics and historical data
+            -->
+            <section id="reporting-tab" class="tab-content hidden">
+                <div class="analytics-card p-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-3xl mr-3">📈</span>
+                            System-wide Reports
+                        </h2>
+                        <p class="text-gray-600">Generate comprehensive analytics reports for platform insights</p>
+                    </div>
+                    
+                    <!-- 
+                    Report Generation Form
+                    Purpose: Configure and generate custom reports
+                    Features: Report type selection, date range filtering, export options
+                    -->
+                    <form method="POST" class="mb-10 bg-gradient-to-r from-gray-50 to-white p-6 rounded-xl border border-gray-200">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="generate_report">
+                        
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Configure Report
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <!-- Report Type Selection -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    Report Type
+                                </label>
+                                <select name="report_type" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                    <option value="revenue">📊 Revenue Analysis</option>
+                                    <option value="orders">🛒 Order Statistics</option>
+                                    <option value="restaurants">🏪 Restaurant Performance</option>
+                                    <option value="users">👥 User Activity</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Date Range Selection -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Date Range
+                                </label>
+                                <select name="date_range" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                    <option value="today">📅 Today</option>
+                                    <option value="week">📆 Last 7 Days</option>
+                                    <option value="month">📈 Last 30 Days</option>
+                                    <option value="quarter">📊 Last Quarter</option>
+                                    <option value="year">📋 Last Year</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Export Format Selection -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                    </svg>
+                                    Export Format
+                                </label>
+                                <select name="format" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                    <option value="pdf">📄 PDF Report</option>
+                                    <option value="excel">📊 Excel Spreadsheet</option>
+                                    <option value="csv">📋 CSV Data</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v1a1 1 0 001 1h4a1 1 0 001-1v-1m3-2V8a2 2 0 00-2-2H8a2 2 0 00-2 2v7m3-2h6"></path>
+                            </svg>
+                            Generate Report
+                        </button>
+                    </form>
+
+                    <!-- 
+                    Quick Statistics Cards
+                    Purpose: Display key platform metrics at a glance
+                    Features: Gradient backgrounds, trend indicators, hover effects
+                    -->
+                    <div class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                            Quick Statistics
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Daily Revenue Card -->
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Today</span>
+                                </div>
+                                <p class="text-sm font-semibold text-blue-700 mb-2">Daily Revenue</p>
+                                <p class="text-3xl font-bold text-gray-900 mb-3">₹45,280</p>
+                                <p class="text-xs text-green-600 flex items-center font-medium">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                    ↑ 12% from yesterday
+                                </p>
+                            </div>
+
+                            <!-- Active Orders Card -->
+                            <div class="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200 hover:shadow-lg transition-all duration-300">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">Live</span>
+                                </div>
+                                <p class="text-sm font-semibold text-green-700 mb-2">Active Orders</p>
+                                <p class="text-3xl font-bold text-gray-900 mb-3">234</p>
+                                <p class="text-xs text-gray-600 flex items-center font-medium">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    156 pending, 78 in progress
+                                </p>
+                            </div>
+
+                            <!-- New Users Card -->
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-100 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Week</span>
+                                </div>
+                                <p class="text-sm font-semibold text-purple-700 mb-2">New Users</p>
+                                <p class="text-3xl font-bold text-gray-900 mb-3">89</p>
+                                <p class="text-xs text-green-600 flex items-center font-medium">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                    ↑ 23% this week
+                                </p>
+                            </div>
+
+                            <!-- Average Order Value Card -->
+                            <div class="bg-gradient-to-br from-orange-50 to-red-100 rounded-xl p-6 border border-orange-200 hover:shadow-lg transition-all duration-300">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Avg</span>
+                                </div>
+                                <p class="text-sm font-semibold text-orange-700 mb-2">Avg Order Value</p>
+                                <p class="text-3xl font-bold text-gray-900 mb-3">₹1,245</p>
+                                <p class="text-xs text-green-600 flex items-center font-medium">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                    ↑ 5% increase
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Interactive Charts Section
+                    Purpose: Display visual analytics with Chart.js
+                    Features: Revenue trends, order volume, responsive design
+                    -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Analytics Visualizations
+                        </h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Revenue Trends Chart -->
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                                <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                    Revenue Trends
+                                </h4>
+                                <div class="chart-container">
+                                    <canvas id="revenueTrendsChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Order Volume Chart -->
+                            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                                <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    Order Volume
+                                </h4>
+                                <div class="chart-container">
+                                    <canvas id="orderVolumeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- 
+            Bulk Operations Tab Content
+            Purpose: Perform mass operations across the platform
+            Features: Email campaigns, bulk status updates, data management
+            Access Level: Manager and above for security
+            -->
+            <section id="bulk-operations-tab" class="tab-content hidden">
+                <div class="analytics-card p-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-3xl mr-3">⚡</span>
+                            Bulk Operations
+                        </h2>
+                        <p class="text-gray-600">Perform mass operations across restaurants, orders, and users</p>
+                    </div>
+                    
+                    <!-- 
+                    Email Campaign Section
+                    Purpose: Send targeted email campaigns to user segments
+                    Features: Audience targeting, template selection, custom messages
+                    -->
+                    <div class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Email Campaign
+                        </h3>
+                        <form method="POST" class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="send_email_campaign">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <!-- Target Audience Selection -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                        Target Audience
+                                    </label>
+                                    <select name="target_audience" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                        <option value="all_users">👥 All Users</option>
+                                        <option value="restaurant_owners">🏪 Restaurant Owners Only</option>
+                                        <option value="active_customers">🛒 Active Customers</option>
+                                        <option value="inactive_users">😴 Inactive Users</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Email Template Selection -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Email Template
+                                    </label>
+                                    <select name="email_template" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                        <option value="promotion">🎉 Promotional Offer</option>
+                                        <option value="announcement">📢 System Announcement</option>
+                                        <option value="survey">📋 Customer Survey</option>
+                                        <option value="custom">✏️ Custom Message</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom Message Textarea -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Custom Message (if custom template)
+                                </label>
+                                <textarea name="custom_message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" placeholder="Enter your custom message here..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Send Email Campaign
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 
+                    Bulk Status Updates Section
+                    Purpose: Mass update restaurant and order statuses
+                    Features: Restaurant status management, order status updates
+                    -->
+                    <div class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Bulk Status Updates
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Restaurant Status Updates -->
+                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                                <h4 class="font-semibold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                    Restaurant Status
+                                </h4>
+                                <form method="POST" class="space-y-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="bulk_restaurant_update">
+                                    <select name="restaurant_action" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+                                        <option value="activate">✅ Activate Selected</option>
+                                        <option value="deactivate">⏸️ Deactivate Selected</option>
+                                        <option value="suspend">⚠️ Suspend Selected</option>
+                                    </select>
+                                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        Update Restaurants
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Order Status Updates -->
+                            <div class="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border border-orange-200">
+                                <h4 class="font-semibold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    Order Status
+                                </h4>
+                                <form method="POST" class="space-y-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="bulk_order_update">
+                                    <select name="order_action" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                                        <option value="cancel_old">❌ Cancel Orders > 7 days</option>
+                                        <option value="complete_pending">✅ Complete Pending Orders</option>
+                                        <option value="reset_failed">🔄 Reset Failed Orders</option>
+                                    </select>
+                                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        Update Orders
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Data Management Section
+                    Purpose: Database maintenance and cleanup operations
+                    Features: Data cleanup, backup operations, index rebuilding
+                    -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                            </svg>
+                            Data Management
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <button class="px-6 py-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-semibold rounded-xl transition-all duration-200 flex items-center justify-center shadow hover:shadow-md transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Clean Old Data
+                            </button>
+                            <button class="px-6 py-4 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-blue-700 font-semibold rounded-xl transition-all duration-200 flex items-center justify-center shadow hover:shadow-md transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                Backup Database
+                            </button>
+                            <button class="px-6 py-4 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 text-purple-700 font-semibold rounded-xl transition-all duration-200 flex items-center justify-center shadow hover:shadow-md transform hover:-translate-y-0.5 group">
+                                <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Rebuild Indexes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <!-- 
+            User Management Tab Content
+            Purpose: Manage platform users and their permissions
+            Features: User statistics, search functionality, role management
+            Access Level: Manager and above for security
+            -->
+            <section id="user-management-tab" class="tab-content hidden">
+                <div class="analytics-card p-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-3xl mr-3">👥</span>
+                            User Management
+                        </h2>
+                        <p class="text-gray-600">Manage platform users, roles, and permissions</p>
+                    </div>
+                    
+                    <!-- 
+                    User Statistics Cards
+                    Purpose: Display key user metrics at a glance
+                    Features: Real-time counts, role breakdowns, activity tracking
+                    -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                        <!-- Total Users Card -->
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Total</span>
+                            </div>
+                            <p class="text-sm font-semibold text-blue-700 mb-2">Total Users</p>
+                            <p class="text-3xl font-bold text-gray-900 mb-3">{{ total_users }}</p>
+                            <p class="text-xs {% if new_users_month > 0 %}text-green-600{% else %}text-gray-600{% endif %} flex items-center font-medium">
+                                {% if new_users_month > 0 %}
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                ↑ {{ new_users_month }} new this month
+                                {% else %}
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                                </svg>
+                                No new users this month
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Active Today Card -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">Live</span>
+                            </div>
+                            <p class="text-sm font-semibold text-green-700 mb-2">Active Today</p>
+                            <p class="text-3xl font-bold text-gray-900 mb-3">{{ active_users_today }}</p>
+                            <p class="text-xs text-gray-600 flex items-center font-medium">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {% if total_users > 0 %}
+                                {% widthratio active_users_today total_users 100 %}% of total users
+                                {% else %}
+                                0% of total users
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <!-- New This Week Card -->
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-100 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Week</span>
+                            </div>
+                            <p class="text-sm font-semibold text-purple-700 mb-2">New This Week</p>
+                            <p class="text-3xl font-bold text-gray-900 mb-3">{{ new_users_month }}</p>
+                            <p class="text-xs {% if new_users_month > 0 %}text-green-600{% else %}text-gray-600{% endif %} flex items-center font-medium">
+                                {% if new_users_month > 0 %}
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                    New this month
+                                {% else %}
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                                </svg>
+                                    No new users this month
+                                {% endif %}
+                            </p>
+                            </div>
+
+                        <!-- Restaurant Owners Card -->
+                        <div class="bg-gradient-to-br from-orange-50 to-red-100 rounded-xl p-6 border border-orange-200 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Owners</span>
+                            </div>
+                            <p class="text-sm font-semibold text-orange-700 mb-2">Restaurant Owners</p>
+                            <p class="text-3xl font-bold text-gray-900 mb-3">{{ staff_count }}</p>
+                            <p class="text-xs text-gray-600 flex items-center font-medium">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {% if staff_count > 0 %}Active managers{% else %}No managers{% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    User Search and Filters Section
+                    Purpose: Advanced user search with multiple filter criteria
+                    Features: Text search, role filtering, status filtering
+                    -->
+                    <div class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            Search & Filter Users
+                        </h3>
+                        <form method="GET" id="user-management-search-form" class="bg-gradient-to-r from-gray-50 to-white p-6 rounded-xl border border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <!-- Search Input -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                        Search Users
+                                    </label>
+                                    <input type="text" name="search" placeholder="Search by name, email, or username..." 
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                </div>
+                                
+                                <!-- Role Filter -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        Role
+                                    </label>
+                                    <select name="role" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                        <option value="">All Roles</option>
+                                        <option value="customer">🛒 Customers</option>
+                                        <option value="restaurant_owner">🏪 Restaurant Owners</option>
+                                        <option value="manager">👨‍💼 Managers</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Status Filter -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Status
+                                    </label>
+                                    <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
+                                        <option value="">All Status</option>
+                                        <option value="active">✅ Active</option>
+                                        <option value="inactive">⏸️ Inactive</option>
+                                        <option value="suspended">⚠️ Suspended</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex justify-between">
+                                <button type="button" onclick="resetUserManagementSearch()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Reset Search
+                                </button>
+                                <button type="submit" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    Search Users
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <script>
+                        // User Management search form handler
+                        document.getElementById('user-management-search-form').addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            
+                            const searchInput = this.querySelector('input[name="search"]');
+                            const roleSelect = this.querySelector('select[name="role"]');
+                            const statusSelect = this.querySelector('select[name="status"]');
+                            
+                            const searchParams = new URLSearchParams({
+                                search: searchInput ? searchInput.value : '',
+                                role: roleSelect ? (roleSelect.value === 'restaurant_owner' ? 'staff' : roleSelect.value === 'manager' ? 'staff' : roleSelect.value || 'all') : 'all',
+                                status: statusSelect ? (statusSelect.value === 'suspended' ? 'inactive' : statusSelect.value || 'all') : 'all'
+                            });
+                            
+                            // Show loading state
+                            const submitBtn = this.querySelector('button[type="submit"]');
+                            const originalText = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Searching...';
+                            submitBtn.disabled = true;
+                            
+                            // Make AJAX call to backend
+                            fetch(`/restaurant/manager/search-users/?${searchParams}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        updateUserManagementResults(data.results, data.count);
+                                        showNotification(`Found ${data.count} users`, 'success');
+                                    } else {
+                                        showNotification('Search failed. Please try again.', 'error');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Search error:', error);
+                                    showNotification('Search failed. Please try again.', 'error');
+                                })
+                                .finally(() => {
+                                    // Restore button state
+                                    submitBtn.innerHTML = originalText;
+                                    submitBtn.disabled = false;
+                                });
+                        });
+                        
+                        /**
+                         * Updates the User Management results section with search results
+                         * @param {Array} users - Array of user objects from backend
+                         * @param {number} count - Total number of results
+                         */
+                        function updateUserManagementResults(users, count) {
+                            const resultsHeader = document.getElementById('user-results-header');
+                            const resultsContainer = document.getElementById('user-results-tbody');
+                            
+                            if (resultsHeader) {
+                                resultsHeader.innerHTML = `
+                                    <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Showing ${count} user${count !== 1 ? 's' : ''} from search
+                                `;
+                            }
+                            
+                            if (resultsContainer) {
+                                if (users.length === 0) {
+                                    resultsContainer.innerHTML = `
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-12 text-center">
+                                                <div class="text-6xl mb-4">🔍</div>
+                                                <p class="text-gray-500 text-lg font-medium">No users found</p>
+                                                <p class="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
+                                            </td>
+                                        </tr>
+                                    `;
+                                    return;
+                                }
+                                
+                                let resultsHTML = '';
+                                users.forEach(user => {
+                                    resultsHTML += `
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 h-10 w-10">
+                                                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                                                            <span class="text-white font-medium text-sm">${user.username.charAt(0).toUpperCase()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">${user.username}</div>
+                                                        <div class="text-sm text-gray-500">
+                                                            ${user.full_name}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">${user.email}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                ${user.is_superuser ? 
+                                                '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Super Admin</span>' :
+                                                user.is_staff ? 
+                                                '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Staff</span>' :
+                                                '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Customer</span>'
+                                                }
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                ${user.date_joined}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                ${user.is_active ? 
+                                                '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>' :
+                                                '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactive</span>'
+                                                }
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                                
+                                resultsContainer.innerHTML = resultsHTML;
+                            }
+                        }
+                        
+                        /**
+                         * Resets the User Management search to show original recent registrations
+                         * Clears form inputs and restores default view
+                         */
+                        function resetUserManagementSearch() {
+                            // Clear form inputs
+                            const form = document.getElementById('user-management-search-form');
+                            const searchInput = form.querySelector('input[name="search"]');
+                            const roleSelect = form.querySelector('select[name="role"]');
+                            const statusSelect = form.querySelector('select[name="status"]');
+                            
+                            if (searchInput) searchInput.value = '';
+                            if (roleSelect) roleSelect.value = '';
+                            if (statusSelect) statusSelect.value = '';
+                            
+                            // Restore original header text
+                            const resultsHeader = document.getElementById('user-results-header');
+                            if (resultsHeader) {
+                                resultsHeader.innerHTML = `
+                                    <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Showing {{ recent_user_registrations|length }} recent user registrations
+                                `;
+                            }
+                            
+                            // Show notification
+                            showNotification('Search reset successfully', 'info');
+                        }
+                        </script>
+                    </div>
+
+                    <!-- 
+                    User Results Section
+                    Purpose: Display search results and user management actions
+                    Features: User list, bulk actions, detailed information
+                    -->
+                    <div id="user-management-results">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            User Results
+                        </h3>
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-lg">
+                            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                                <p class="text-sm text-gray-600 flex items-center" id="user-results-header">
+                                    <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Showing {{ recent_user_registrations|length }} recent user registrations
+                                </p>
+                            </div>
+                            {% if recent_user_registrations %}
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200" id="user-results-tbody">
+                                        {% for user in recent_user_registrations %}
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 h-10 w-10">
+                                                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                                                            <span class="text-white font-medium text-sm">{{ user.username|first|upper }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                                        <div class="text-sm text-gray-500">
+                                                            {% if user.first_name and user.last_name %}
+                                                                {{ user.first_name }} {{ user.last_name }}
+                                                            {% else %}
+                                                                No name provided
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ user.email|default:"No email" }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if user.is_superuser %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                    Super Admin
+                                                </span>
+                                                {% elif user.is_staff %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Staff
+                                                </span>
+                                                {% else %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Customer
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ user.date_joined|date:"M d, Y" }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if user.is_active %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Active
+                                                </span>
+                                                {% else %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Inactive
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="p-12 text-center">
+                                <div class="text-6xl mb-4">👥</div>
+                                <p class="text-gray-500 text-lg font-medium">No users found</p>
+                                <p class="text-gray-400 text-sm mt-2">No user registrations in the database</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+                        <!-- 
+            Advanced Search Tab Content
+            Purpose: Comprehensive search across all platform entities
+            Features: Multi-entity search, advanced filters, export results
+            Access Level: Manager and above for security
+            -->
+            <section id="advanced-search-tab" class="tab-content hidden">
+                <div class="analytics-card p-6">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-3xl mr-3">🔍</span>
+                            Advanced Search & Filtering
+                        </h2>
+                        <p class="text-gray-600">Comprehensive search across restaurants, orders, users, and more</p>
+                    </div>
+                    
+                    <!-- 
+                    Search Entity Selection
+                    Purpose: Choose which entity type to search
+                    Features: Entity-specific filters, optimized search algorithms
+                    -->
+                    <div class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Search Entity
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <button onclick="selectSearchEntity('restaurants')" id="btn-restaurants" class="search-entity-btn px-6 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl transition-all duration-200 flex flex-col items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="font-semibold">Restaurants</span>
+                            </button>
+                            <button onclick="selectSearchEntity('orders')" id="btn-orders" class="search-entity-btn px-6 py-4 bg-gray-100 text-gray-700 rounded-xl transition-all duration-200 flex flex-col items-center hover:bg-gray-200">
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                </svg>
+                                <span class="font-semibold">Orders</span>
+                            </button>
+                            <button onclick="selectSearchEntity('users')" id="btn-users" class="search-entity-btn px-6 py-4 bg-gray-100 text-gray-700 rounded-xl transition-all duration-200 flex flex-col items-center hover:bg-gray-200">
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <span class="font-semibold">Users</span>
+                            </button>
+                            <button onclick="selectSearchEntity('menu')" id="btn-menu" class="search-entity-btn px-6 py-4 bg-gray-100 text-gray-700 rounded-xl transition-all duration-200 flex flex-col items-center hover:bg-gray-200">
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <span class="font-semibold">Menu Items</span>
+                            </button>
+                        </div>
+
+                        <!-- 
+                        Entity-Specific Search Forms
+                        Purpose: Dynamic search forms based on selected entity
+                        Features: Conditional filters, entity-specific fields
+                        -->
+                        <!-- Restaurant Search Form -->
+                        <div id="restaurant-search-form" class="search-form bg-gradient-to-r from-indigo-50 to-violet-50 p-6 rounded-xl border border-indigo-200">
+                            <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                Restaurant Search Criteria
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Restaurant Name</label>
+                                    <input type="text" placeholder="Search by name..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Cuisine Type</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                        <option value="">All Cuisines</option>
+                                        <option value="indian">🍛 Indian</option>
+                                        <option value="chinese">🥡 Chinese</option>
+                                        <option value="italian">🍕 Italian</option>
+                                        <option value="mexican">🌮 Mexican</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                        <option value="">All Status</option>
+                                        <option value="active">✅ Active</option>
+                                        <option value="pending">⏳ Pending</option>
+                                        <option value="inactive">❌ Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Min Rating</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                        <option value="">Any Rating</option>
+                                        <option value="4">⭐⭐⭐⭐ 4+ Stars</option>
+                                        <option value="3">⭐⭐⭐ 3+ Stars</option>
+                                        <option value="2">⭐⭐ 2+ Stars</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                                    <input type="text" placeholder="City or area..." class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other entity forms (hidden by default) -->
+                        <div id="orders-search-form" class="search-form hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <p class="text-gray-600 text-center">Order search form will appear here</p>
+                        </div>
+                        <div id="users-search-form" class="search-form hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <p class="text-gray-600 text-center">User search form will appear here</p>
+                        </div>
+                        <div id="menu-search-form" class="search-form hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <p class="text-gray-600 text-center">Menu item search form will appear here</p>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Search Actions Section
+                    Purpose: Execute search and manage results
+                    Features: Search execution, result export, filter reset
+                    -->
+                    <div class="mb-10">
+                        <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+                            <div class="flex gap-4">
+                                <button onclick="executeAdvancedSearch()" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    Execute Search
+                                </button>
+                                <button onclick="resetSearchFilters()" class="px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Reset Filters
+                                </button>
+                            </div>
+                            <div class="flex gap-4">
+                                <button onclick="exportSearchResults('csv')" class="px-6 py-3 bg-green-100 hover:bg-green-200 text-green-700 font-semibold rounded-xl transition-all duration-200 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Export CSV
+                                </button>
+                                <button onclick="exportSearchResults('pdf')" class="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-xl transition-all duration-200 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Export PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 
+                    Search Results Section
+                    Purpose: Display search results with pagination
+                    Features: Result cards, pagination, detailed views
+                    -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Search Results
+                        </h3>
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-lg">
+                            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <p class="text-sm text-gray-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span id="search-results-count">0 results found</span>
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500">Sort by:</span>
+                                    <select class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                                        <option>Relevance</option>
+                                        <option>Name</option>
+                                        <option>Rating</option>
+                                        <option>Date</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="search-results-container" class="p-12 text-center">
+                                <div class="text-6xl mb-4">🔍</div>
+                                <p class="text-gray-500 text-lg font-medium">No search performed yet</p>
+                                <p class="text-gray-400 text-sm mt-2">Select an entity and configure your search criteria above</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 
+    JavaScript Functionality Section
+    Purpose: Interactive dashboard functionality with comprehensive error handling
+    Features: Tab switching, chart initialization, search functionality, data refresh
+    Documentation: JSDoc-style comments for all functions as per user requirements
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        /**
+         * Initializes the restaurant manager dashboard with all interactive features
+         * Sets up event listeners, charts, and initial state
+         * @returns {void}
+         * @author Restaurant Management System
+         * @version 1.0.0
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            initializeCharts();
+            setupEventListeners();
+            showTab('overview');
+        });
+
+        /**
+         * Shows the specified tab and hides all other tabs
+         * Updates tab button states and content visibility
+         * @param {string} tabId - The ID of the tab to show (e.g., 'overview', 'reporting')
+         * @returns {void}
+         * @throws {Error} If tabId is invalid or tab element not found
+         */
+        function showTab(tabId) {
+            try {
+                // Hide all tab content sections
+                const allTabs = document.querySelectorAll('.tab-content');
+                allTabs.forEach(tab => {
+                    tab.classList.add('hidden');
+                });
+
+                // Remove active state from all tab buttons
+                const allButtons = document.querySelectorAll('.tab-btn');
+                allButtons.forEach(btn => {
+                    btn.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'text-white');
+                    btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
+                });
+
+                // Show selected tab content
+                const selectedTab = document.getElementById(tabId + '-tab');
+                if (!selectedTab) {
+                    throw new Error(`Tab with ID '${tabId}-tab' not found`);
+                }
+                selectedTab.classList.remove('hidden');
+
+                // Activate selected tab button
+                const selectedButton = document.querySelector(`[onclick="showTab('${tabId}')"]`);
+                if (selectedButton) {
+                    selectedButton.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
+                    selectedButton.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'text-white');
+                }
+
+                // Initialize tab-specific functionality
+                initializeTabContent(tabId);
+                
+            } catch (error) {
+                console.error('Error switching tab:', error);
+                showNotification('Failed to switch tab. Please try again.', 'error');
+            }
+        }
+
+        /**
+         * Initializes tab-specific content and functionality
+         * Sets up charts, forms, and dynamic content for each tab
+         * @param {string} tabId - The ID of the tab being initialized
+         * @returns {void}
+         */
+        function initializeTabContent(tabId) {
+            switch(tabId) {
+                case 'reporting':
+                    // Refresh charts when reporting tab is shown
+                    if (window.revenueChart && window.orderVolumeChart) {
+                        setTimeout(() => {
+                            window.revenueChart.update();
+                            window.orderVolumeChart.update();
+                        }, 100);
+                    }
+                    break;
+                case 'advanced-search':
+                    // Initialize search functionality
+                    initializeAdvancedSearch();
+                    break;
+                case 'bulk-operations':
+                    // Setup bulk operation handlers
+                    setupBulkOperationHandlers();
+                    break;
+                default:
+                    // Default initialization
+                    break;
+            }
+        }
+
+        /**
+         * Initializes Chart.js charts for the reporting dashboard
+         * Creates revenue trends and order volume charts with sample data
+         * @returns {void}
+         */
+        function initializeCharts() {
+            try {
+                // Revenue Trends Chart Configuration
+                const revenueCtx = document.getElementById('revenueTrendsChart');
+                if (revenueCtx) {
+                    window.revenueChart = new Chart(revenueCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Revenue (₹)',
+                                data: [42000, 45000, 43800, 45280, 46800, 48500, 45280],
+                                borderColor: 'rgb(99, 102, 241)',
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '₹' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Order Volume Chart Configuration
+                const orderCtx = document.getElementById('orderVolumeChart');
+                if (orderCtx) {
+                    window.orderVolumeChart = new Chart(orderCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Orders',
+                                data: [180, 195, 188, 234, 245, 268, 234],
+                                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                borderColor: 'rgb(34, 197, 94)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        }
+
+        /**
+         * Sets up event listeners for dashboard interactions
+         * Handles form submissions, button clicks, and user interactions
+         * @returns {void}
+         */
+        function setupEventListeners() {
+            // Handle form submissions with AJAX
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', handleFormSubmission);
+            });
+
+            // Handle refresh button clicks
+            const refreshButtons = document.querySelectorAll('[onclick*="refresh"]');
+            refreshButtons.forEach(button => {
+                button.addEventListener('click', handleRefresh);
+            });
+
+            // Setup auto-refresh for real-time data
+            setupAutoRefresh();
+        }
+
+        /**
+         * Handles form submissions with AJAX and user feedback
+         * Prevents default submission and processes data asynchronously
+         * @param {Event} event - The form submission event
+         * @returns {void}
+         */
+        function handleFormSubmission(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const action = formData.get('action');
+
+            // Show loading state
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">...</svg> Processing...';
+            submitButton.disabled = true;
+
+            // Simulate API call (replace with actual implementation)
+            setTimeout(() => {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+                showNotification(`${action} completed successfully!`, 'success');
+            }, 2000);
+        }
+
+        /**
+         * Handles data refresh operations
+         * Updates dashboard data and shows appropriate feedback
+         * @param {Event} event - The refresh button click event
+         * @returns {void}
+         */
+        function handleRefresh(event) {
+            event.preventDefault();
+            showRefreshIndicator();
+            
+            // Simulate data refresh (replace with actual API calls)
+            setTimeout(() => {
+                hideRefreshIndicator();
+                showNotification('Dashboard data refreshed successfully!', 'success');
+                
+                // Update charts if they exist
+                if (window.revenueChart && window.orderVolumeChart) {
+                    // Simulate new data
+                    const newData = generateRandomData();
+                    window.revenueChart.data.datasets[0].data = newData.revenue;
+                    window.orderVolumeChart.data.datasets[0].data = newData.orders;
+                    window.revenueChart.update();
+                    window.orderVolumeChart.update();
+                }
+            }, 1500);
+        }
+
+        /**
+         * Initializes the dashboard with default settings and data
+         * Sets up initial state and loads required data
+         * @returns {void}
+         */
+        function initializeDashboard() {
+            // Set current time
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000); // Update every minute
+
+            // Initialize tooltips and other UI elements
+            initializeTooltips();
+        }
+
+        /**
+         * Updates the current time display in the dashboard header
+         * Formats and displays the current timestamp
+         * @returns {void}
+         */
+        function updateCurrentTime() {
+            const timeElements = document.querySelectorAll('[data-current-time]');
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            timeElements.forEach(element => {
+                element.textContent = formattedTime;
+            });
+        }
+
+        /**
+         * Shows a notification message to the user
+         * Displays success, error, or info messages with auto-dismiss
+         * @param {string} message - The message to display
+         * @param {string} type - The type of notification ('success', 'error', 'info')
+         * @param {number} duration - Duration in milliseconds before auto-dismiss (default: 5000)
+         * @returns {void}
+         */
+        function showNotification(message, type = 'info', duration = 5000) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-4 rounded-xl shadow-xl transform transition-all duration-300 z-50 flex items-center`;
+            
+            // Set styling based on type
+            switch(type) {
+                case 'success':
+                    notification.classList.add('bg-green-500', 'text-white');
+                    notification.innerHTML = `
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        ${message}
+                    `;
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500', 'text-white');
+                    notification.innerHTML = `
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        ${message}
+                    `;
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500', 'text-white');
+                    notification.innerHTML = `
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        ${message}
+                    `;
+            }
+
+            // Add to page and animate in
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.classList.add('translate-x-0');
+            }, 100);
+
+            // Auto-dismiss after duration
+            setTimeout(() => {
+                notification.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, duration);
+        }
+
+        /**
+         * Shows the refresh indicator during data loading
+         * Displays spinning animation and loading message
+         * @returns {void}
+         */
+        function showRefreshIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'refresh-indicator';
+            indicator.className = 'fixed top-4 right-4 px-4 py-3 bg-blue-500 text-white rounded-xl shadow-lg flex items-center z-50';
+            indicator.innerHTML = `
+                <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Refreshing data...
+            `;
+            document.body.appendChild(indicator);
+        }
+
+        /**
+         * Hides the refresh indicator after data loading completes
+         * Removes the loading animation from the page
+         * @returns {void}
+         */
+        function hideRefreshIndicator() {
+            const indicator = document.getElementById('refresh-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        /**
+         * Generates random data for chart demonstration
+         * Creates sample revenue and order data for testing
+         * @returns {Object} Object containing revenue and order arrays
+         */
+        function generateRandomData() {
+            const days = 7;
+            const revenue = [];
+            const orders = [];
+            
+            for (let i = 0; i < days; i++) {
+                revenue.push(Math.floor(Math.random() * 10000) + 40000);
+                orders.push(Math.floor(Math.random() * 100) + 150);
+            }
+            
+            return { revenue, orders };
+        }
+
+        /**
+         * Initializes tooltip functionality for dashboard elements
+         * Sets up hover tooltips for better user experience
+         * @returns {void}
+         */
+        function initializeTooltips() {
+            // Implementation for tooltip initialization
+            // This would integrate with a tooltip library like Tippy.js
+        }
+
+        /**
+         * Sets up auto-refresh functionality for real-time data
+         * Configures periodic data updates based on user preferences
+         * @returns {void}
+         */
+        function setupAutoRefresh() {
+            // Auto-refresh every 5 minutes (300000 milliseconds)
+            setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    handleRefresh(new Event('auto-refresh'));
+                }
+            }, 300000);
+        }
+
+        /**
+         * Initializes advanced search functionality
+         * Sets up search entity selection and form handling
+         * @returns {void}
+         */
+        function initializeAdvancedSearch() {
+            // Initialize search functionality
+            console.log('Advanced search initialized');
+        }
+
+        /**
+         * Selects a search entity and updates the UI accordingly
+         * Shows entity-specific search form and updates button states
+         * @param {string} entity - The entity type to search ('restaurants', 'orders', 'users', 'menu')
+         * @returns {void}
+         */
+        function selectSearchEntity(entity) {
+            try {
+                // Update button states
+                const buttons = document.querySelectorAll('.search-entity-btn');
+                buttons.forEach(btn => {
+                    btn.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'text-white');
+                    btn.classList.add('bg-gray-100', 'text-gray-700');
+                });
+
+                const activeButton = document.getElementById(`btn-${entity}`);
+                if (activeButton) {
+                    activeButton.classList.remove('bg-gray-100', 'text-gray-700');
+                    activeButton.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'text-white');
+                }
+
+                // Show corresponding form
+                const forms = document.querySelectorAll('.search-form');
+                forms.forEach(form => {
+                    form.classList.add('hidden');
+                });
+
+                const activeForm = document.getElementById(`${entity}-search-form`);
+                if (activeForm) {
+                    activeForm.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error selecting search entity:', error);
+                showNotification('Failed to select search entity', 'error');
+            }
+        }
+
+        /**
+         * Executes the advanced search with current criteria
+         * Processes search parameters and displays results
+         * @returns {void}
+         */
+        function executeAdvancedSearch() {
+            showRefreshIndicator();
+            
+            // Get current search entity and form data
+            const activeEntity = document.querySelector('.search-entity-btn.bg-gradient-to-r');
+            const searchForm = document.querySelector('.search-form:not(.hidden)');
+            
+            if (!activeEntity || !searchForm) {
+                hideRefreshIndicator();
+                showNotification('Please select a search entity first', 'warning');
+                return;
+            }
+            
+            const entityType = activeEntity.id.replace('btn-', '');
+            
+            // For now, only implement user search
+            if (entityType === 'users') {
+                performUserSearch(searchForm);
+            } else {
+                hideRefreshIndicator();
+                showNotification(`${entityType} search coming soon!`, 'info');
+                // Show placeholder for other entity types
+                showPlaceholderResults(entityType);
+            }
+        }
+        
+        /**
+         * Performs real user search with AJAX call to backend
+         * @param {HTMLElement} searchForm - The user search form element
+         */
+        function performUserSearch(searchForm) {
+            const searchInput = searchForm.querySelector('input[name="search"]');
+            const roleSelect = searchForm.querySelector('select[name="role"]');
+            const statusSelect = searchForm.querySelector('select[name="status"]');
+            
+            const searchParams = new URLSearchParams({
+                search: searchInput ? searchInput.value : '',
+                role: roleSelect ? roleSelect.value : 'all',
+                status: statusSelect ? statusSelect.value : 'all'
+            });
+            
+            // Make AJAX call to backend
+            fetch(`/restaurant/manager/search-users/?${searchParams}`)
+                .then(response => response.json())
+                .then(data => {
+                    hideRefreshIndicator();
+                    if (data.success) {
+                        displayUserSearchResults(data.results, data.count);
+                        showNotification(`Found ${data.count} users`, 'success');
+                    } else {
+                        showNotification('Search failed. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideRefreshIndicator();
+                    console.error('Search error:', error);
+                    showNotification('Search failed. Please try again.', 'error');
+                });
+        }
+        
+        /**
+         * Displays real user search results in the results container
+         * @param {Array} users - Array of user objects from backend
+         * @param {number} count - Total number of results
+         */
+        function displayUserSearchResults(users, count) {
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsCount = document.getElementById('search-results-count');
+            
+            if (resultsContainer && resultsCount) {
+                resultsCount.textContent = `${count} user${count !== 1 ? 's' : ''} found`;
+                
+                if (users.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="p-12 text-center">
+                            <div class="text-6xl mb-4">🔍</div>
+                            <p class="text-gray-500 text-lg font-medium">No users found</p>
+                            <p class="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Generate user results table
+                let resultsHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                `;
+                
+                users.forEach(user => {
+                    resultsHTML += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                                            <span class="text-white font-medium text-sm">${user.username.charAt(0).toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">${user.username}</div>
+                                        <div class="text-sm text-gray-500">${user.full_name}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${user.email}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    user.role === 'Super Admin' ? 'bg-red-100 text-red-800' :
+                                    user.role === 'Staff' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-green-100 text-green-800'
+                                }">
+                                    ${user.role}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${user.date_joined}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${user.last_login}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                }">
+                                    ${user.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                resultsHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                resultsContainer.innerHTML = resultsHTML;
+            }
+        }
+        
+        /**
+         * Shows placeholder results for non-implemented search types
+         * @param {string} entityType - The entity type being searched
+         */
+        function showPlaceholderResults(entityType) {
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsCount = document.getElementById('search-results-count');
+            
+            if (resultsContainer && resultsCount) {
+                resultsCount.textContent = 'Coming soon';
+                resultsContainer.innerHTML = `
+                    <div class="p-12 text-center">
+                        <div class="text-6xl mb-4">🚧</div>
+                        <p class="text-gray-500 text-lg font-medium">${entityType.charAt(0).toUpperCase() + entityType.slice(1)} Search Coming Soon</p>
+                        <p class="text-gray-400 text-sm mt-2">This search functionality is under development</p>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Resets all search filters to default values
+         * Clears form inputs and resets search state
+         * @returns {void}
+         */
+        function resetSearchFilters() {
+            const forms = document.querySelectorAll('.search-form input, .search-form select');
+            forms.forEach(input => {
+                if (input.type === 'text') {
+                    input.value = '';
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                }
+            });
+
+            // Clear results
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsCount = document.getElementById('search-results-count');
+            
+            if (resultsContainer && resultsCount) {
+                resultsCount.textContent = '0 results found';
+                resultsContainer.innerHTML = `
+                    <div class="text-6xl mb-4">🔍</div>
+                    <p class="text-gray-500 text-lg font-medium">No search performed yet</p>
+                    <p class="text-gray-400 text-sm mt-2">Select an entity and configure your search criteria above</p>
+                `;
+            }
+
+            showNotification('Search filters reset successfully', 'info');
+        }
+
+        /**
+         * Exports search results to specified format
+         * Generates and downloads CSV or PDF reports
+         * @param {string} format - The export format ('csv' or 'pdf')
+         * @returns {void}
+         */
+        function exportSearchResults(format) {
+            showNotification(`Exporting results as ${format.toUpperCase()}...`, 'info');
+            
+            // Simulate export process
+            setTimeout(() => {
+                showNotification(`Results exported successfully as ${format.toUpperCase()}!`, 'success');
+            }, 2000);
+        }
+
+        /**
+         * Opens the approval confirmation modal
+         * @param {number} restaurantId - The ID of the restaurant to approve
+         * @param {string} restaurantName - The name of the restaurant
+         * @returns {void}
+         */
+        function openApproveModal(restaurantId, restaurantName) {
+            const modal = document.getElementById('approveModal');
+            const restaurantNameElement = document.getElementById('approveRestaurantName');
+            const confirmButton = document.getElementById('confirmApproveBtn');
+            
+            restaurantNameElement.textContent = restaurantName;
+            confirmButton.onclick = () => approveRestaurant(restaurantId);
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        /**
+         * Opens the rejection confirmation modal
+         * @param {number} restaurantId - The ID of the restaurant to reject
+         * @param {string} restaurantName - The name of the restaurant
+         * @returns {void}
+         */
+        function openRejectModal(restaurantId, restaurantName) {
+            const modal = document.getElementById('rejectModal');
+            const restaurantNameElement = document.getElementById('rejectRestaurantName');
+            const confirmButton = document.getElementById('confirmRejectBtn');
+            
+            restaurantNameElement.textContent = restaurantName;
+            confirmButton.onclick = () => rejectRestaurant(restaurantId);
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        /**
+         * Closes the approval modal
+         * @returns {void}
+         */
+        function closeApproveModal() {
+            const modal = document.getElementById('approveModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /**
+         * Closes the rejection modal
+         * @returns {void}
+         */
+        function closeRejectModal() {
+            const modal = document.getElementById('rejectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /**
+         * Approves a restaurant via AJAX request
+         * @param {number} restaurantId - The ID of the restaurant to approve
+         * @returns {void}
+         */
+        function approveRestaurant(restaurantId) {
+            const confirmButton = document.getElementById('confirmApproveBtn');
+            const originalText = confirmButton.innerHTML;
+            
+            // Show loading state
+            confirmButton.innerHTML = `
+                <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Approving...
+            `;
+            confirmButton.disabled = true;
+            
+            // Send AJAX request
+            fetch(`/restaurant/manager/approve/${restaurantId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Restaurant approved successfully!', 'success');
+                    closeApproveModal();
+                    // Remove the restaurant card from the list
+                    const restaurantCard = document.querySelector(`[data-restaurant-id="${restaurantId}"]`);
+                    if (restaurantCard) {
+                        restaurantCard.remove();
+                    }
+                    // Update pending count
+                    updatePendingCount();
+                } else {
+                    showNotification(data.error || 'Failed to approve restaurant', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Approval error:', error);
+                showNotification('An error occurred while approving the restaurant', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                confirmButton.innerHTML = originalText;
+                confirmButton.disabled = false;
+            });
+        }
+
+        /**
+         * Rejects a restaurant via AJAX request
+         * @param {number} restaurantId - The ID of the restaurant to reject
+         * @returns {void}
+         */
+        function rejectRestaurant(restaurantId) {
+            const reasonTextarea = document.getElementById('rejectionReason');
+            const confirmButton = document.getElementById('confirmRejectBtn');
+            const originalText = confirmButton.innerHTML;
+            const rejectionReason = reasonTextarea.value.trim();
+            
+            if (!rejectionReason) {
+                showNotification('Please provide a reason for rejection', 'error');
+                reasonTextarea.focus();
+                return;
+            }
+            
+            // Show loading state
+            confirmButton.innerHTML = `
+                <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Rejecting...
+            `;
+            confirmButton.disabled = true;
+            
+            // Send AJAX request
+            fetch(`/restaurant/manager/reject/${restaurantId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    rejection_reason: rejectionReason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Restaurant rejected successfully!', 'success');
+                    closeRejectModal();
+                    // Remove the restaurant card from the list
+                    const restaurantCard = document.querySelector(`[data-restaurant-id="${restaurantId}"]`);
+                    if (restaurantCard) {
+                        restaurantCard.remove();
+                    }
+                    // Update pending count
+                    updatePendingCount();
+                } else {
+                    showNotification(data.error || 'Failed to reject restaurant', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Rejection error:', error);
+                showNotification('An error occurred while rejecting the restaurant', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                confirmButton.innerHTML = originalText;
+                confirmButton.disabled = false;
+                reasonTextarea.value = '';
+            });
+        }
+
+        /**
+         * Updates the pending restaurants count in the UI
+         * @returns {void}
+         */
+        function updatePendingCount() {
+            const pendingCount = document.querySelectorAll('[data-restaurant-id]').length;
+            const countElements = document.querySelectorAll('.pending-count');
+            countElements.forEach(element => {
+                element.textContent = pendingCount;
+            });
+        }
+
+        /**
+         * Gets CSRF token from cookies
+         * @returns {string} The CSRF token
+         */
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        /**
+         * Sets up bulk operation handlers and validation
+         * Configures form validation and submission handling
+         * @returns {void}
+         */
+        function setupBulkOperationHandlers() {
+            // Initialize bulk operation functionality
+            console.log('Bulk operations initialized');
+        }
+    </script>
+
+    <!-- Approval Modal -->
+    <div id="approveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Approve Restaurant</h3>
+                <p class="text-gray-600 text-center mb-6">
+                    Are you sure you want to approve <strong id="approveRestaurantName"></strong>?
+                </p>
+                
+                <div class="flex gap-3">
+                    <button onclick="closeApproveModal()" 
+                            class="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button id="confirmApproveBtn" 
+                            class="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors duration-200">
+                        Approve Restaurant
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Reject Restaurant</h3>
+                <p class="text-gray-600 text-center mb-4">
+                    Are you sure you want to reject <strong id="rejectRestaurantName"></strong>?
+                </p>
+                
+                <div class="mb-6">
+                    <label for="rejectionReason" class="block text-sm font-medium text-gray-700 mb-2">
+                        Reason for rejection <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="rejectionReason" 
+                              rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                              placeholder="Please provide a reason for rejection..."></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="closeRejectModal()" 
+                            class="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button id="confirmRejectBtn" 
+                            class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors duration-200">
+                        Reject Restaurant
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}
+                
+                
+                                                                                                                

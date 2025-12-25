@@ -1,0 +1,272 @@
+{% extends 'customer/base.html' %}
+{% load static %}
+
+<!-- 
+Guest Checkout Template for QR Table Ordering
+=============================================
+This template allows customers to place orders without login and receive
+their bill via email or SMS. It displays the cart items and collects
+guest contact information for bill delivery.
+
+Features:
+- Cart review with itemized list
+- Guest contact form with validation
+- Email/SMS delivery options
+- Mobile-optimized design
+- Tailwind CSS styling
+-->
+
+{% block title %}Guest Checkout - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<!-- Guest Checkout Container -->
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-4 px-4">
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Restaurant Header -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ restaurant.name }}</h1>
+                    <p class="text-gray-600 mt-1">Table {{ table.table_number }} • Guest Checkout</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Order Total</p>
+                    <p class="text-3xl font-bold text-indigo-600">₹{{ cart_total }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Items Review -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Order</h2>
+            
+            {% if cart %}
+                <div class="space-y-3">
+                    {% for item in cart %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-utensils text-indigo-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ item.menu_item.name }}</h3>
+                                <p class="text-sm text-gray-600">{{ item.menu_item.category.name }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">{{ item.quantity }} × ₹{{ item.price }}</p>
+                            <p class="font-semibold text-gray-900">₹{{ item.subtotal }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Total Summary -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
+                        <span class="text-2xl font-bold text-indigo-600">₹{{ cart_total }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-shopping-cart text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-600">Your cart is empty</p>
+                    <a href="{% url 'customer:table_menu' table.uuid %}" 
+                       class="mt-4 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Menu
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Guest Checkout Form -->
+        {% if cart %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                <i class="fas fa-user-circle mr-2 text-indigo-600"></i>
+                Your Information
+            </h2>
+            
+            <form method="post" id="guestCheckoutForm">
+                {% csrf_token %}
+                
+                <!-- Customer Name -->
+                <div class="mb-6">
+                    <label for="{{ form.customer_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Your Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.customer_name }}
+                    {% if form.customer_name.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.customer_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Delivery Method -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        How would you like to receive your bill? <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-3">
+                        {% for choice in form.delivery_method %}
+                        <div class="flex items-center">
+                            {{ choice.tag }}
+                            <label for="{{ choice.id_for_label }}" class="ml-3 text-gray-700">
+                                <span class="font-medium">{{ choice.choice_label }}</span>
+                                {% if "email" in choice.choice_label %}
+                                    <span class="ml-2 text-sm text-gray-500">(PDF bill sent to your email)</span>
+                                {% elif "SMS" in choice.choice_label %}
+                                    <span class="ml-2 text-sm text-gray-500">(Bill link sent via SMS)</span>
+                                {% endif %}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.delivery_method.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.delivery_method.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Email Field -->
+                <div class="mb-6" id="emailField">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        {{ form.email }}
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">{{ form.email.help_text }}</p>
+                    {% if form.email.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Field -->
+                <div class="mb-6" id="phoneField">
+                    <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Mobile Number <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-phone text-gray-400"></i>
+                        </div>
+                        {{ form.phone }}
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">{{ form.phone.help_text }}</p>
+                    {% if form.phone.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-6">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Special Instructions (Optional)
+                    </label>
+                    <div class="relative">
+                        <div class="absolute top-3 left-3 pointer-events-none">
+                            <i class="fas fa-comment text-gray-400"></i>
+                        </div>
+                        {{ form.notes }}
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">{{ form.notes.help_text }}</p>
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex">
+                            <i class="fas fa-exclamation-circle text-red-400 mt-0.5 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-red-800">{{ form.non_field_errors.0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{% url 'customer:table_menu' table.uuid %}" 
+                       class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Menu
+                    </a>
+                    <button type="submit" 
+                            class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg hover:shadow-xl">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Place Order & Send Bill
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for Form Interaction -->
+<script>
+// Toggle email/phone fields based on delivery method selection
+document.addEventListener('DOMContentLoaded', function() {
+    const deliveryMethodInputs = document.querySelectorAll('input[name="delivery_method"]');
+    const emailField = document.getElementById('emailField');
+    const phoneField = document.getElementById('phoneField');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+
+    function toggleFields() {
+        const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value;
+        
+        if (selectedMethod === 'email') {
+            emailField.style.display = 'block';
+            phoneField.style.display = 'none';
+            emailInput.required = true;
+            phoneInput.required = false;
+        } else if (selectedMethod === 'sms') {
+            emailField.style.display = 'none';
+            phoneField.style.display = 'block';
+            emailInput.required = false;
+            phoneInput.required = true;
+        } else if (selectedMethod === 'both') {
+            emailField.style.display = 'block';
+            phoneField.style.display = 'block';
+            emailInput.required = true;
+            phoneInput.required = true;
+        }
+    }
+
+    // Initial state
+    toggleFields();
+
+    // Add event listeners
+    deliveryMethodInputs.forEach(input => {
+        input.addEventListener('change', toggleFields);
+    });
+
+    // Form validation
+    const form = document.getElementById('guestCheckoutForm');
+    form.addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value;
+        
+        if (selectedMethod === 'email' && !emailInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter your email address for email delivery.');
+            emailInput.focus();
+        } else if (selectedMethod === 'sms' && !phoneInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter your phone number for SMS delivery.');
+            phoneInput.focus();
+        } else if (selectedMethod === 'both' && (!emailInput.value.trim() || !phoneInput.value.trim())) {
+            e.preventDefault();
+            alert('Please enter both email and phone number for delivery.');
+            if (!emailInput.value.trim()) emailInput.focus();
+            else phoneInput.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+<!-- Flash Sale Banner Component -->
+{% if has_flash_sales %}
+<!-- Flash Sale Banners Container -->
+<div id="flashSaleBanners" class="sticky top-0 z-50 shadow-lg">
+    {% for campaign in active_flash_sales %}
+    <div class="flash-sale-banner relative overflow-hidden bg-gradient-to-r
+        {% if campaign.promotion_type == 'flash_sale' %}from-red-500 to-pink-500
+        {% elif campaign.promotion_type == 'seasonal' %}from-blue-500 to-cyan-500
+        {% else %}from-purple-500 to-indigo-500{% endif %}
+        text-white">
+        
+        <!-- Animated background pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M0 40L40 0H20L0 20M40 40V20L20 40"/%3E%3C/g%3E%3C/svg%3E'); background-size: 40px 40px;"></div>
+        </div>
+        
+        <div class="relative px-4 py-3">
+            <div class="flex items-center justify-between max-w-7xl mx-auto">
+                <!-- Campaign Info -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        {% if campaign.promotion_type == 'flash_sale' %}
+                            <span class="text-2xl animate-pulse">⚡</span>
+                        {% elif campaign.promotion_type == 'seasonal' %}
+                            <span class="text-2xl">🎄</span>
+                        {% else %}
+                            <span class="text-2xl">🎉</span>
+                        {% endif %}
+                        <span class="font-bold text-lg">{{ campaign.name|upper }}</span>
+                    </div>
+                    
+                    <div class="hidden md:flex items-center space-x-6">
+                        <span class="text-sm font-medium">
+                            {% if campaign.discount_type == 'percentage' %}
+                                {{ campaign.discount_value }}% OFF
+                            {% elif campaign.discount_type == 'fixed' %}
+                                ₹{{ campaign.discount_value }} OFF
+                            {% else %}
+                                FREE DELIVERY
+                            {% endif %}
+                        </span>
+                        
+                        {% if campaign.minimum_order_amount > 0 %}
+                        <span class="text-xs opacity-90">Min. ₹{{ campaign.minimum_order_amount }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Countdown Timer -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center space-x-2">
+                        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Ends in:</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 font-mono font-bold">
+                        <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm countdown-hours" data-campaign-id="{{ campaign.id }}">
+                            {{ campaign.hours_remaining|default:0|stringformat:"02d" }}
+                        </span>
+                        <span>:</span>
+                        <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm countdown-minutes" data-campaign-id="{{ campaign.id }}">
+                            {{ campaign.minutes_remaining|default:0|stringformat:"02d" }}
+                        </span>
+                        <span>:</span>
+                        <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm countdown-seconds" data-campaign-id="{{ campaign.id }}">
+                            {{ campaign.seconds_remaining|default:0|stringformat:"02d" }}
+                        </span>
+                    </div>
+                    
+                    <button onclick="closeFlashSaleBanner('{{ campaign.id }}')" 
+                            class="text-white hover:text-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress bar for time remaining -->
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-20">
+            <div class="h-full bg-white bg-opacity-50 countdown-progress" 
+                 data-campaign-id="{{ campaign.id }}"
+                 data-progress="{{ campaign.time_remaining.days|default:0 }}"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Flash Sale JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Store campaign end times from Django template
+    const campaigns = {
+        {% for campaign in active_flash_sales %}
+        '{{ campaign.id }}': new Date('{{ campaign.end_date|date:"c" }}'){% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    // Update countdowns every second
+    function updateCountdowns() {
+        const now = new Date();
+        
+        Object.keys(campaigns).forEach(campaignId => {
+            const endTime = campaigns[campaignId];
+            const timeRemaining = endTime - now;
+            
+            if (timeRemaining > 0) {
+                const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+                
+                // Update countdown display
+                const hoursEl = document.querySelector('.countdown-hours[data-campaign-id="' + campaignId + '"]');
+                const minutesEl = document.querySelector('.countdown-minutes[data-campaign-id="' + campaignId + '"]');
+                const secondsEl = document.querySelector('.countdown-seconds[data-campaign-id="' + campaignId + '"]');
+                
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+                
+                // Update progress bar using data attribute
+                const progressEl = document.querySelector('.countdown-progress[data-campaign-id="' + campaignId + '"]');
+                if (progressEl) {
+                    const totalDuration = endTime - new Date(endTime - 24 * 60 * 60 * 1000); // Last 24 hours
+                    const progress = Math.max(0, Math.min(100, (timeRemaining / totalDuration) * 100));
+                    progressEl.style.width = progress + '%';
+                }
+            } else {
+                // Campaign ended, remove banner
+                const banner = document.querySelector('.countdown-hours[data-campaign-id="' + campaignId + '"]')?.closest('.flash-sale-banner');
+                if (banner) {
+                    banner.style.transition = 'opacity 0.5s, transform 0.5s';
+                    banner.style.opacity = '0';
+                    banner.style.transform = 'translateY(-100%)';
+                    setTimeout(function() { banner.remove(); }, 500);
+                }
+            }
+        });
+    }
+    
+    // Start countdown updates
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+});
+
+function closeFlashSaleBanner(campaignId) {
+    const banner = document.querySelector('.countdown-hours[data-campaign-id="' + campaignId + '"]')?.closest('.flash-sale-banner');
+    if (banner) {
+        banner.style.transition = 'opacity 0.3s, transform 0.3s';
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateY(-100%)';
+        setTimeout(function() { banner.remove(); }, 300);
+    }
+}
+</script>
+
+<style>
+.flash-sale-banner {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.countdown-progress {
+    transition: width 1s linear;
+}
+</style>
+{% endif %}

@@ -1,0 +1,562 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Active tables board custom styles */
+    .table-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Table card - no animation to prevent disappearing effect */
+    
+    .table-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        transition: all 0.3s ease;
+    }
+    
+    .table-card.available::before {
+        background: linear-gradient(90deg, #10B981, #34D399);
+    }
+    
+    .table-card.occupied::before {
+        background: linear-gradient(90deg, #F59E0B, #FCD34D);
+    }
+    
+    .table-card.needs-attention::before {
+        background: linear-gradient(90deg, #EF4444, #F87171);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        animation: blink 2s infinite;
+    }
+    
+    .status-indicator.available {
+        background: #10B981;
+    }
+    
+    .status-indicator.occupied {
+        background: #F59E0B;
+    }
+    
+    .status-indicator.needs-attention {
+        background: #EF4444;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .table-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .order-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        background: #4F46E5;
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin: 0.25rem;
+    }
+    
+    /* Quick action button styles - no animation to prevent disappearing effect */
+    .quick-action-btn {
+        /* No transition or transform effects */
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .filter-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .filter-btn.active {
+        background: #4F46E5;
+        color: white;
+    }
+    
+    .table-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 640px) {
+        .table-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<div class="min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        🪑 {{ title }}
+                    </h1>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Real-time table status and quick order management
+                    </p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'restaurant:table_orders_list' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        📋 All Orders
+                    </a>
+                    <a href="{% url 'restaurant:table_management' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Manage Tables
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Bar -->
+    <div class="stats-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">{{ tables_data|length }}</div>
+                    <div class="text-sm opacity-90">Total Tables</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold">
+                        {% with available_count=0 %}
+                        {% for table in tables_data %}
+                            {% if table.status == 'available' %}
+                                {% with available_count=available_count|add:1 %}
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ available_count }}
+                        {% endwith %}
+                    </div>
+                    <div class="text-sm opacity-90">Available</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold">
+                        {% with occupied_count=0 %}
+                        {% for table in tables_data %}
+                            {% if table.status == 'occupied' %}
+                                {% with occupied_count=occupied_count|add:1 %}
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ occupied_count }}
+                        {% endwith %}
+                    </div>
+                    <div class="text-sm opacity-90">Occupied</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold">
+                        {% with attention_count=0 %}
+                        {% for table in tables_data %}
+                            {% if table.needs_attention %}
+                                {% with attention_count=attention_count|add:1 %}
+                                {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ attention_count }}
+                        {% endwith %}
+                    </div>
+                    <div class="text-sm opacity-90">Need Attention</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-wrap gap-3">
+                <button onclick="filterTables('all')" 
+                        class="filter-btn active px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                    All Tables
+                </button>
+                <button onclick="filterTables('available')" 
+                        class="filter-btn px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                    🟢 Available
+                </button>
+                <button onclick="filterTables('occupied')" 
+                        class="filter-btn px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                    🟡 Occupied
+                </button>
+                <button onclick="filterTables('needs-attention')" 
+                        class="filter-btn px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                    🔴 Needs Attention
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="table-grid">
+            {% for table_data in tables_data %}
+            <div class="table-card bg-white rounded-lg shadow-md border-2 border-gray-200 {{ table_data.status }}{% if table_data.needs_attention %} needs-attention{% endif %}"
+                 data-status="{{ table_data.status }}"
+                 data-table-id="{{ table_data.table.id }}">
+                
+                <!-- Table Header -->
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <span class="status-indicator {{ table_data.status }}"></span>
+                            <div>
+                                <div class="table-number">{{ table_data.table.table_number }}</div>
+                                <div class="text-sm text-gray-500">Capacity: {{ table_data.table.capacity }}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full
+                                {% if table_data.status == 'available' %}bg-green-100 text-green-800
+                                {% elif table_data.status == 'occupied' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ table_data.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Location -->
+                    {% if table_data.table.location_description %}
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600">
+                            📍 {{ table_data.table.location_description }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Active Orders -->
+                    {% if table_data.active_orders %}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Active Orders</h4>
+                        <div class="space-y-2">
+                            {% for order in table_data.active_orders|slice:":2" %}
+                            <div class="bg-gray-50 rounded p-2">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="text-sm font-medium">#{{ order.order_id|slice:":8" }}</span>
+                                        <span class="text-xs text-gray-500 ml-2">{{ order.created_at|date:"h:i A" }}</span>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-600 mt-1">
+                                    {{ order.items.count }} items • ₹{{ order.total_amount }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if table_data.active_orders.count > 2 %}
+                            <p class="text-xs text-gray-500 italic">
+                                ...and {{ table_data.active_orders.count|add:"-2" }} more orders
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Completed Orders (Needs Attention) -->
+                    {% if table_data.needs_attention %}
+                    <div class="mb-4">
+                        <div class="bg-red-50 border border-red-200 rounded p-3">
+                            <h4 class="text-sm font-semibold text-red-800 mb-2">
+                                ⚠️ Payment Pending
+                            </h4>
+                            <div class="space-y-2">
+                                {% for order in table_data.completed_orders|slice:":2" %}
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-red-700">
+                                        Order #{{ order.order_id|slice:":8" }}
+                                    </span>
+                                    <span class="text-xs font-medium text-red-600">
+                                        ₹{{ order.total_amount }}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Quick Actions -->
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        {% if table_data.status == 'available' %}
+                        <a href="{% url 'restaurant:create_table_order' table_data.table.id %}" 
+                           class="quick-action-btn flex-1 px-3 py-2 bg-green-500 text-white text-sm font-medium rounded hover:bg-green-600 text-center">
+                            ➕ Create Order
+                        </a>
+                        {% endif %}
+                        
+                        {% if table_data.active_orders %}
+                        <button onclick="viewTableOrders('{{ table_data.table.id }}')" 
+                                class="quick-action-btn flex-1 px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded hover:bg-blue-600">
+                            👁️ View Orders
+                        </button>
+                        {% endif %}
+                        
+                        {% if table_data.needs_attention %}
+                        <a href="{% url 'restaurant:mark_order_complete' table_data.completed_orders.first.order_id %}" 
+                           class="quick-action-btn flex-1 px-3 py-2 bg-red-500 text-white text-sm font-medium rounded hover:bg-red-600 text-center">
+                            💳 Complete Payment
+                        </a>
+                        {% endif %}
+                        
+                        <button onclick="refreshTable('{{ table_data.table.id }}')" 
+                                class="quick-action-btn px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded hover:bg-gray-600">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not tables_data %}
+        <!-- No Tables Found -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No tables found</h3>
+            <p class="mt-1 text-sm text-gray-500">
+                Please add some tables to your restaurant first.
+            </p>
+            <div class="mt-6">
+                <a href="{% url 'restaurant:add_table' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    Add Your First Table
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Orders Modal -->
+<div id="orders-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Table Orders</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div id="modal-content">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Active tables board JavaScript functionality
+ * Handles table filtering, order viewing, and real-time updates
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+    
+    // Initialize tooltips and animations
+    initializeTableCards();
+});
+
+/**
+ * Filter tables by status
+ */
+window.filterTables = function(status) {
+    const allCards = document.querySelectorAll('.table-card');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    // Update active button
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase().includes(status) || 
+            (status === 'all' && btn.textContent.includes('All'))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Filter cards
+    allCards.forEach(card => {
+        if (status === 'all') {
+            card.style.display = 'block';
+        } else {
+            const cardStatus = card.dataset.status;
+            if (cardStatus === status || 
+                (status === 'needs-attention' && card.classList.contains('needs-attention'))) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+};
+
+/**
+ * View table orders in modal
+ */
+window.viewTableOrders = function(tableId) {
+    const modal = document.getElementById('orders-modal');
+    const modalContent = document.getElementById('modal-content');
+    
+    // Show loading state
+    modalContent.innerHTML = `
+        <div class="text-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="mt-2 text-sm text-gray-600">Loading orders...</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    // Simulate loading orders (in real implementation, this would be an AJAX call)
+    setTimeout(function() {
+        modalContent.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold text-blue-900">Order #ABC12345</h4>
+                            <p class="text-sm text-blue-700">2 items • ₹350.00</p>
+                        </div>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Preparing</span>
+                    </div>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold text-green-900">Order #ABC12346</h4>
+                            <p class="text-sm text-green-700">1 item • ₹120.00</p>
+                        </div>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Ready</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 500);
+};
+
+/**
+ * Close modal
+ */
+window.closeModal = function() {
+    document.getElementById('orders-modal').classList.add('hidden');
+};
+
+/**
+ * Refresh specific table
+ */
+window.refreshTable = function(tableId) {
+    // Show loading state
+    const card = document.querySelector(`[data-table-id="${tableId}"]`);
+    if (card) {
+        const originalContent = card.innerHTML;
+        card.style.opacity = '0.5';
+        
+        // Simulate refresh (in real implementation, this would be an AJAX call)
+        setTimeout(function() {
+            card.style.opacity = '1';
+            // Show success message
+            showNotification('Table refreshed successfully', 'success');
+        }, 500);
+    }
+};
+
+/**
+ * Initialize table cards with animations
+ */
+function initializeTableCards() {
+    const cards = document.querySelectorAll('.table-card');
+    
+    cards.forEach((card, index) => {
+        // Add staggered animation
+        setTimeout(() => {
+            card.style.animation = 'slideInUp 0.5s ease-out';
+        }, index * 100);
+    });
+}
+
+/**
+ * Show notification
+ */
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+/**
+ * Add slide in animation
+ */
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

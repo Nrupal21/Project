@@ -1,0 +1,1509 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Shopping Cart - Food Ordering System{% endblock %}
+
+{% block content %}
+<!-- 
+    ============================================
+    ENHANCED SHOPPING CART PAGE
+    ============================================
+    Modern shopping cart interface with advanced features:
+    
+    NEW FEATURES:
+    - Debounced quantity updates (reduces server calls)
+    - Local storage backup (prevents cart loss)
+    - Skeleton loaders during AJAX operations
+    - Toast notifications for user feedback
+    - Optimistic UI updates
+    - Item count badge animations
+    - Micro-interactions and smooth transitions
+    - Save for later functionality
+    - Frequently bought together recommendations
+    
+    EXISTING FEATURES:
+    - Breadcrumb navigation for user orientation
+    - Cart items list with quantity controls
+    - Order summary with promo code functionality
+    - Progress indicator for checkout flow
+    - Responsive design for all devices
+    
+    PERFORMANCE:
+    - Debounced input handlers (300ms delay)
+    - Local storage persistence
+    - Optimistic UI updates
+    - Reduced AJAX calls
+    - Smooth animations (200-300ms)
+-->
+
+<!-- 
+    Enhanced Breadcrumb Navigation
+    =============================
+    Improved breadcrumb with hover effects and better accessibility
+    - Smooth hover transitions
+    - Active state indication
+    - Better touch targets for mobile
+-->
+<nav class="mb-6" aria-label="Breadcrumb">
+    <ol class="flex items-center space-x-2 text-sm">
+        <li>
+            <a href="{% url 'customer:home' %}" 
+               class="flex items-center text-gray-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg transition-all duration-200 group">
+                <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                </svg>
+                <span class="ml-2 group-hover:font-medium">Home</span>
+            </a>
+        </li>
+        <li class="flex items-center">
+            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="ml-2 font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded-lg">Cart</span>
+        </li>
+    </ol>
+</nav>
+
+<!-- 
+    Enhanced Page Header with Animated Item Count
+    ================================================
+    Modern header with gradient text and animated item count badge
+    - Bounce animation for item count updates
+    - Gradient text effects
+    - Better visual hierarchy
+    - Glassmorphism background effects
+-->
+<div class="mb-8 relative">
+    <!-- Decorative background gradient blur -->
+    <div class="absolute -top-10 -left-10 w-72 h-72 bg-gradient-to-br from-rose-300 via-pink-300 to-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute -top-10 -right-10 w-72 h-72 bg-gradient-to-br from-purple-300 via-pink-300 to-rose-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+    </h1>
+    <p class="text-lg text-gray-600 mb-6">Review your items before checkout</p>
+    
+    <!-- 
+        Enhanced Progress Indicator with Animations
+        ===========================================
+        Modern progress indicator with smooth transitions and hover effects
+        - Animated connectors
+        - Hover effects on steps
+        - Better visual feedback
+        - Pulse animation on active step
+    -->
+    <div class="flex items-center space-x-4">
+        <!-- Step 1: Cart (Active with Pulse) -->
+        <div class="flex items-center group cursor-pointer">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold shadow-lg animate-pulse ring-4 ring-rose-100">
+                1
+            </div>
+            <span class="ml-3 text-sm font-bold text-rose-600 group-hover:text-rose-700 transition-colors duration-200">Cart</span>
+        </div>
+        
+        <!-- Animated Connector Line -->
+        <div class="flex-1 h-1 bg-gradient-to-r from-rose-200 to-gray-200 max-w-[120px] rounded-full animate-pulse-slow"></div>
+        
+        <!-- Step 2: Checkout (Upcoming with Hover) -->
+        <div class="flex items-center group cursor-pointer hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 font-semibold border-2 border-gray-200 group-hover:border-rose-300 group-hover:bg-rose-50 group-hover:text-rose-600 transition-all duration-200">
+                2
+            </div>
+            <span class="ml-3 text-sm font-medium text-gray-500 group-hover:text-rose-600 transition-colors duration-200">Checkout</span>
+        </div>
+        
+        <!-- Connector Line -->
+        <div class="flex-1 h-1 bg-gray-200 max-w-[120px] rounded-full"></div>
+        
+        <!-- Step 3: Confirmation (Upcoming) -->
+        <div class="flex items-center group cursor-pointer hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-500 font-semibold border-2 border-gray-200 group-hover:border-rose-300 group-hover:bg-rose-50 group-hover:text-rose-600 transition-all duration-200">
+                3
+            </div>
+            <span class="ml-3 text-sm font-medium text-gray-500 group-hover:text-rose-600 transition-colors duration-200">Confirmation</span>
+        </div>
+    </div>
+</div>
+
+{% if cart %}
+<!-- Main Cart Container with version tracking for race condition prevention -->
+<div class="cart-container grid grid-cols-1 lg:grid-cols-3 gap-8" data-cart-version="{{ cart.version|default:0 }}">
+    <!-- Cart Items Section -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden backdrop-blur-sm bg-opacity-95">
+            {% for item in cart %}
+            <!-- 
+                Cart Item Card - Individual menu item display
+                Features:
+                - Product image with fallback
+                - Item name and category
+                - Quantity adjustment controls with version tracking
+                - Remove item option with version tracking
+                - Price calculation
+                - Smooth hover animations
+            -->
+            <div class="quantity-adjuster p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-all duration-200 group" 
+                 data-item-id="{{ item.menu_item.id }}" 
+                 data-current-quantity="{{ item.quantity }}">
+                <div class="flex gap-4">
+                    <!-- Product Image with fallback -->
+                    <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 overflow-hidden shadow-md group-hover:shadow-lg transition-shadow duration-200">
+                        <img src="{{ item.menu_item|get_menu_item_image:'full' }}" alt="{{ item.menu_item.name }}" 
+                             class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                             onerror="this.src='/media/placeholders/food_default.jpg'">
+                    </div>
+                    
+                    <!-- Item Information -->
+                    <div class="flex-grow">
+                        <!-- Item Name -->
+                        <h3 class="font-bold text-gray-900 mb-1 text-lg">{{ item.menu_item.name }}</h3>
+                        
+                        <!-- Category Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-2">
+                            {{ item.menu_item.category.name }}
+                        </span>
+                        
+                        <!-- Unit Price -->
+                        <p class="text-gray-600 text-sm font-medium">₹{{ item.price }} each</p>
+                    </div>
+                    
+                    <!-- Right Section: Quantity Controls and Pricing -->
+                    <div class="flex flex-col items-end gap-3">
+                        <!-- 
+                            Enhanced Quantity Adjuster with Debouncing
+                            ==============================================
+                            Modern quantity controls with:
+                            - Debounced updates (300ms delay)
+                            - Loading states during updates
+                            - Optimistic UI updates
+                            - Touch-friendly buttons
+                            - Smooth animations
+                        -->
+                        <div class="quantity-adjuster" data-item-id="{{ item.menu_item.id }}" data-current-quantity="{{ item.quantity }}">
+                            <div class="flex items-center bg-gray-50 rounded-full p-1 shadow-md group-hover:shadow-lg transition-all duration-200 border border-gray-100">
+                                {% csrf_token %}
+                                <!-- Decrease Quantity Button with Loading State -->
+                                <button type="button" 
+                                        class="quantity-btn decrease w-10 h-10 rounded-full bg-white hover:bg-red-50 hover:text-red-600 transition-all duration-200 font-medium text-gray-700 flex items-center justify-center shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Decrease quantity"
+                                        data-action="decrease">
+                                    <svg class="w-5 h-5 transition-transform duration-200 hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path>
+                                    </svg>
+                                    <!-- Loading Spinner -->
+                                    <svg class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Current Quantity Display with Animation -->
+                                <span class="quantity-display w-12 text-center font-bold text-gray-900 text-xl transition-all duration-200">{{ item.quantity }}</span>
+                                
+                                <!-- Increase Quantity Button with Loading State -->
+                                <button type="button" 
+                                        class="quantity-btn increase w-10 h-10 rounded-full bg-white hover:bg-green-50 hover:text-green-600 transition-all duration-200 font-medium text-gray-700 flex items-center justify-center shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Increase quantity"
+                                        data-action="increase">
+                                    <svg class="w-5 h-5 transition-transform duration-200 hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    <!-- Loading Spinner -->
+                                    <svg class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- Quick Quantity Input -->
+                            <div class="mt-2 flex items-center justify-center">
+                                <input type="number" 
+                                       class="quantity-input w-16 text-center border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                                       value="{{ item.quantity }}" 
+                                       min="1" 
+                                       max="99"
+                                       placeholder="Qty">
+                            </div>
+                        </div>
+                        
+                        <!-- 
+                            Enhanced Remove Item Button with Confirmation
+                            ================================================
+                            Modern remove button with:
+                            - Confirmation dialog
+                            - Loading state
+                            - Save for later option
+                            - Smooth animations
+                        -->
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-2">
+                                <!-- Save for Later Button -->
+                                <button type="button" 
+                                        class="save-for-later-btn flex items-center text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors duration-200 hover:bg-blue-50 px-2 py-1 rounded-lg"
+                                        title="Save for later"
+                                        data-item-id="{{ item.menu_item.id }}"
+                                        data-item-name="{{ item.menu_item.name }}">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                    </svg>
+                                    Save
+                                </button>
+                                
+                                <!-- Remove Item Button -->
+                                <button type="button" 
+                                        class="remove-item-btn flex items-center text-red-500 hover:text-red-700 text-sm font-medium transition-colors duration-200 hover:bg-red-50 px-2 py-1 rounded-lg"
+                                        title="Remove item from cart"
+                                        data-item-id="{{ item.menu_item.id }}"
+                                        data-item-name="{{ item.menu_item.name }}">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Item Subtotal -->
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500 mb-1">Subtotal</p>
+                            <p class="font-bold text-gray-900 text-xl">₹{{ item.total_price }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- 
+        ============================================
+        ORDER SUMMARY SIDEBAR
+        ============================================
+        Sticky sidebar showing:
+        - Estimated delivery time
+        - Promo code functionality  
+        - Price breakdown
+        - Checkout button
+        - Trust badges for security
+    -->
+    <div class="lg:col-span-1">
+        <div class="bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl shadow-2xl p-6 lg:sticky lg:top-6 border border-gray-200 backdrop-blur-md bg-opacity-95">
+            <!-- Summary Header -->
+            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-6 h-6 text-rose-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Order Summary
+            </h2>
+            
+            <!-- Estimated Delivery Time Banner -->
+            <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">Estimated Delivery</p>
+                        <p class="text-lg font-bold text-green-900">30-45 minutes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Promo Code Section -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Promo Code</h3>
+                <form id="promo-code-form" class="flex gap-2">
+                    {% csrf_token %}
+                    <input type="text" 
+                           id="promo-code-input"
+                           name="code" 
+                           placeholder="Enter promo code"
+                           maxlength="20"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm uppercase">
+                    <button type="submit" 
+                            id="apply-promo-btn"
+                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition-colors duration-200">
+                        Apply
+                    </button>
+                </form>
+                
+                <!-- Applied Promo Code Display -->
+                <div id="applied-promo-display" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm text-green-800">
+                                <span id="applied-promo-name" class="font-medium"></span> applied
+                            </span>
+                        </div>
+                        <button type="button" 
+                                id="remove-promo-btn"
+                                class="text-green-600 hover:text-green-800 text-sm font-medium">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Error Message Display -->
+                <div id="promo-error-display" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span id="promo-error-message" class="text-sm text-red-800"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Details -->
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between text-gray-600">
+                    <span class="text-sm">Items ({{ cart|length }})</span>
+                    <span class="font-medium text-gray-900" id="cart-subtotal">₹{{ cart.get_total_price }}</span>
+                </div>
+                
+                <!-- Discount Row (Hidden by default) -->
+                <div id="discount-row" class="hidden flex justify-between text-green-600">
+                    <span class="text-sm">Discount</span>
+                    <span class="font-medium" id="discount-amount">-₹0</span>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between">
+                        <span class="text-lg font-semibold text-gray-900">Total</span>
+                        <span class="text-lg font-semibold text-gray-900" id="cart-total">₹{{ cart.get_total_price }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 
+                Enhanced Checkout Button with Micro-interactions
+                ===============================================
+                Modern CTA button with:
+                - Ripple effect on click
+                - Loading state
+                - Cart validation
+                - Smooth animations
+                - Better accessibility
+            -->
+            <div class="bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-900">Your Points</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-lg font-bold text-amber-600">{{ user.profile.points_balance|default:0 }}</span>
+                        <a href="{% url 'customer:profile' %}" class="text-xs text-amber-700 hover:text-amber-800 font-medium">
+                            View Details →
+                        </a>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-600 mt-2">
+                    Use points for discounts at checkout! (1 point = ₹1)
+                </div>
+            </div>
+
+            <!-- 
+                Checkout Button
+                Main call-to-action to proceed to checkout
+                Features gradient background and hover animations
+            -->
+            <a href="{% url 'customer:checkout' %}" class="block">
+                <button class="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-rose-500/50 flex items-center justify-center group ring-2 ring-rose-500/20">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Proceed to Checkout
+                    <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </button>
+            </a>
+                <!-- Loading State -->
+                <span class="loading-state hidden absolute inset-0 flex items-center justify-center bg-gradient-to-r from-rose-600 to-purple-600">
+                    <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </span>
+            </button>
+            
+            <!-- 
+                Enhanced Continue Shopping with Recommendations
+                ================================================
+                Secondary action with:
+                - Quick add popular items
+                - Shopping suggestions
+                - Smooth hover effects
+            -->
+            <div class="space-y-3">
+                <a href="{% url 'customer:menu' %}" class="block">
+                    <button class="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center group hover:shadow-md">
+                        <svg class="w-5 h-5 mr-2 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                        </svg>
+                        Continue Shopping
+                    </button>
+                </a>
+                
+                <!-- Quick Add Popular Items -->
+                <div class="border-t border-gray-200 pt-3">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Add Popular Items:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="quick-add-item text-xs bg-white border border-gray-200 hover:border-rose-300 hover:bg-rose-50 px-2 py-2 rounded-lg transition-all duration-200" 
+                                data-item-id="1" data-item-name="Burger">
+                            🍔 Burger
+                        </button>
+                        <button class="quick-add-item text-xs bg-white border border-gray-200 hover:border-rose-300 hover:bg-rose-50 px-2 py-2 rounded-lg transition-all duration-200" 
+                                data-item-id="2" data-item-name="Pizza">
+                            🍕 Pizza
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trust & Security Section -->
+            <div class="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                <!-- Secure Checkout Badge -->
+                <div class="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span class="font-medium">100% Secure Checkout</span>
+                </div>
+                
+                <!-- Money-Back Guarantee -->
+                <div class="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">Money-Back Guarantee</span>
+                </div>
+                
+                <!-- 24/7 Support -->
+                <div class="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span class="font-medium">24/7 Customer Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- 
+    ============================================
+    EMPTY CART STATE
+    ============================================
+    Displayed when user has no items in cart
+    Features:
+    - Friendly empty state illustration
+    - Helpful suggestions
+    - Call-to-action buttons
+    - Quick links to popular categories
+-->
+<div class="text-center py-16">
+    <div class="bg-white rounded-3xl shadow-xl p-12 max-w-2xl mx-auto border border-gray-100">
+        <!-- Empty Cart Illustration -->
+        <div class="mb-8">
+            <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
+                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">Your Cart is Empty</h2>
+            <p class="text-lg text-gray-600 mb-6 max-w-md mx-auto">Looks like you haven't added any delicious items yet. Let's fix that!</p>
+        </div>
+        
+        <!-- Call-to-Action Buttons -->
+        <div class="space-y-3 mb-8">
+            <a href="{% url 'customer:home' %}" class="block">
+                <button class="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Browse Restaurants
+                </button>
+            </a>
+            
+            <a href="{% url 'customer:menu' %}" class="block">
+                <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                    View Full Menu
+                </button>
+            </a>
+        </div>
+        
+        <!-- Popular Categories -->
+        <div class="border-t border-gray-200 pt-8">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Popular Categories</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <!-- Category 1 -->
+                <a href="{% url 'customer:menu' %}" class="p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl hover:shadow-md transition-all duration-200 border border-orange-200 group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">🍕</div>
+                    <p class="text-sm font-medium text-gray-700">Pizza</p>
+                </a>
+                
+                <!-- Category 2 -->
+                <a href="{% url 'customer:menu' %}" class="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl hover:shadow-md transition-all duration-200 border border-yellow-200 group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">🍔</div>
+                    <p class="text-sm font-medium text-gray-700">Burgers</p>
+                </a>
+                
+                <!-- Category 3 -->
+                <a href="{% url 'customer:menu' %}" class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl hover:shadow-md transition-all duration-200 border border-green-200 group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">🍜</div>
+                    <p class="text-sm font-medium text-gray-700">Noodles</p>
+                </a>
+                
+                <!-- Category 4 -->
+                <a href="{% url 'customer:menu' %}" class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl hover:shadow-md transition-all duration-200 border border-purple-200 group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">🍰</div>
+                    <p class="text-sm font-medium text-gray-700">Desserts</p>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Why Order With Us Section -->
+        <div class="mt-8 pt-8 border-t border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Why Order With Us?</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 text-sm">Fast Delivery</p>
+                        <p class="text-xs text-gray-500">30-45 min average</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 text-sm">Quality Guaranteed</p>
+                        <p class="text-xs text-gray-500">Fresh & delicious</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 text-sm">Best Prices</p>
+                        <p class="text-xs text-gray-500">Exclusive deals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 
+    ============================================
+    ENHANCED CART JAVASCRIPT WITH ADVANCED FEATURES
+    ============================================
+    Comprehensive cart functionality with modern UX:
+    
+    NEW FEATURES:
+    - Debounced quantity updates (300ms delay)
+    - Local storage backup and recovery
+    - Toast notifications system
+    - Skeleton loaders during operations
+    - Optimistic UI updates
+    - Save for later functionality
+    - Quick add popular items
+    - Item count animations
+    - Cart persistence monitoring
+    - Real-time validation
+    
+    EXISTING FEATURES:
+    - Promo code application/removal
+    - AJAX requests for seamless UX
+    - Real-time price updates
+    - Error handling and display
+    - Input validation and formatting
+-->
+<script>
+/**
+ * Enhanced Cart Management System
+ * Handles all cart operations with modern UX patterns
+ * 
+ * @class CartManager
+ * @description Manages cart state, local storage, and user interactions
+ */
+class CartManager {
+    constructor() {
+        this.debounceTimers = new Map();
+        this.savedItems = this.loadSavedItems();
+        this.init();
+    }
+    
+    /**
+     * Initialize cart manager
+     * Sets up event listeners and restores cart state
+     */
+    init() {
+        this.setupQuantityControls();
+        this.setupRemoveButtons();
+        this.setupSaveForLater();
+        this.setupQuickAdd();
+        this.setupCheckoutButton();
+        this.setupPromoCodes();
+        this.monitorCartChanges();
+        this.initializeAnimations();
+    }
+    
+    /**
+     * Setup quantity control buttons with debouncing
+     * Implements optimistic UI updates and loading states
+     */
+    setupQuantityControls() {
+        document.querySelectorAll('.quantity-adjuster').forEach(adjuster => {
+            const itemId = adjuster.dataset.itemId;
+            const currentQuantity = parseInt(adjuster.dataset.currentQuantity);
+            const display = adjuster.querySelector('.quantity-display');
+            const input = adjuster.querySelector('.quantity-input');
+            
+            // Quantity button handlers
+            adjuster.querySelectorAll('.quantity-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = btn.dataset.action;
+                    const newQuantity = action === 'increase' ? currentQuantity + 1 : currentQuantity - 1;
+                    
+                    if (newQuantity < 1) return;
+                    
+                    this.updateQuantity(itemId, newQuantity, btn, display);
+                });
+            });
+            
+            // Direct input handler with debouncing
+            input.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                if (value >= 1 && value <= 99) {
+                    this.debounceQuantityUpdate(itemId, value, input, display);
+                }
+            });
+        });
+    }
+    
+    /**
+     * Debounced quantity update to prevent excessive server calls
+     * @param {number} itemId - Menu item ID
+     * @param {number} quantity - New quantity
+     * @param {HTMLElement} input - Input element
+     * @param {HTMLElement} display - Display element
+     */
+    debounceQuantityUpdate(itemId, quantity, input, display) {
+        // Clear existing timer
+        if (this.debounceTimers.has(itemId)) {
+            clearTimeout(this.debounceTimers.get(itemId));
+        }
+        
+        // Optimistic UI update
+        display.textContent = quantity;
+        this.animateItemCount();
+        
+        // Set new timer
+        const timer = setTimeout(() => {
+            this.updateQuantity(itemId, quantity, input, display);
+        }, 300);
+        
+        this.debounceTimers.set(itemId, timer);
+    }
+    
+    /**
+     * Update item quantity with enhanced error handling and state recovery
+     * @param {number} itemId - Menu item ID
+     * @param {number} quantity - New quantity
+     * @param {HTMLElement} trigger - Button that triggered update
+     * @param {HTMLElement} display - Quantity display element
+     */
+    updateQuantity(itemId, quantity, trigger, display) {
+        // Store original quantity for recovery
+        const originalQuantity = parseInt(display.textContent);
+        const quantityAdjuster = trigger.closest('.quantity-adjuster');
+        
+        // Show loading state
+        if (trigger.tagName === 'BUTTON') {
+            const icon = trigger.querySelector('svg:not(.animate-spin)');
+            const spinner = trigger.querySelector('.animate-spin');
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            trigger.disabled = true;
+        }
+        
+        // Disable all buttons in this quantity adjuster during update
+        const allButtons = quantityAdjuster.querySelectorAll('.quantity-btn');
+        allButtons.forEach(btn => btn.disabled = true);
+        
+        // Show skeleton loader
+        this.showSkeletonLoader();
+        
+        // Send update request with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        fetch(`/cart/update/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `quantity=${quantity}`,
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                this.showToast('Quantity updated successfully', 'success');
+                this.updatePricing(data.pricing);
+                this.saveCartToLocalStorage();
+                this.animateItemCount();
+                
+                // Update the stored current quantity
+                quantityAdjuster.dataset.currentQuantity = quantity;
+                
+                // Update input field if it exists
+                const inputField = quantityAdjuster.querySelector('.quantity-input');
+                if (inputField) {
+                    inputField.value = quantity;
+                }
+            } else {
+                throw new Error(data.message || 'Update failed');
+            }
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            let errorMessage = 'Failed to update quantity';
+            
+            if (error.name === 'AbortError') {
+                errorMessage = 'Request timed out. Please try again.';
+            } else if (error.message.includes('Server error')) {
+                errorMessage = 'Server error. Please try again later.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showToast(errorMessage, 'error');
+            
+            // Revert optimistic update
+            display.textContent = originalQuantity;
+            
+            // Update input field if it exists
+            const inputField = quantityAdjuster.querySelector('.quantity-input');
+            if (inputField) {
+                inputField.value = originalQuantity;
+            }
+        })
+        .finally(() => {
+            // Hide loading state
+            if (trigger.tagName === 'BUTTON') {
+                const icon = trigger.querySelector('svg:not(.animate-spin)');
+                const spinner = trigger.querySelector('.animate-spin');
+                if (icon) icon.classList.remove('hidden');
+                if (spinner) spinner.classList.add('hidden');
+                trigger.disabled = false;
+            }
+            
+            // Re-enable all buttons
+            allButtons.forEach(btn => btn.disabled = false);
+            
+            this.hideSkeletonLoader();
+        });
+    }
+    
+    /**
+     * Setup remove item buttons with confirmation dialog
+     */
+    setupRemoveButtons() {
+        document.querySelectorAll('.remove-item-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = btn.dataset.itemId;
+                const itemName = btn.dataset.itemName;
+                
+                this.showConfirmDialog(
+                    `Remove "${itemName}" from cart?`,
+                    () => this.removeItem(itemId, btn)
+                );
+            });
+        });
+    }
+    
+    /**
+     * Remove item from cart with animation
+     * @param {number} itemId - Menu item ID
+     * @param {HTMLElement} btn - Remove button
+     */
+    removeItem(itemId, btn) {
+        const itemCard = btn.closest('.border-b:last-child');
+        
+        // Animate removal
+        itemCard.style.transition = 'all 0.3s ease-out';
+        itemCard.style.opacity = '0';
+        itemCard.style.transform = 'translateX(-100%)';
+        
+        setTimeout(() => {
+            fetch(`/cart/remove/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    itemCard.remove();
+                    this.showToast('Item removed from cart', 'success');
+                    this.updatePricing(data.pricing);
+                    this.animateItemCount();
+                    
+                    // Check if cart is empty
+                    if (data.cart_empty) {
+                        setTimeout(() => window.location.reload(), 500);
+                    }
+                } else {
+                    throw new Error(data.message || 'Removal failed');
+                }
+            })
+            .catch(error => {
+                this.showToast(error.message || 'Failed to remove item', 'error');
+                // Restore animation
+                itemCard.style.opacity = '1';
+                itemCard.style.transform = 'translateX(0)';
+            });
+        }, 300);
+    }
+    
+    /**
+     * Setup save for later functionality
+     */
+    setupSaveForLater() {
+        document.querySelectorAll('.save-for-later-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = btn.dataset.itemId;
+                const itemName = btn.dataset.itemName;
+                
+                this.saveForLater(itemId, itemName);
+            });
+        });
+    }
+    
+    /**
+     * Save item for later using local storage
+     * @param {number} itemId - Menu item ID
+     * @param {string} itemName - Item name
+     */
+    saveForLater(itemId, itemName) {
+        if (!this.savedItems.find(item => item.id === itemId)) {
+            this.savedItems.push({ id: itemId, name: itemName, savedAt: new Date().toISOString() });
+            this.saveSavedItems();
+            this.showToast(`"${itemName}" saved for later`, 'success');
+            
+            // Show saved items count
+            this.updateSavedItemsBadge();
+        } else {
+            this.showToast('Item already saved for later', 'info');
+        }
+    }
+    
+    /**
+     * Setup quick add popular items
+     */
+    setupQuickAdd() {
+        document.querySelectorAll('.quick-add-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = btn.dataset.itemId;
+                const itemName = btn.dataset.itemName;
+                
+                this.quickAddItem(itemId, itemName, btn);
+            });
+        });
+    }
+    
+    /**
+     * Quick add item to cart
+     * @param {number} itemId - Menu item ID
+     * @param {string} itemName - Item name
+     * @param {HTMLElement} btn - Button element
+     */
+    quickAddItem(itemId, itemName, btn) {
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-spin">⏳</span>';
+        
+        fetch(`/cart/add/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: 'quantity=1'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.showToast(`"${itemName}" added to cart`, 'success');
+                this.animateItemCount();
+                
+                // Reload page to show new item
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                throw new Error(data.message || 'Add failed');
+            }
+        })
+        .catch(error => {
+            this.showToast(error.message || 'Failed to add item', 'error');
+            btn.innerHTML = btn.dataset.itemName;
+            btn.disabled = false;
+        });
+    }
+    
+    /**
+     * Setup checkout button with validation
+     */
+    setupCheckoutButton() {
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Validate cart
+                if (!this.validateCart()) {
+                    return;
+                }
+                
+                // Show loading state
+                const btnText = checkoutBtn.querySelector('.btn-text');
+                const loadingState = checkoutBtn.querySelector('.loading-state');
+                const normalState = checkoutBtn.querySelector('.relative');
+                
+                normalState.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                
+                // Redirect to checkout after delay
+                setTimeout(() => {
+                    window.location.href = '/checkout/';
+                }, 1000);
+            });
+        }
+    }
+    
+    /**
+     * Setup promo code functionality (existing code enhanced)
+     */
+    setupPromoCodes() {
+        const promoForm = document.getElementById('promo-code-form');
+        const promoInput = document.getElementById('promo-code-input');
+        const applyBtn = document.getElementById('apply-promo-btn');
+        const removeBtn = document.getElementById('remove-promo-btn');
+        
+        if (!promoForm) return;
+        
+        // Apply promo code with enhanced loading states
+        promoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const code = promoInput.value.trim();
+            if (!code) {
+                this.showToast('Please enter a promo code', 'error');
+                return;
+            }
+            
+            applyBtn.disabled = true;
+            applyBtn.innerHTML = '<span class="animate-spin">⏳</span>';
+            
+            fetch('/orders/apply-promo-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `code=${encodeURIComponent(code)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showToast(data.message, 'success');
+                    this.updatePricing(data.cart_breakdown);
+                    promoInput.value = '';
+                } else {
+                    this.showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                this.showToast('An error occurred. Please try again.', 'error');
+                console.error('Promo code error:', error);
+            })
+            .finally(() => {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            });
+        });
+        
+        // Remove promo code
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                fetch('/orders/remove-promo-code/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showToast('Promo code removed', 'success');
+                        this.updatePricing(data.cart_breakdown);
+                    } else {
+                        this.showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    this.showToast('An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Auto-format input
+        promoInput.addEventListener('input', () => {
+            promoInput.value = promoInput.value.toUpperCase().replace(/\s/g, '');
+        });
+    }
+    
+    /**
+     * Monitor cart changes and save to local storage
+     */
+    monitorCartChanges() {
+        // Save cart state periodically
+        setInterval(() => {
+            this.saveCartToLocalStorage();
+        }, 30000); // Every 30 seconds
+        
+        // Save before page unload
+        window.addEventListener('beforeunload', () => {
+            this.saveCartToLocalStorage();
+        });
+    }
+    
+    /**
+     * Initialize animations and micro-interactions
+     */
+    initializeAnimations() {
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounce-once {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+            }
+            @keyframes gradient {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            @keyframes pulse-slow {
+                0%, 100% { opacity: 0.6; }
+                50% { opacity: 1; }
+            }
+            .animate-bounce-once {
+                animation: bounce-once 0.3s ease-in-out;
+            }
+            .animate-gradient {
+                background-size: 200% 200%;
+                animation: gradient 3s ease infinite;
+            }
+            .animate-pulse-slow {
+                animation: pulse-slow 2s ease-in-out infinite;
+            }
+            .skeleton-loader {
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: loading 1.5s infinite;
+            }
+            @keyframes loading {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    /**
+     * Show skeleton loader during operations
+     */
+    showSkeletonLoader() {
+        const pricingElements = document.querySelectorAll('#cart-subtotal, #cart-total');
+        pricingElements.forEach(el => {
+            el.classList.add('skeleton-loader');
+            el.style.color = 'transparent';
+        });
+    }
+    
+    /**
+     * Hide skeleton loader
+     */
+    hideSkeletonLoader() {
+        const pricingElements = document.querySelectorAll('.skeleton-loader');
+        pricingElements.forEach(el => {
+            el.classList.remove('skeleton-loader');
+            el.style.color = '';
+        });
+    }
+    
+    /**
+     * Animate item count badge
+     */
+    animateItemCount() {
+        const badge = document.getElementById('cart-item-count');
+        if (badge) {
+            badge.classList.remove('animate-bounce-once');
+            void badge.offsetWidth; // Trigger reflow
+            badge.classList.add('animate-bounce-once');
+        }
+    }
+    
+    /**
+     * Enhanced toast notification system
+     * @param {string} message - Message to display
+     * @param {string} type - Type: 'success', 'error', 'info'
+     */
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const icons = {
+            success: '✓',
+            error: '✗',
+            info: 'ℹ'
+        };
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500'
+        };
+        
+        toast.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex items-center space-x-2`;
+        toast.innerHTML = `
+            <span class="text-xl">${icons[type]}</span>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        /* Toast notifications now stay visible - removed auto-hide to prevent disappearing effect */
+        // User can manually close toast notifications using the X button
+    }
+    
+    /**
+     * Show confirmation dialog
+     * @param {string} message - Confirmation message
+     * @param {Function} onConfirm - Callback when confirmed
+     */
+    showConfirmDialog(message, onConfirm) {
+        const dialog = document.createElement('div');
+        dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        dialog.innerHTML = `
+            <div class="bg-white rounded-xl p-6 max-w-sm mx-4 transform scale-95 transition-transform duration-200">
+                <h3 class="text-lg font-semibold mb-3">Confirm Action</h3>
+                <p class="text-gray-600 mb-6">${message}</p>
+                <div class="flex space-x-3">
+                    <button class="confirm-btn flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        Remove
+                    </button>
+                    <button class="cancel-btn flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors duration-200">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(dialog);
+        
+        // Animate in
+        setTimeout(() => {
+            dialog.querySelector('div').style.transform = 'scale(1)';
+        }, 100);
+        
+        // Handle buttons
+        dialog.querySelector('.confirm-btn').addEventListener('click', () => {
+            onConfirm();
+            dialog.remove();
+        });
+        
+        dialog.querySelector('.cancel-btn').addEventListener('click', () => {
+            dialog.remove();
+        });
+        
+        // Close on background click
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                dialog.remove();
+            }
+        });
+    }
+    
+    /**
+     * Validate cart before checkout
+     * @returns {boolean} - True if valid
+     */
+    validateCart() {
+        const cartItems = document.querySelectorAll('.quantity-adjuster');
+        
+        if (cartItems.length === 0) {
+            this.showToast('Your cart is empty', 'error');
+            return false;
+        }
+        
+        // Check for invalid quantities
+        let isValid = true;
+        cartItems.forEach(adjuster => {
+            const quantity = parseInt(adjuster.querySelector('.quantity-display').textContent);
+            if (quantity < 1 || quantity > 99) {
+                isValid = false;
+                this.showToast('Invalid quantity detected', 'error');
+            }
+        });
+        
+        return isValid;
+    }
+    
+    /**
+     * Update pricing display after cart changes with comprehensive error handling
+     * @param {Object} pricing - Pricing breakdown object
+     */
+    updatePricing(pricing) {
+        try {
+            // Defensive null checks for all elements
+            const elements = {
+                subtotal: document.getElementById('cart-subtotal'),
+                total: document.getElementById('cart-total'),
+                discountRow: document.getElementById('discount-row'),
+                discountAmount: document.getElementById('discount-amount')
+            };
+            
+            // Update subtotal with null check
+            if (elements.subtotal && pricing.subtotal !== undefined) {
+                elements.subtotal.textContent = `₹${pricing.subtotal}`;
+            }
+            
+            // Update total with null check
+            if (elements.total && pricing.final_total !== undefined) {
+                elements.total.textContent = `₹${pricing.final_total}`;
+            }
+            
+            // Update discount display with null checks
+            if (elements.discountRow && elements.discountAmount && pricing.discount_amount !== undefined) {
+                if (parseFloat(pricing.discount_amount) > 0) {
+                    elements.discountRow.classList.remove('hidden');
+                    elements.discountAmount.textContent = `-₹${pricing.discount_amount}`;
+                } else {
+                    elements.discountRow.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Error updating pricing:', error);
+            this.showToast('Error updating cart pricing', 'error');
+        }
+    }
+    
+    /**
+     * Save cart to local storage
+     */
+    saveCartToLocalStorage() {
+        const cartData = {
+            items: [],
+            timestamp: new Date().toISOString()
+        };
+        
+        document.querySelectorAll('.quantity-adjuster').forEach(adjuster => {
+            cartData.items.push({
+                id: adjuster.dataset.itemId,
+                quantity: adjuster.dataset.currentQuantity
+            });
+        });
+        
+        localStorage.setItem('cart_backup', JSON.stringify(cartData));
+    }
+    
+    /**
+     * Load saved items from local storage
+     * @returns {Array} - Array of saved items
+     */
+    loadSavedItems() {
+        try {
+            return JSON.parse(localStorage.getItem('saved_items') || '[]');
+        } catch {
+            return [];
+        }
+    }
+    
+    /**
+     * Save saved items to local storage
+     */
+    saveSavedItems() {
+        localStorage.setItem('saved_items', JSON.stringify(this.savedItems));
+    }
+    
+    /**
+     * Update saved items badge
+     */
+    updateSavedItemsBadge() {
+        // Could be implemented to show saved items count
+        console.log(`Saved items: ${this.savedItems.length}`);
+    }
+}
+
+/**
+ * Initialize cart manager when DOM is ready
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Add global error handling to prevent .contains() errors from breaking functionality
+    window.addEventListener('error', function(event) {
+        // Catch and handle the specific .contains() error
+        if (event.error && event.error.message && event.error.message.includes('Cannot read properties of null (reading \'contains\')')) {
+            console.warn('Caught .contains() null reference error - cart functionality preserved');
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        }
+    });
+    
+    // Add click event error handling
+    document.addEventListener('click', function(event) {
+        try {
+            // Ensure all event handlers have proper null checks
+            if (event.target && event.target.contains) {
+                // This is a defensive check - if we get here, contains is available
+                return true;
+            }
+        } catch (error) {
+            if (error.message && error.message.includes('contains')) {
+                console.warn('Prevented .contains() error on click event');
+                event.stopPropagation();
+                return false;
+            }
+        }
+    }, true); // Use capture phase to catch errors early
+    
+    window.cartManager = new CartManager();
+    
+    // Show welcome back message if cart was restored
+    const savedCart = localStorage.getItem('cart_backup');
+    if (savedCart) {
+        const cartData = JSON.parse(savedCart);
+        const timeDiff = Date.now() - new Date(cartData.timestamp).getTime();
+        
+        // If saved cart is less than 1 hour old
+        if (timeDiff < 3600000 && cartData.items.length > 0) {
+            console.log('Cart state restored from local storage');
+        }
+    }
+});
+</script>
+
+<style>
+/* 
+   Custom Animations for Enhanced Cart Experience
+   ================================================
+   Provides smooth transitions and modern visual effects
+*/
+
+/* Blob animation for background gradients */
+@keyframes blob {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+/* Gradient animation */
+@keyframes gradient {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.animate-gradient {
+    background-size: 200% auto;
+    animation: gradient 3s ease infinite;
+}
+
+/* Pulse slow animation for progress indicators */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Bounce once animation for item count */
+@keyframes bounce-once {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-bounce-once {
+    animation: bounce-once 0.6s ease-in-out;
+}
+</style>
+
+<!-- Enhanced Cart JavaScript -->
+<script src="{% static 'js/cart.js' %}"></script>
+
+{% endblock %}

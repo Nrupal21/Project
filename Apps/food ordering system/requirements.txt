@@ -1,0 +1,48 @@
+# Food Ordering System - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core Django Framework
+Django==4.2.7
+django-environ==0.11.2
+
+# Database - PostgreSQL
+psycopg2-binary==2.9.9
+
+# Image handling
+Pillow==10.1.0
+
+# QR Code generation for table menus
+qrcode[pil]==7.4.2
+
+# Environment variables
+python-dotenv==1.0.0
+
+# ASGI/WSGI server for production
+gunicorn==21.2.0
+whitenoise==6.11.0  # Efficient static file serving
+
+# Time zone support
+pytz==2023.3
+
+# SQL parsing (Django dependency)
+sqlparse==0.4.4
+
+# Async support
+asgiref==3.7.2
+
+# Typing extensions
+typing-extensions==4.8.0
+
+# SMS Notifications (Twilio)
+twilio==8.10.3
+
+# Security and Authentication
+django-axes==6.4.0
+django-ratelimit==4.1.0
+django-csp==3.7  # Content Security Policy middleware
+
+# Payment Gateway
+razorpay==1.4.2  # Razorpay payment integration
+
+# PDF Generation for Guest Bills
+reportlab==4.0.7  # PDF generation for customer bills

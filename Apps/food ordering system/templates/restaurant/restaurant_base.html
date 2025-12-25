@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- ==================== RESTAURANT BASE TEMPLATE ====================
+     Base template for all restaurant dashboard and management pages
+     Features: Sidebar navigation, restaurant branding, responsive layout
+     Usage: Extended by dashboard.html, menu management, orders, tables, etc.
+     ================================================================= -->
+
+{% block title %}Restaurant Dashboard{% endblock %}
+
+{% block extra_css %}
+<!-- Restaurant-specific styles -->
+<style>
+    /* Targeted override to prevent button disappearing animations in restaurant templates */
+    .hover\:scale-105:hover,
+    .hover\:scale-\[1\.02\]:hover,
+    .hover\:-translate-y-0\.5:hover,
+    .hover\:-translate-y-1:hover,
+    .hover\:-translate-y-2:hover,
+    .hover\:-translate-y-4:hover,
+    .hover\:translate-y-1:hover,
+    .hover\:translate-y-2:hover,
+    .hover\:translate-y-4:hover,
+    .hover\:translate-x-1:hover,
+    .hover\:translate-x-full:hover,
+    .group:hover .group-hover\:scale-110,
+    .group:hover .group-hover\:scale-105,
+    .group:hover .group-hover\:translate-x-1,
+    .group:hover .group-hover\:-translate-x-1,
+    .group:hover .group-hover\:translate-x-full {
+        transform: none !important;
+    }
+    
+    /* Sidebar transition animations */
+    .sidebar-transition {
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    
+    /* Sidebar hover effects for desktop - no animation to prevent disappearing effect */
+    .sidebar-item {
+        /* No transition or transform effects */
+    }
+    
+    /* Active sidebar item styling */
+    .sidebar-item.active {
+        background: linear-gradient(90deg, rgb(251, 146, 60) 0%, rgb(254, 215, 170) 100%);
+        color: white;
+    }
+    
+    /* Mobile sidebar backdrop */
+    .sidebar-backdrop {
+        backdrop-filter: blur(4px);
+    }
+    
+    /* Content area padding adjustment for sidebar */
+    .content-with-sidebar {
+        margin-left: 16rem; /* 256px sidebar width */
+    }
+    
+    @media (max-width: 1024px) {
+        .content-with-sidebar {
+            margin-left: 0;
+        }
+    }
+    
+    /* Smooth transitions for all interactive elements */
+    .transition-smooth {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<!-- Restaurant Dashboard Header - Replaces customer navbar -->
+<nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
+    <div class="flex items-center justify-between px-4 lg:px-6 h-16">
+        
+        <!-- Left Section: Mobile Menu Toggle & Restaurant Branding -->
+        <div class="flex items-center space-x-4">
+            <!-- Mobile Menu Toggle Button -->
+            <button id="sidebarToggle" 
+                    class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    aria-label="Toggle sidebar menu">
+                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            
+            <!-- Restaurant Branding -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Restaurant Portal</h1>
+                    {% if user_restaurant %}
+                    <p class="text-xs text-gray-500">{{ user_restaurant.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center Section: Page Title (Desktop) -->
+        <div class="hidden lg:block flex-1 text-center">
+            <h2 class="text-lg font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h2>
+        </div>
+        
+        <!-- Right Section: Page Actions & User Menu -->
+        <div class="flex items-center space-x-3">
+            
+            <!-- Page-Specific Actions Block -->
+            {% block page_actions %}
+            <!-- Default: No actions - can be overridden by child templates -->
+            {% endblock %}
+            
+            <!-- Notifications -->
+            <button class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Notifications">
+                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            <!-- User Dropdown Menu -->
+            <div class="relative" id="userDropdown">
+                <button onclick="toggleUserDropdown()" 
+                        class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label="User menu">
+                    <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-semibold text-sm">
+                            {% if user.first_name %}{{ user.first_name.0|upper }}{% else %}{{ user.username.0|upper }}{% endif %}
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="userDropdownMenu" 
+                     class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-gray-100">
+                        <p class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-gray-500">Restaurant Owner</p>
+                    </div>
+                    <a href="{% url 'restaurant:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        Dashboard
+                    </a>
+                    <a href="{% url 'restaurant:manager_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        Management
+                    </a>
+                    <div class="border-t border-gray-100 mt-2 pt-2">
+                        <a href="{% url 'restaurant:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Restaurant Dashboard Layout with Sidebar -->
+<div class="flex min-h-screen bg-gray-50">
+    
+    <!-- ==================== SIDEBAR NAVIGATION ====================
+         Restaurant-specific navigation menu with icons
+         Collapsible on mobile, always visible on desktop
+         ============================================================ -->
+    <aside id="sidebar" 
+           class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 sidebar-transition transform lg:transform-none -translate-x-full lg:translate-x-0">
+        
+        <!-- Sidebar Header -->
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-7 h-7 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900">QuickBite</h3>
+                    <p class="text-xs text-gray-500">Restaurant Portal</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-1">
+            
+            <!-- Dashboard -->
+            <a href="{% url 'restaurant:dashboard' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            
+            <!-- Menu Management -->
+            <a href="{% url 'restaurant:menu_management' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'menu' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                <span class="font-medium">Menu Management</span>
+            </a>
+            
+            <!-- Orders -->
+            <a href="{% url 'restaurant:order_list' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'order' in request.resolver_match.url_name and 'table' not in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+                <span class="font-medium">Orders</span>
+            </a>
+            
+            <!-- Table Orders -->
+            <a href="{% url 'restaurant:table_orders_list' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'table_order' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <span class="font-medium">Table Orders</span>
+            </a>
+            
+            <!-- Active Tables -->
+            <a href="{% url 'restaurant:active_tables' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'active_tables' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <span class="font-medium">Active Tables</span>
+            </a>
+            
+            <!-- Active Tables -->
+            <a href="{% url 'restaurant:table_layout' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'table_layout' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <span class="font-medium">table layout</span>
+            </a>
+
+            <!-- QR & Tables Management -->
+            <a href="{% url 'restaurant:table_management' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'table_management' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span class="font-medium">QR & Tables</span>
+            </a>
+            
+            <!-- Categories -->
+            <a href="{% url 'restaurant:category_management' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                <span class="font-medium">Categories</span>
+            </a>
+            
+            <!-- Promo Codes -->
+            <a href="{% url 'restaurant:campaign_list' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'campaign' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                </svg>
+                <span class="font-medium">Marketing</span>
+            </a>
+            
+            <!-- Analytics -->
+            <a href="{% url 'restaurant:dashboard' %}#analytics" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span class="font-medium">Analytics</span>
+            </a>
+            
+            <!-- Settings -->
+            <a href="{% url 'restaurant:manager_dashboard' %}" 
+               class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-orange-50 hover:text-orange-600 {% if 'manager' in request.resolver_match.url_name %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="font-medium">Manager</span>
+            </a>
+            
+        </nav>
+        
+        <!-- Additional Sidebar Items (Optional) -->
+        {% block sidebar_extra %}
+        <!-- Child templates can inject additional navigation items here -->
+        {% endblock %}
+        
+       
+        
+    </aside>
+    
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebarBackdrop" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden hidden sidebar-backdrop"
+         onclick="toggleSidebar()"></div>
+    
+    <!-- ==================== MAIN CONTENT AREA ====================
+         Page content with responsive layout
+         Extends with content blocks from child templates
+         ============================================================ -->
+    <main class="flex-1 content-with-sidebar transition-smooth">
+        
+        <!-- Page Header (Optional - can be overridden) -->
+        {% block page_header %}
+        <div class="bg-white border-b border-gray-100 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{% block page_header_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-sm text-gray-600 mt-1">{% block page_header_description %}Manage your restaurant operations{% endblock %}</p>
+                </div>
+                {% block page_header_actions %}
+                <!-- Page-specific header actions -->
+                {% endblock %}
+            </div>
+        </div>
+        {% endblock %}
+        
+        <!-- Page Content -->
+        <div class="p-6">
+            {% block restaurant_content %}
+            <!-- Default content - child templates should override this block -->
+            <div class="text-center py-12">
+                <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">Welcome to Restaurant Portal</h2>
+                <p class="text-gray-600">Select a menu item to get started</p>
+            </div>
+            {% endblock %}
+        </div>
+        
+    </main>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Restaurant-specific JavaScript -->
+<script>
+/**
+ * Restaurant Dashboard JavaScript
+ * Handles sidebar toggle, user dropdown, and common interactions
+ */
+
+// Toggle mobile sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    
+    sidebar.classList.toggle('-translate-x-full');
+    backdrop.classList.toggle('hidden');
+}
+
+// Toggle user dropdown menu
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('userDropdownMenu');
+    dropdown.classList.toggle('hidden');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    const userDropdown = document.getElementById('userDropdown');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    
+    if (!userDropdown.contains(event.target)) {
+        userDropdownMenu.classList.add('hidden');
+    }
+});
+
+// Mobile sidebar toggle event listener
+document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+
+// Initialize tooltips and other interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+    console.log('Restaurant Dashboard initialized');
+});
+
+// Handle responsive sidebar on window resize
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    
+    if (window.innerWidth >= 1024) {
+        // Desktop: ensure sidebar is visible and backdrop hidden
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.add('hidden');
+    } else {
+        // Mobile: hide sidebar by default
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

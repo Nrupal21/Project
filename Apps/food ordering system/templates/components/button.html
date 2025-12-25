@@ -1,0 +1,36 @@
+<!--
+Reusable Button Component - Airbnb Style
+Usage: {% include 'components/button.html' with text='Click me' url='#' style='primary' size='lg' %}
+Parameters:
+- text: Button text (required)
+- url: Button link (optional, defaults to button tag)
+- style: primary, secondary, outline, ghost (optional, defaults to primary)
+- size: sm, md, lg (optional, defaults to md)
+- full_width: true/false (optional, defaults to false)
+- icon: SVG icon content (optional)
+-->
+
+{% if url %}
+<a href="{{ url }}" 
+   class="inline-flex items-center justify-center space-x-2
+   {% if size == 'sm' %}px-4 py-2 text-sm{% elif size == 'lg' %}px-8 py-4 text-lg{% else %}px-6 py-3 text-base{% endif %}
+   {% if style == 'secondary' %}bg-gray-100 hover:bg-gray-200 text-gray-700{% elif style == 'outline' %}border border-gray-300 hover:border-gray-900 text-gray-700 hover:text-gray-900{% elif style == 'ghost' %}hover:bg-gray-50 text-gray-700{% else %}bg-rose-500 hover:bg-rose-600 text-white{% endif %}
+   {% if full_width %}w-full{% endif %}
+   rounded-full font-medium transition-colors duration-200
+   {% if disabled %}opacity-50 cursor-not-allowed{% endif %}">
+   {% if icon %}{{ icon|safe }}{% endif %}
+   <span>{{ text }}</span>
+</a>
+{% else %}
+<button 
+   {% if disabled %}disabled{% endif %}
+   class="inline-flex items-center justify-center space-x-2
+   {% if size == 'sm' %}px-4 py-2 text-sm{% elif size == 'lg' %}px-8 py-4 text-lg{% else %}px-6 py-3 text-base{% endif %}
+   {% if style == 'secondary' %}bg-gray-100 hover:bg-gray-200 text-gray-700{% elif style == 'outline' %}border border-gray-300 hover:border-gray-900 text-gray-700 hover:text-gray-900{% elif style == 'ghost' %}hover:bg-gray-50 text-gray-700{% else %}bg-rose-500 hover:bg-rose-600 text-white{% endif %}
+   {% if full_width %}w-full{% endif %}
+   rounded-full font-medium transition-colors duration-200
+   {% if disabled %}opacity-50 cursor-not-allowed{% endif %}">
+   {% if icon %}{{ icon|safe }}{% endif %}
+   <span>{{ text }}</span>
+</button>
+{% endif %}

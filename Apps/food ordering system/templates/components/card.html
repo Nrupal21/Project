@@ -1,0 +1,46 @@
+<!--
+Reusable Card Component - Airbnb Style
+Usage: {% include 'components/card.html' with title='Card Title' content='Card content' image='path/to/image' %}
+Parameters:
+- title: Card title (optional)
+- content: Card content (required)
+- image: Image URL (optional)
+- footer: Footer content (optional)
+- hover: true/false (optional, defaults to true)
+- rounded: sm, md, lg, xl (optional, defaults to xl)
+- shadow: none, sm, md, lg, xl (optional, defaults to md)
+-->
+
+<div class="bg-white 
+{% if rounded == 'sm' %}rounded-lg{% elif rounded == 'md' %}rounded-xl{% elif rounded == 'lg' %}rounded-2xl{% else %}rounded-xl{% endif %}
+{% if shadow == 'none' %}{% elif shadow == 'sm' %}shadow-sm{% elif shadow == 'md' %}shadow-md{% elif shadow == 'lg' %}shadow-lg{% else %}shadow-xl{% endif %}
+{% if hover %}hover:shadow-xl transition-shadow duration-300{% endif %}
+overflow-hidden">
+
+    <!-- Image Section -->
+    {% if image %}
+    <div class="aspect-square overflow-hidden bg-gray-100">
+        <img src="{{ image }}" alt="{{ title }}" 
+             class="w-full h-full object-cover {% if hover %}group-hover:scale-105 transition-transform duration-300{% endif %}">
+    </div>
+    {% endif %}
+
+    <!-- Content Section -->
+    {% if title or content %}
+    <div class="p-6">
+        {% if title %}
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ title }}</h3>
+        {% endif %}
+        {% if content %}
+        <div class="text-gray-600">{{ content|safe }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Footer Section -->
+    {% if footer %}
+    <div class="px-6 pb-6">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>

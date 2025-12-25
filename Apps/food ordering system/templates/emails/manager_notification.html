@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Restaurant Registration - Approval Required</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #fbbc04;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .alert {
+            background: linear-gradient(135deg, #fff8e1, #fef7e0);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #fbbc04;
+        }
+        .alert h2 {
+            color: #9e6a00;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .details h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+            font-size: 16px;
+        }
+        .details p {
+            margin: 8px 0;
+            color: #5f6368;
+        }
+        .details strong {
+            color: #202124;
+        }
+        .description {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #1a73e8;
+        }
+        .description h4 {
+            margin: 0 0 10px 0;
+            color: #1a73e8;
+        }
+        .description p {
+            margin: 0;
+            color: #5f6368;
+            font-style: italic;
+        }
+        .actions {
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #1a73e8;
+        }
+        .actions h4 {
+            margin: 0 0 15px 0;
+            color: #1a73e8;
+        }
+        .button {
+            display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background-color: #1557b0;
+        }
+        .checklist {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #34a853;
+        }
+        .checklist h4 {
+            margin: 0 0 15px 0;
+            color: #34a853;
+        }
+        .checklist ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .checklist li {
+            margin-bottom: 8px;
+            list-style-type: none;
+        }
+        .checklist li:before {
+            content: "□ ";
+            color: #34a853;
+            font-weight: bold;
+        }
+        .steps {
+            margin: 25px 0;
+        }
+        .steps h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .steps li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #f1f3f4;
+            color: #5f6368;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📋</div>
+            <h1 class="title">New Restaurant Registration</h1>
+        </div>
+        
+        <div class="content">
+            <div class="alert">
+                <h2>⚠️ Approval Required</h2>
+                <p>A new restaurant has been registered and is awaiting your review and approval.</p>
+            </div>
+            
+            <div class="details">
+                <h4>Restaurant Details:</h4>
+                <p><strong>Name:</strong> {{ restaurant.name }}</p>
+                <p><strong>Owner:</strong> {{ restaurant.owner.username }} ({{ restaurant.owner.email }})</p>
+                <p><strong>Cuisine Type:</strong> {{ restaurant.get_cuisine_type_display }}</p>
+                <p><strong>Address:</strong> {{ restaurant.address }}</p>
+                <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
+                <p><strong>Email:</strong> {{ restaurant.email|default:"Not provided" }}</p>
+                <p><strong>Registration Date:</strong> {{ restaurant.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+            
+            <div class="description">
+                <h4>Description:</h4>
+                <p>{{ restaurant.description|truncatewords:50 }}</p>
+            </div>
+            
+            <div class="actions">
+                <h4>Quick Actions:</h4>
+                <div style="text-align: center;">
+                    <a href="{{ admin_url }}restaurant/restaurant/{{ restaurant.id }}/change/" class="button">Review Application</a>
+                    <a href="mailto:{{ restaurant.owner.email }}" class="button">Contact Owner</a>
+                </div>
+            </div>
+            
+            <div class="checklist">
+                <h4>Approval Checklist:</h4>
+                <ul>
+                    <li>Verify restaurant information is complete and accurate</li>
+                    <li>Check contact details (phone/email) are valid</li>
+                    <li>Confirm address matches service area</li>
+                    <li>Review cuisine classification</li>
+                    <li>Ensure compliance with platform guidelines</li>
+                </ul>
+            </div>
+            
+            <div class="steps">
+                <h4>Next Steps:</h4>
+                <ol>
+                    <li>Login to admin panel to review full application</li>
+                    <li>Approve or reject the restaurant registration</li>
+                    <li>System will automatically notify the owner of your decision</li>
+                </ol>
+            </div>
+            
+            <p>Please review this application at your earliest convenience to ensure timely processing.</p>
+            
+            <p>Best regards,<br>
+            The {{ site_name }} System</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated notification from {{ site_name }}.</p>
+            <p>© {{ current_year }} {{ site_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

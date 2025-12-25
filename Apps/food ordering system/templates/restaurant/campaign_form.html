@@ -1,0 +1,218 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ restaurant.name }}{% endblock %}
+
+{% block restaurant_content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center">
+            <a href="{% url 'restaurant:campaign_list' %}" 
+               class="text-gray-600 hover:text-gray-900 mr-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+                <p class="mt-2 text-gray-600">Create a promotional email campaign for your customers</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow rounded-lg">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Campaign Name -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Campaign Details</h2>
+                <p class="text-sm text-gray-600">Basic information about your campaign</p>
+            </div>
+            
+            <div class="px-6 py-4 space-y-6">
+                <div>
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.name.help_text }}</p>
+                    {% endif %}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.subject.label_tag }}
+                    {{ form.subject }}
+                    {% if form.subject.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.subject.help_text }}</p>
+                    {% endif %}
+                    {% if form.subject.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.subject.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.message.label_tag }}
+                    {{ form.message }}
+                    {% if form.message.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.message.help_text }}</p>
+                    {% endif %}
+                    {% if form.message.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.message.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Targeting Options -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Targeting Options</h2>
+                <p class="text-sm text-gray-600">Choose which customers will receive this campaign</p>
+            </div>
+            
+            <div class="px-6 py-4 space-y-6">
+                <div>
+                    {{ form.target_customers.label_tag }}
+                    {{ form.target_customers }}
+                    {% if form.target_customers.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.target_customers.help_text }}</p>
+                    {% endif %}
+                    {% if form.target_customers.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.target_customers.errors }}</p>
+                    {% endif %}
+                    
+                    <!-- Target Customer Info -->
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Customer Targeting Information</h3>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li><strong>All Customers:</strong> Everyone who has ordered from your restaurant</li>
+                                        <li><strong>Recent Customers:</strong> Customers who ordered in the last 30 days</li>
+                                        <li><strong>Repeat Customers:</strong> Customers with 3 or more orders</li>
+                                        <li><strong>High Value Customers:</strong> Customers with average order value over ₹500</li>
+                                        <li><strong>Inactive Customers:</strong> Customers who haven't ordered in 60 days</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Options -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Email Options</h2>
+                <p class="text-sm text-gray-600">Configure how your email will look and when to send it</p>
+            </div>
+            
+            <div class="px-6 py-4 space-y-6">
+                <div>
+                    {{ form.template.label_tag }}
+                    {{ form.template }}
+                    {% if form.template.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.template.help_text }}</p>
+                    {% endif %}
+                    {% if form.template.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.template.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.scheduled_at.label_tag }}
+                    {{ form.scheduled_at }}
+                    {% if form.scheduled_at.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.scheduled_at.help_text }}</p>
+                    {% endif %}
+                    {% if form.scheduled_at.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.scheduled_at.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="px-6 py-4 bg-yellow-50 border-t border-yellow-200">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Important Notice</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>This campaign will only be sent to customers who have opted in to receive promotional emails. 
+                            All emails are sent in compliance with privacy regulations and include unsubscribe links.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex items-center justify-end space-x-4">
+                    <a href="{% url 'restaurant:campaign_list' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition duration-200">
+                        {{ action }} Campaign
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Add character counter for message field
+document.addEventListener('DOMContentLoaded', function() {
+    const messageField = document.getElementById('id_message');
+    if (messageField) {
+        // Add character counter display
+        const counter = document.createElement('div');
+        counter.className = 'mt-1 text-sm text-gray-500';
+        counter.textContent = '0 characters';
+        messageField.parentNode.appendChild(counter);
+        
+        // Update counter on input
+        messageField.addEventListener('input', function() {
+            const length = this.value.length;
+            counter.textContent = `${length} characters`;
+            
+            // Change color based on length
+            if (length < 10) {
+                counter.className = 'mt-1 text-sm text-red-600';
+            } else if (length > 1000) {
+                counter.className = 'mt-1 text-sm text-yellow-600';
+            } else {
+                counter.className = 'mt-1 text-sm text-gray-500';
+            }
+        });
+    }
+    
+    // Set minimum datetime for scheduled_at field to current time
+    const scheduledAtField = document.getElementById('id_scheduled_at');
+    if (scheduledAtField) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        scheduledAtField.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+});
+</script>
+{% endblock %}

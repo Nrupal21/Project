@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        /* Print-optimized kitchen receipt styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12pt;
+            line-height: 1.4;
+            padding: 10mm;
+            background: white;
+        }
+        
+        .receipt {
+            max-width: 80mm;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .header h2 {
+            font-size: 14pt;
+            margin-bottom: 3px;
+        }
+        
+        .order-info {
+            margin-bottom: 15px;
+            font-size: 11pt;
+        }
+        
+        .order-info div {
+            margin-bottom: 3px;
+        }
+        
+        .order-info strong {
+            display: inline-block;
+            width: 100px;
+        }
+        
+        .items-header {
+            border-top: 2px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 5px 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .item-row {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3px;
+            font-size: 11pt;
+        }
+        
+        .item-notes {
+            font-style: italic;
+            color: #666;
+            margin-top: 3px;
+            padding-left: 10px;
+            font-size: 10pt;
+        }
+        
+        .special-instructions {
+            margin-top: 15px;
+            padding: 10px;
+            border: 2px solid #000;
+            background: #f9f9f9;
+        }
+        
+        .special-instructions h3 {
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 2px dashed #000;
+            padding-top: 10px;
+            font-size: 10pt;
+        }
+        
+        .timestamp {
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .receipt {
+                max-width: 100%;
+            }
+        }
+        
+        /* Print button */
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #4338CA;
+        }
+    </style>
+</head>
+<body>
+    <!-- Print Button (Hidden in print) -->
+    <button onclick="window.print()" class="print-button no-print">
+        🖨️ Print Receipt
+    </button>
+    
+    <div class="receipt">
+        <!-- Header -->
+        <div class="header">
+            <h1>🍽️ KITCHEN ORDER</h1>
+            <h2>{{ restaurant.name }}</h2>
+        </div>
+        
+        <!-- Order Information -->
+        <div class="order-info">
+            <div>
+                <strong>Order ID:</strong> #{{ order.order_id|slice:":8" }}
+            </div>
+            {% if order.table %}
+            <div>
+                <strong>Table:</strong> {{ order.table.table_number }}
+            </div>
+            {% endif %}
+            <div>
+                <strong>Order Type:</strong> {{ order.get_order_type_display }}
+            </div>
+            <div>
+                <strong>Time:</strong> {{ order.created_at|date:"h:i A" }}
+            </div>
+            <div>
+                <strong>Customer:</strong> {{ order.customer_name }}
+            </div>
+            {% if order.customer_phone and order.customer_phone != 'N/A' %}
+            <div>
+                <strong>Phone:</strong> {{ order.customer_phone }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Items Header -->
+        <div class="items-header">
+            <span>Item</span>
+            <span>Qty</span>
+        </div>
+        
+        <!-- Order Items -->
+        {% for item in items %}
+        <div class="item-row">
+            <div class="item-name">
+                {{ item.menu_item.name }}
+            </div>
+            <div class="item-details">
+                <span>₹{{ item.price }}</span>
+                <span><strong>{{ item.quantity }}x</strong></span>
+            </div>
+            {% if item.notes %}
+            <div class="item-notes">
+                📝 {{ item.notes }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <!-- Special Instructions -->
+        {% if order.notes %}
+        <div class="special-instructions">
+            <h3>⚠️ SPECIAL INSTRUCTIONS:</h3>
+            <p>{{ order.notes }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">
+                TOTAL ITEMS: {{ items.count }}
+            </div>
+            <div style="margin-top: 10px;">
+                ━━━━━━━━━━━━━━━━━━━━━━━━━━
+            </div>
+            <div style="margin-top: 5px; font-weight: bold;">
+                PRIORITY: {% if order.delivery_time == 'asap' %}🔴 URGENT{% else %}🟢 NORMAL{% endif %}
+            </div>
+        </div>
+        
+        <!-- Timestamp -->
+        <div class="timestamp">
+            Printed: {{ print_time|date:"M d, Y - h:i:s A" }}
+        </div>
+    </div>
+    
+    <!-- Auto-print JavaScript -->
+    <script>
+        /**
+         * Auto-print functionality
+         * Automatically triggers print dialog when page loads
+         */
+        window.addEventListener('load', function() {
+            // Wait a moment for the page to fully render
+            setTimeout(function() {
+                // Uncomment the line below to auto-print
+                // window.print();
+            }, 500);
+        });
+        
+        /**
+         * Close window after printing
+         * Useful for popup windows
+         */
+        window.addEventListener('afterprint', function() {
+            // Optionally close the window after printing
+            // window.close();
+        });
+    </script>
+</body>
+</html>

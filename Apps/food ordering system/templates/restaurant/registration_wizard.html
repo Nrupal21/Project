@@ -1,0 +1,1256 @@
+{% extends "base.html" %}
+{% load static %}
+
+<!-- 
+Multi-step restaurant registration wizard template.
+
+This template provides a comprehensive 5-step registration process
+with progress tracking, validation, and draft saving functionality.
+Each step is rendered dynamically based on the current step number.
+-->
+
+{% block content %}
+<!-- Restaurant Registration Wizard - Modern Visual Design -->
+<div class="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Header Section with Icon -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mb-4 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Restaurant Registration</h1>
+            <p class="text-gray-600 text-sm sm:text-base">Join our platform and start receiving orders</p>
+        </div>
+        
+        <!-- Enhanced Progress Bar Section -->
+        <div class="mb-8 bg-white rounded-2xl shadow-md p-6">
+            <!-- Progress indicators with percentage -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm sm:text-base font-semibold text-gray-800">
+                        Step {{ current_step }} of {{ total_steps }}
+                    </span>
+                </div>
+                <span class="text-sm sm:text-base font-bold text-orange-600">
+                    {{ progress_percentage|floatformat:0 }}% Complete
+                </span>
+            </div>
+            
+            <!-- Animated progress bar with gradient -->
+            <div class="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 h-full rounded-full shadow-lg" 
+                     data-progress="{{ progress_percentage }}"
+                     style="width: 0%;">
+                    <!-- Shimmer effect -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
+                </div>
+            </div>
+            
+            <!-- Step indicators with icons and connecting lines -->
+            <div class="relative mt-8">
+                <!-- Connecting line -->
+                <div class="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 hidden sm:block" style="margin: 0 10%;"></div>
+                
+                <div class="relative flex justify-between">
+                    <!-- Step 1: Account -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative z-10 {% if current_step >= 1 %}bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg scale-110{% else %}bg-gray-200 text-gray-500{% endif %} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-sm sm:text-base font-bold border-4 border-white">
+                            {% if current_step > 1 %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs sm:text-sm mt-2 font-medium text-center {% if current_step >= 1 %}text-orange-600{% else %}text-gray-500{% endif %}">Account</span>
+                    </div>
+                    
+                    <!-- Step 2: Details -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative z-10 {% if current_step >= 2 %}bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg scale-110{% else %}bg-gray-200 text-gray-500{% endif %} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-sm sm:text-base font-bold border-4 border-white">
+                            {% if current_step > 2 %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs sm:text-sm mt-2 font-medium text-center {% if current_step >= 2 %}text-orange-600{% else %}text-gray-500{% endif %}">Details</span>
+                    </div>
+                    
+                    <!-- Step 3: Location -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative z-10 {% if current_step >= 3 %}bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg scale-110{% else %}bg-gray-200 text-gray-500{% endif %} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-sm sm:text-base font-bold border-4 border-white">
+                            {% if current_step > 3 %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs sm:text-sm mt-2 font-medium text-center {% if current_step >= 3 %}text-orange-600{% else %}text-gray-500{% endif %}">Location</span>
+                    </div>
+                    
+                    <!-- Step 4: Hours -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative z-10 {% if current_step >= 4 %}bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg scale-110{% else %}bg-gray-200 text-gray-500{% endif %} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-sm sm:text-base font-bold border-4 border-white">
+                            {% if current_step > 4 %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <span class="text-xs sm:text-sm mt-2 font-medium text-center {% if current_step >= 4 %}text-orange-600{% else %}text-gray-500{% endif %}">Hours</span>
+                    </div>
+                    
+                    <!-- Step 5: Review -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="relative z-10 {% if current_step >= 5 %}bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg scale-110{% else %}bg-gray-200 text-gray-500{% endif %} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 border-4 border-white">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs sm:text-sm mt-2 font-medium text-center {% if current_step >= 5 %}text-orange-600{% else %}text-gray-500{% endif %}">Review</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Wizard Content with Enhanced Card Design -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 border border-gray-100">
+            <!-- Step Title and Description with Icon -->
+            <div class="mb-8 pb-6 border-b border-gray-200">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center">
+                            {% if current_step == 1 %}
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            {% elif current_step == 2 %}
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            {% elif current_step == 3 %}
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                            {% elif current_step == 4 %}
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                            {{ title }}
+                        </h2>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            {{ description }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Django Messages Display -->
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg mb-3 {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %}">
+                            <div class="flex items-center">
+                                {% if message.tags == 'error' %}
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                    </svg>
+                                {% elif message.tags == 'success' %}
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Registration Form -->
+            <form method="post" action="{% url 'restaurant:registration_wizard' %}" enctype="multipart/form-data" id="wizardForm">
+            {% csrf_token %}
+            
+            <!-- Hidden field to track current step -->
+            <input type="hidden" name="current_step" value="{{ current_step }}">
+            
+            <!-- Step 1: Account Information -->
+            {% if current_step == 1 %}
+                <div class="space-y-6">
+                    {% if user.is_authenticated %}
+                        <!-- User already has account -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-green-800 mb-2">
+                                ✓ Account Ready
+                            </h3>
+                            <p class="text-green-700">
+                                Your account is already set up and authenticated. 
+                                Let's proceed with adding your restaurant details.
+                            </p>
+                            <div class="mt-3 text-sm text-green-600">
+                                <strong>Username:</strong> {{ user.username }}<br>
+                                <strong>Email:</strong> {% if user.email %}{{ user.email }}{% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- User needs to create account -->
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">
+                                Create Your Restaurant Owner Account
+                            </h3>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Username *
+                                </label>
+                                <input type="text" 
+                                       name="username" 
+                                       value="{{ step_data.username|default:'' }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="Choose a username"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    This will be your login username
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address *
+                                </label>
+                                <input type="email" 
+                                       name="email" 
+                                       value="{{ step_data.email|default:'' }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="your@email.com"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    We'll use this for account verification and notifications
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Password *
+                                </label>
+                                <input type="password" 
+                                       name="password" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="Create a strong password"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    At least 8 characters with letters and numbers
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Confirm Password *
+                                </label>
+                                <input type="password" 
+                                       name="password_confirm" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       placeholder="Re-enter your password"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Confirm your password to avoid typos
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            
+            <!-- Step 2: Restaurant Basic Details -->
+            {% elif current_step == 2 %}
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Restaurant Name *
+                        </label>
+                        <input type="text" 
+                               name="restaurant_name" 
+                               value=""
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="Enter your restaurant name"
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Must be 3-100 characters, letters, numbers, and spaces only
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Description *
+                        </label>
+                        <textarea name="description" 
+                                  rows="4"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  placeholder="Describe your restaurant, atmosphere, specialties, and what makes it unique..."
+                                  required></textarea>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Minimum 20 characters, maximum 1000 characters
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Cuisine Type *
+                        </label>
+                        <select name="cuisine_type" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                required>
+                            <option value="">Select cuisine type</option>
+                            <option value="italian">Italian</option>
+                            <option value="chinese">Chinese</option>
+                            <option value="japanese">Japanese</option>
+                            <option value="indian">Indian</option>
+                            <option value="mexican">Mexican</option>
+                            <option value="american">American</option>
+                            <option value="thai">Thai</option>
+                            <option value="french">French</option>
+                            <option value="mediterranean">Mediterranean</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            
+            <!-- Step 3: Location & Contact -->
+            {% elif current_step == 3 %}
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number *
+                        </label>
+                        <input type="tel" 
+                               name="phone" 
+                               value=""
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="(555) 123-4567"
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Format: (555) 123-4567 or 555-123-4567
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                        </label>
+                        <input type="email" 
+                               name="email" 
+                               value=""
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="restaurant@example.com">
+                        <p class="text-xs text-gray-500 mt-1">
+                            Will default to your account email if not specified
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Address *
+                        </label>
+                        <textarea name="address" 
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  placeholder="123 Main Street, City, State ZIP"
+                                  required></textarea>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Complete restaurant address for delivery and directions
+                        </p>
+                    </div>
+                </div>
+            
+            <!-- Step 4: Business Hours & Pricing -->
+            {% elif current_step == 4 %}
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Opening Time *
+                            </label>
+                            <input type="time" 
+                                   name="opening_time" 
+                                   value=""
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Closing Time *
+                            </label>
+                            <input type="time" 
+                                   name="closing_time" 
+                                   value=""
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Minimum Order ($) *
+                            </label>
+                            <input type="number" 
+                                   name="minimum_order" 
+                                   value=""
+                                   step="0.01"
+                                   min="0.01"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="15.00"
+                                   required>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Minimum order amount for delivery
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Delivery Fee ($) *
+                            </label>
+                            <input type="number" 
+                                   name="delivery_fee" 
+                                   value=""
+                                   step="0.01"
+                                   min="0.00"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="3.99"
+                                   required>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Delivery fee charged to customers
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            
+            <!-- Step 5: Images & Final Review -->
+            {% elif current_step == 5 %}
+                <div class="space-y-6">
+                    <!-- Enhanced Image Upload with Preview -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Restaurant Image (Optional)
+                            <span class="text-xs font-normal text-gray-500">
+                                - Helps attract customers
+                            </span>
+                        </label>
+                        
+                        <!-- Image Preview Container -->
+                        <div id="imagePreviewContainer" class="hidden mb-4">
+                            <div class="relative inline-block">
+                                <img id="imagePreview" 
+                                     src="" 
+                                     alt="Preview" 
+                                     class="max-w-full h-48 rounded-lg shadow-md border-2 border-orange-200">
+                                <button type="button" 
+                                        onclick="clearImagePreview()" 
+                                        class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p id="imageInfo" class="text-xs text-gray-600 mt-2"></p>
+                        </div>
+                        
+                        <!-- File Input with Enhanced UI -->
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-orange-400 transition-all duration-300">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, WebP (MAX. 5MB)</p>
+                                </div>
+                                <input type="file" 
+                                       id="restaurant_image"
+                                       name="restaurant_image" 
+                                       accept="image/*"
+                                       onchange="previewImage(this)"
+                                       class="hidden">
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2 flex items-start gap-1">
+                            <svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Tip: Use a high-quality photo of your restaurant's exterior, interior, or signature dish for best results.</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Review Summary -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            📋 Application Summary
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-medium text-gray-700">Restaurant Details</h4>
+                                <p class="text-sm text-gray-600">
+                                    <strong>Name:</strong> {{ step_data.restaurant_name|default:'Not provided' }}<br>
+                                    <strong>Cuisine:</strong> {{ step_data.cuisine_type|default:'Not provided' }}<br>
+                                    <strong>Hours:</strong> {{ step_data.opening_time|default:'--' }} - {{ step_data.closing_time|default:'--' }}
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-700">Contact Information</h4>
+                                <p class="text-sm text-gray-600">
+                                    <strong>Phone:</strong> {{ step_data.phone|default:'Not provided' }}<br>
+                                    <strong>Email:</strong> {{ step_data.email|default:'' }}<br>
+                                    <strong>Address:</strong> {{ step_data.address|default:'Not provided' }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4 class="font-medium text-gray-700">Pricing</h4>
+                            <p class="text-sm text-gray-600">
+                                <strong>Minimum Order:</strong> ${{ step_data.minimum_order|default:'0.00' }}<br>
+                                <strong>Delivery Fee:</strong> ${{ step_data.delivery_fee|default:'0.00' }}
+                            </p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4 class="font-medium text-gray-700">Description</h4>
+                            <p class="text-sm text-gray-600">
+                                {{ step_data.description|default:'No description provided' }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h4 class="font-medium text-yellow-800 mb-2">
+                            ⚠️ Important Information
+                        </h4>
+                        <p class="text-sm text-yellow-700">
+                            Upon submission, your restaurant will be reviewed by our team. 
+                            You will receive an email confirmation and we'll notify you once approved. 
+                            This process typically takes 24-48 hours.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Enhanced Navigation Buttons -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-10 pt-8 border-t-2 border-gray-100">
+                <!-- Back Button with Icon -->
+                {% if can_go_back %}
+                    <button type="submit" 
+                            name="action" 
+                            value="back"
+                            class="w-full sm:w-auto group flex items-center justify-center gap-2 px-8 py-3.5 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-all duration-300 font-medium shadow-sm hover:shadow-md">
+                        <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        <span>Back</span>
+                    </button>
+                {% else %}
+                    <div class="hidden sm:block"></div>
+                {% endif %}
+                
+                <!-- Action Buttons Group -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <!-- Save Draft Button -->
+                    <button type="submit" 
+                            name="action" 
+                            value="save_draft"
+                            class="group flex items-center justify-center gap-2 px-6 py-3.5 border-2 border-orange-300 text-orange-600 rounded-xl hover:bg-orange-50 hover:border-orange-400 transition-all duration-300 font-medium shadow-sm hover:shadow-md">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                        </svg>
+                        <span>Save Draft</span>
+                    </button>
+                    
+                    <!-- Next/Submit Button with Gradient -->
+                    {% if can_submit %}
+                        <button type="submit" 
+                                name="action" 
+                                value="submit"
+                                class="group relative overflow-hidden px-8 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <span class="relative z-10 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Submit Application
+                            </span>
+                            <!-- Shine effect -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
+                        </button>
+                    {% else %}
+                        <button type="submit" 
+                                name="action" 
+                                value="next"
+                                class="group relative overflow-hidden px-8 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <span class="relative z-10 flex items-center justify-center gap-2">
+                                Next Step
+                                <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </span>
+                            <!-- Shine effect -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>    
+    <!-- Help Section -->
+    <div class="mt-8 text-center">
+        <p class="text-sm text-gray-600">
+            Need help? <a href="#" class="text-indigo-600 hover:text-indigo-800">Contact Support</a> or 
+            <a href="#" class="text-indigo-600 hover:text-indigo-800">View FAQ</a>
+    </div>
+</div>
+
+<!-- Enhanced JavaScript with Real-time Validation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Wizard JavaScript loaded successfully');
+    
+    // Real-time validation system
+    const validationRules = {
+        username: {
+            pattern: /^[a-zA-Z0-9_]{3,20}$/,
+            message: 'Username must be 3-20 characters, letters, numbers, and underscores only',
+            required: true
+        },
+        email: {
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Please enter a valid email address',
+            required: true
+        },
+        password: {
+            pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/,
+            message: 'Password must be at least 8 characters with letters and numbers',
+            required: true
+        },
+        restaurant_name: {
+            pattern: /^.{2,100}$/,
+            message: 'Restaurant name must be 2-100 characters',
+            required: true
+        },
+        phone: {
+            pattern: /^[\d\s\-\(\)\+]+$/,
+            message: 'Please enter a valid phone number',
+            required: true
+        },
+        address: {
+            pattern: /^.{10,200}$/,
+            message: 'Address must be 10-200 characters',
+            required: true
+        }
+    };
+    
+    // Real-time field validation
+    function validateField(field) {
+        const fieldName = field.name;
+        const value = field.value.trim();
+        const rule = validationRules[fieldName];
+        
+        // Skip validation for fields without rules or non-input elements
+        if (!rule || !rule.required && !value) return true;
+        
+        const errorElement = field.parentNode.querySelector('.field-error');
+        let isValid = true;
+        
+        // Check if field is required and empty
+        if (rule.required && !value) {
+            isValid = false;
+        } 
+        // Check pattern if field has value
+        else if (value && rule.pattern && !rule.pattern.test(value)) {
+            isValid = false;
+        }
+        
+        // Update UI based on validation result
+        if (!isValid && value) {
+            field.classList.add('border-red-500', 'focus:border-red-500');
+            field.classList.remove('border-green-500', 'focus:border-green-500');
+            if (errorElement) {
+                errorElement.textContent = rule.message;
+                errorElement.classList.remove('hidden');
+            }
+        } else if (value && isValid) {
+            field.classList.add('border-green-500', 'focus:border-green-500');
+            field.classList.remove('border-red-500', 'focus:border-red-500');
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        } else {
+            field.classList.remove('border-red-500', 'focus:border-red-500', 'border-green-500', 'focus:border-green-500');
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        }
+        
+        return isValid;
+    }
+    
+    // Add validation to all form fields
+    const form = document.getElementById('wizardForm');
+    const inputs = form.querySelectorAll('input, textarea');
+    
+    inputs.forEach(input => {
+        // Add error message container
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error text-red-500 text-xs mt-1 hidden';
+        input.parentNode.appendChild(errorDiv);
+        
+        // Real-time validation on blur
+        input.addEventListener('blur', () => validateField(input));
+        
+        // Clear validation on focus
+        input.addEventListener('focus', () => {
+            input.classList.remove('border-red-500', 'focus:border-red-500', 'border-green-500', 'focus:border-green-500');
+            const errorElement = input.parentNode.querySelector('.field-error');
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        });
+    });
+    
+    // Form submission - completely removed JavaScript interference
+    // Let the browser handle form submission naturally
+    
+    // Progress bar animation
+    const progressBar = document.querySelector('.progress-bar-fill');
+    if (progressBar) {
+        const progress = progressBar.getAttribute('data-progress');
+        progressBar.style.width = '0%';
+        setTimeout(() => {
+            progressBar.style.transition = 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+            progressBar.style.width = progress + '%';
+        }, 100);
+    }
+    
+    // Auto-save draft every 30 seconds
+    let autoSaveInterval = setInterval(function() {
+        saveDraft();
+    }, 30000);
+    
+    // Save draft function
+    function saveDraft() {
+        const formData = new FormData(form);
+        formData.set('action', 'save_draft');
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Draft saved automatically');
+                // Show enhanced save notification
+                showSaveNotification(data.message || 'Draft saved successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Auto-save failed:', error);
+            // Show error notification
+            showSaveNotification('Failed to save draft', 'error');
+        });
+    }
+    
+    // Save draft button click handler
+    const saveBtn = document.querySelector('button[name="action"][value="save_draft"]');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Disable button and show loading state
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...';
+            
+            const formData = new FormData(form);
+            formData.set('action', 'save_draft');
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success notification
+                    showSaveNotification(data.message || 'Draft saved successfully');
+                } else {
+                    // Show error notification
+                    showSaveNotification('Failed to save draft', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Save draft failed:', error);
+                showSaveNotification('Failed to save draft', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                this.disabled = false;
+                this.innerHTML = originalText;
+            });
+        });
+    }
+    
+    // Show save notification (improved version)
+    function showSaveNotification(message, type = 'success') {
+        // Remove any existing notifications
+        const existingNotification = document.querySelector('.draft-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `draft-notification fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg text-sm z-50 transform transition-all duration-300 translate-x-full`;
+        
+        if (type === 'success') {
+            notification.className += ' bg-green-500 text-white';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+        } else {
+            notification.className += ' bg-red-500 text-white';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+            notification.classList.add('translate-x-0');
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    console.log('Enhanced wizard initialization complete');
+});
+
+/**
+ * Image preview functionality with validation
+ * @param {HTMLInputElement} input - File input element
+ */
+function previewImage(input) {
+    const file = input.files[0];
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const preview = document.getElementById('imagePreview');
+    const imageInfo = document.getElementById('imageInfo');
+    
+    if (file) {
+        // Validate file size (5MB max)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            alert('⚠️ Image size must be less than 5MB. Please choose a smaller image.');
+            input.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('⚠️ Please upload a valid image file (JPG, PNG, or WebP).');
+            input.value = '';
+            return;
+        }
+        
+        // Create FileReader to preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewContainer.classList.remove('hidden');
+            
+            // Display image info
+            const fileSize = (file.size / 1024).toFixed(2);
+            imageInfo.textContent = `📸 ${file.name} (${fileSize} KB)`;
+            
+            // Show success message
+            showNotification('✓ Image uploaded successfully!', 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+/**
+ * Clear image preview and reset file input
+ */
+function clearImagePreview() {
+    const input = document.getElementById('restaurant_image');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const preview = document.getElementById('imagePreview');
+    
+    input.value = '';
+    preview.src = '';
+    previewContainer.classList.add('hidden');
+    
+    showNotification('Image removed', 'info');
+}
+
+/**
+ * Show notification message
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type (success, error, info)
+ */
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 ${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg text-sm z-50 transform transition-all duration-300`;
+    notification.textContent = message;
+    notification.style.transform = 'translateY(100px)';
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateY(100px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+/**
+ * Keyboard navigation support
+ * Allows using arrow keys and Enter to navigate wizard
+ */
+document.addEventListener('keydown', function(e) {
+    // Alt + Right Arrow = Next Step
+    if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextBtn = document.querySelector('button[name="action"][value="next"]');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+        }
+    }
+    
+    // Alt + Left Arrow = Previous Step
+    if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const backBtn = document.querySelector('button[name="action"][value="back"]');
+        if (backBtn) {
+            backBtn.click();
+        }
+    }
+    
+    // Ctrl + S = Save Draft
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        const saveBtn = document.querySelector('button[name="action"][value="save_draft"]');
+        if (saveBtn) {
+            saveBtn.click();
+        }
+    }
+});
+
+/**
+ * Add tooltip functionality to form fields
+ * Provides contextual help for users
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Add helpful tooltips with examples
+    const tooltips = {
+        'username': 'Example: john_doe, restaurant123',
+        'email': 'Example: owner@restaurant.com',
+        'restaurant_name': 'Example: Luigi\'s Italian Bistro, The Spicy Curry House',
+        'phone': 'Example: (555) 123-4567 or +1-555-123-4567',
+        'address': 'Example: 123 Main Street, Suite 100, New York, NY 10001',
+        'minimum_order': 'Example: 15.00 (Most restaurants set $10-$25)',
+        'delivery_fee': 'Example: 3.99 (Typical range: $2-$5)'
+    };
+    
+    Object.keys(tooltips).forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            const helpText = field.parentNode.querySelector('.text-xs');
+            if (helpText && !helpText.textContent.includes('Example:')) {
+                helpText.textContent += ` - ${tooltips[fieldName]}`;
+                helpText.classList.add('text-gray-600');
+            }
+        }
+    });
+});
+</script>
+
+<!-- Custom CSS for Advanced Visual Effects -->
+<style>
+    /* 
+    ==========================================
+    PROGRESS BAR ANIMATIONS
+    ==========================================
+    Shimmer effect for visual feedback on progress
+    */
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+    
+    .animate-shimmer {
+        animation: shimmer 2s infinite;
+    }
+    
+    /* 
+    ==========================================
+    ENHANCED FOCUS STATES
+    ==========================================
+    Improved accessibility with visible focus indicators
+    */
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #f97316 !important;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+    }
+    
+    /* High visibility focus for keyboard navigation */
+    button:focus-visible {
+        outline: 3px solid #f97316;
+        outline-offset: 2px;
+    }
+    
+    /* 
+    ==========================================
+    SMOOTH TRANSITIONS
+    ==========================================
+    Consistent animation timing for all interactive elements
+    */
+    button, input, textarea, select {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* 
+    ==========================================
+    ENHANCED HOVER EFFECTS - Removed animations
+    ==========================================
+    No animation to prevent disappearing effect
+    */
+    
+    /* 
+    ==========================================
+    MOBILE OPTIMIZATIONS
+    ==========================================
+    Touch-friendly buttons and improved mobile UX
+    */
+    @media (max-width: 640px) {
+        /* Larger touch targets for mobile */
+        button, input[type="submit"] {
+            min-height: 48px;
+            font-size: 16px; /* Prevents iOS zoom on focus */
+        }
+        
+        /* Improved input sizes for mobile */
+        input, textarea, select {
+            font-size: 16px; /* Prevents iOS zoom on focus */
+            padding: 12px;
+        }
+        
+        /* Optimized step indicators for small screens */
+        .step-indicator {
+            flex: 0 0 auto;
+            margin: 0 4px;
+        }
+        
+        /* Better spacing on mobile */
+        .space-y-6 > * + * {
+            margin-top: 24px;
+        }
+    }
+    
+    /* 
+    ==========================================
+    ACCESSIBILITY IMPROVEMENTS
+    ==========================================
+    Screen reader support and reduced motion preferences
+    */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+    
+    /* Screen reader only content */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+    
+    /* 
+    ==========================================
+    FORM VALIDATION STYLES
+    ==========================================
+    Visual feedback for form validation states
+    */
+    .field-valid {
+        border-color: #10b981 !important;
+        background-color: #f0fdf4;
+    }
+    
+    .field-invalid {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2;
+    }
+    
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items-center;
+        gap: 0.5rem;
+    }
+    
+    .success-message {
+        color: #059669;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items-center;
+        gap: 0.5rem;
+    }
+    
+    /* Pulse animation for active step indicator */
+    @keyframes pulse-orange {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
+        }
+    }
+    
+    .pulse-orange {
+        animation: pulse-orange 2s infinite;
+    }
+    
+    /* Mobile-friendly button adjustments */
+    @media (max-width: 640px) {
+        button {
+            font-size: 14px;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .progress-bar-fill {
+            height: 0.5rem;
+        }
+    }
+    
+    /* Enhanced hover effects for links */
+    a {
+        transition: color 0.2s ease;
+    }
+    
+    /* Gradient background animation */
+    @keyframes gradient-shift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    .bg-gradient-animated {
+        background-size: 200% 200%;
+        animation: gradient-shift 15s ease infinite;
+    }
+</style>
+{% endblock %}

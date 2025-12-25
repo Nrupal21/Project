@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Registration Submitted</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #1a73e8;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .highlight {
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #1a73e8;
+        }
+        .details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .details h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+            font-size: 16px;
+        }
+        .details p {
+            margin: 8px 0;
+            color: #5f6368;
+        }
+        .details strong {
+            color: #202124;
+        }
+        .steps {
+            margin: 25px 0;
+        }
+        .steps h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .steps li {
+            margin-bottom: 8px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1557b0;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #f1f3f4;
+            color: #5f6368;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍽️</div>
+            <h1 class="title">Restaurant Registration Submitted</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ user.first_name|default:user.username }},</p>
+            
+            <p>Thank you for registering your restaurant with <strong>{{ site_name }}</strong>! Your application has been successfully submitted and is now pending manager approval.</p>
+            
+            <div class="highlight">
+                <strong>📋 Your restaurant "<em>{{ restaurant.name }}</em>" is under review</strong><br>
+                Our team will review your restaurant details and you'll receive an email notification once the approval process is complete.
+            </div>
+            
+            <div class="details">
+                <h4>Registration Details:</h4>
+                <p><strong>Restaurant Name:</strong> {{ restaurant.name }}</p>
+                <p><strong>Cuisine Type:</strong> {{ restaurant.get_cuisine_type_display }}</p>
+                <p><strong>Address:</strong> {{ restaurant.address }}</p>
+                <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
+                <p><strong>Email:</strong> {{ restaurant.email|default:"Not provided" }}</p>
+            </div>
+            
+            <div class="steps">
+                <h4>What happens next?</h4>
+                <ol>
+                    <li>Our management team will review your restaurant information</li>
+                    <li>You will receive an email notification when approved</li>
+                    <li>Once approved, your restaurant will appear on {{ site_name }}</li>
+                    <li>You can then start managing your restaurant through the dashboard</li>
+                </ol>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{ login_url }}" class="button">Login to Your Account</a>
+            </div>
+            
+            <p>If you have any questions or need to update your restaurant information, please contact our support team.</p>
+            
+            <p>Thank you for choosing {{ site_name }}!</p>
+            
+            <p>Best regards,<br>
+            The {{ site_name }} Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>© {{ current_year }} {{ site_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

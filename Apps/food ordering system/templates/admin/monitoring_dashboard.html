@@ -1,0 +1,341 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .stat-card {
+        @apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200;
+    }
+    .stat-number {
+        @apply text-3xl font-bold text-gray-900;
+    }
+    .stat-label {
+        @apply text-sm font-medium text-gray-600;
+    }
+    .stat-change {
+        @apply text-sm font-medium;
+    }
+    .stat-change.positive {
+        @apply text-green-600;
+    }
+    .stat-change.negative {
+        @apply text-red-600;
+    }
+    .monitoring-nav {
+        @apply flex space-x-1 bg-gray-100 p-1 rounded-lg;
+    }
+    .monitoring-nav-item {
+        @apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+    }
+    .monitoring-nav-item.active {
+        @apply bg-white text-blue-600 shadow-sm;
+    }
+    .monitoring-nav-item:not(.active) {
+        @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Website Monitoring Dashboard</h1>
+        <p class="text-gray-600 mt-2">Privacy-safe analytics and system monitoring</p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mb-8">
+        <nav class="monitoring-nav">
+            <a href="{% url 'admin_monitoring:monitoring_dashboard' %}" class="monitoring-nav-item active">
+                Dashboard
+            </a>
+            <a href="{% url 'admin_monitoring:analytics_trends' %}" class="monitoring-nav-item">
+                Analytics Trends
+            </a>
+            <a href="{% url 'admin_monitoring:content_monitoring' %}" class="monitoring-nav-item">
+                Content Monitoring
+            </a>
+            <a href="{% url 'admin_monitoring:system_health' %}" class="monitoring-nav-item">
+                System Health
+            </a>
+        </nav>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Users -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="stat-number">{{ total_users }}</div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-change positive">
+                        +{{ new_users_this_month }} this month
+                    </div>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Restaurants -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="stat-number">{{ active_restaurants }}</div>
+                    <div class="stat-label">Active Restaurants</div>
+                    <div class="stat-change positive">
+                        {{ pending_restaurants }} pending approval
+                    </div>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="stat-number">{{ total_orders }}</div>
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-change positive">
+                        +{{ orders_this_week }} this week
+                    </div>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="stat-number">₹{{ total_revenue|floatformat:0 }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-change positive">
+                        ₹{{ revenue_this_month|floatformat:0 }} this month
+                    </div>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- User Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">User Analytics</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Active Users (Last 7 days)</span>
+                    <span class="font-semibold">{{ active_users_last_week }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">New Users (This month)</span>
+                    <span class="font-semibold">{{ new_users_this_month }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Average Order Value</span>
+                    <span class="font-semibold">₹{{ avg_order_value }}</span>
+                </div>
+            </div>
+            
+            <!-- User Role Distribution -->
+            <h3 class="text-lg font-medium text-gray-900 mt-6 mb-3">User Role Distribution</h3>
+            <div class="space-y-2">
+                {% for role in user_roles %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">{{ role.role_name }}</span>
+                    <span class="font-semibold">{{ role.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Restaurant Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Restaurant Analytics</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Restaurants</span>
+                    <span class="font-semibold">{{ total_restaurants }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Active Restaurants</span>
+                    <span class="font-semibold">{{ active_restaurants }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Pending Approval</span>
+                    <span class="font-semibold text-orange-600">{{ pending_restaurants }}</span>
+                </div>
+            </div>
+            
+            <!-- Restaurants by Cuisine -->
+            <h3 class="text-lg font-medium text-gray-900 mt-6 mb-3">Top Cuisine Types</h3>
+            <div class="space-y-2">
+                {% for cuisine in restaurants_by_cuisine|slice:":5" %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600 capitalize">{{ cuisine.cuisine_type }}</span>
+                    <span class="font-semibold">{{ cuisine.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Content & Review Statistics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- Menu Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Menu Analytics</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Menu Items</span>
+                    <span class="font-semibold">{{ total_menu_items }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Available Items</span>
+                    <span class="font-semibold text-green-600">{{ available_menu_items }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Unavailable Items</span>
+                    <span class="font-semibold text-red-600">{{ total_menu_items|add:"-"|add:available_menu_items }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Review Analytics</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Restaurant Reviews</span>
+                    <span class="font-semibold">{{ total_restaurant_reviews }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Menu Item Reviews</span>
+                    <span class="font-semibold">{{ total_menu_item_reviews }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Pending Reviews</span>
+                    <span class="font-semibold text-orange-600">{{ pending_reviews }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Avg Restaurant Rating</span>
+                    <span class="font-semibold">{{ avg_restaurant_rating }}/5</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Avg Menu Rating</span>
+                    <span class="font-semibold">{{ avg_menu_item_rating }}/5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wishlist Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Wishlist Analytics</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Wishlists</span>
+                    <span class="font-semibold">{{ total_wishlists }}</span>
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-medium text-gray-900 mt-6 mb-3">Popular Restaurants</h3>
+            <div class="space-y-2">
+                {% for restaurant in popular_restaurants|slice:":5" %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600 text-sm truncate">{{ restaurant.restaurant__name }}</span>
+                    <span class="font-semibold text-sm">{{ restaurant.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">System Status</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-100 p-2 rounded-full">
+                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">Database</div>
+                    <div class="text-sm text-gray-600">{{ database_status }}</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-100 p-2 rounded-full">
+                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">Server</div>
+                    <div class="text-sm text-gray-600">Operational</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-100 p-2 rounded-full">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="font-medium text-gray-900">Last Updated</div>
+                    <div class="text-sm text-gray-600">{{ server_time|date:"H:i:s" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for real-time updates -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+
+// Real-time stats API call
+function updateRealTimeStats() {
+    fetch('{% url "admin_monitoring:api_stats" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update real-time stats here if needed
+            console.log('Real-time stats:', data);
+        })
+        .catch(error => console.error('Error fetching stats:', error));
+}
+
+// Update real-time stats every minute
+setInterval(updateRealTimeStats, 60000);
+</script>
+{% endblock %}

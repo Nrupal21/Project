@@ -1,0 +1,1060 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}Table Management - {{ restaurant.name }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* View Toggle Button Styles */
+.view-toggle-btn {
+    color: #6b7280;
+    background-color: transparent;
+    transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+    color: #374151;
+    background-color: rgba(249, 250, 251, 0.5);
+}
+
+.view-toggle-btn.active {
+    color: #1f2937;
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Floor Plan Card Animations */
+.table-card-floorplan {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced hover effects for floor plan cards */
+.table-card-floorplan:hover {
+    z-index: 10;
+}
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<!-- Table Management Page for QR Code System -->
+<div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <!-- Breadcrumb Navigation -->
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="{% url 'customer:home' %}" class="hover:text-orange-500">Home</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'restaurant:dashboard' %}" class="hover:text-orange-500">Dashboard</a>
+            <span class="mx-2">/</span>
+            <span class="text-orange-600 font-medium">Table QR Codes</span>
+        </nav>
+        
+        <!-- Page Title and Actions -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Table QR Code Management 📱</h1>
+                <p class="text-gray-600 mt-2">Manage restaurant tables and generate QR codes for contactless ordering</p>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Active Tables View Button -->
+                <a href="{% url 'restaurant:active_tables' %}" 
+                   class="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span>Active Tables Board</span>
+                </a>
+                
+                <!-- Download All QR Codes Button (Coming Soon) -->
+                <button onclick="showComingSoon('Download All QR Codes')" 
+                        class="px-4 py-2 bg-gray-400 text-white rounded-lg flex items-center space-x-2 cursor-not-allowed opacity-75"
+                        title="Coming Soon">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Download All QR Codes</span>
+                </button>
+                
+                <!-- Add New Table Button -->
+                <a href="{% url 'restaurant:add_table' %}" 
+                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Add New Table</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <!-- Total Tables Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Tables</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_tables }}</p>
+                </div>
+                <div class="p-3 bg-indigo-100 rounded-lg">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Tables Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Available</p>
+                    <p class="text-3xl font-bold text-green-600">{{ available_tables }}</p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupied Tables Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Occupied</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ occupied_tables }}</p>
+                </div>
+                <div class="p-3 bg-yellow-100 rounded-lg">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Needs Attention Tables Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Needs Attention</p>
+                    <p class="text-3xl font-bold text-red-600">{{ needs_attention_tables }}</p>
+                </div>
+                <div class="p-3 bg-red-100 rounded-lg">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Codes Generated Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">QR Codes Ready</p>
+                    <p class="text-3xl font-bold text-purple-600">{{ tables_with_qr }}</p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-lg">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <!-- Table Status Filter -->
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Table Status:</label>
+                    <select id="statusFilter" onchange="filterTables()" 
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">All Tables</option>
+                        <option value="available" {% if status_filter == 'available' %}selected{% endif %}>🟢 Available</option>
+                        <option value="occupied" {% if status_filter == 'occupied' %}selected{% endif %}>🟡 Occupied</option>
+                        <option value="needs-attention" {% if status_filter == 'needs-attention' %}selected{% endif %}>🔴 Needs Attention</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+                    </select>
+                </div>
+
+                <!-- QR Code Filter -->
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">QR Code:</label>
+                    <select id="qrFilter" onchange="filterTables()" 
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">All</option>
+                        <option value="generated">Generated</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative">
+                    <input type="text" 
+                           id="searchInput"
+                           placeholder="Search by table number or location..." 
+                           onkeyup="searchTables()"
+                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Quick Stats and Refresh -->
+            <div class="flex items-center space-x-6">
+                <div class="text-sm">
+                    <span class="text-gray-600">Showing:</span>
+                    <span class="font-semibold text-gray-900">{{ tables.count }} of {{ total_tables }} tables</span>
+                </div>
+                <button onclick="location.reload()" 
+                        class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm flex items-center space-x-1"
+                        title="Refresh Data">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: View Toggle Buttons -->
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex bg-gray-100 rounded-lg p-1">
+            <button onclick="toggleTableView('list')" id="listViewBtn" class="view-toggle-btn active px-4 py-2 rounded-md text-sm font-medium">
+                <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                List View
+            </button>
+            <button onclick="toggleTableView('floorplan')" id="floorplanViewBtn" class="view-toggle-btn px-4 py-2 rounded-md text-sm font-medium">
+                <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Floor Plan
+            </button>
+        </div>
+        
+        <div class="text-sm text-gray-600">
+            <span id="viewDescription">Showing detailed table list with statistics</span>
+        </div>
+    </div>
+
+    <!-- Tables List Container -->
+    <div id="listViewContainer" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {% if tables %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <!-- Table Header -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Table
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Location
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Capacity
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Orders
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Revenue
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            QR Code
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+
+                <!-- Table Body -->
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for table_data in tables_with_status %}
+                    <tr class="table-row
+                        {% if table_data.status == 'needs-attention' %}bg-red-50{% endif %}" 
+                        data-status="{% if table_data.table.is_active %}active{% else %}inactive{% endif %}"
+                        data-table-status="{{ table_data.status }}"
+                        data-number="{{ table_data.table.table_number }}"
+                        data-location="{{ table_data.table.location_description|lower }}">
+                        <!-- Table Number with Status Indicator -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center relative">
+                                    <span class="text-indigo-600 font-bold text-lg">{{ table_data.table.table_number }}</span>
+                                    <!-- Status Indicator Dot -->
+                                    <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white
+                                        {% if table_data.status == 'available' %}bg-green-500{% endif %}
+                                        {% if table_data.status == 'occupied' %}bg-yellow-500{% endif %}
+                                        {% if table_data.status == 'needs-attention' %}bg-red-500{% endif %}">
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">Table {{ table_data.table.table_number }}</div>
+                                    <div class="text-sm text-gray-500">ID: {{ table_data.table.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Location -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                {% if table_data.table.location_description %}
+                                    {{ table_data.table.location_description }}
+                                {% else %}
+                                    <span class="text-gray-400">Not specified</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Capacity -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.0 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="text-sm text-gray-900">{{ table_data.table.capacity }} seats</span>
+                            </div>
+                        </td>
+
+                        <!-- Table Status -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if table_data.status == 'available' %}bg-green-100 text-green-800{% endif %}
+                                {% if table_data.status == 'occupied' %}bg-yellow-100 text-yellow-800{% endif %}
+                                {% if table_data.status == 'needs-attention' %}bg-red-100 text-red-800{% endif %}">
+                                {% if table_data.status == 'available' %}Available{% endif %}
+                                {% if table_data.status == 'occupied' %}Occupied{% endif %}
+                                {% if table_data.status == 'needs-attention' %}Needs Attention{% endif %}
+                            </span>
+                        </td>
+
+                        <!-- Orders Information -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm">
+                                <div class="font-medium text-gray-900">{{ table_data.total_orders_count }} total</div>
+                                <div class="text-gray-500">
+                                    {% if table_data.active_orders_count > 0 %}
+                                        <span class="text-yellow-600">{{ table_data.active_orders_count }} active</span>
+                                    {% endif %}
+                                    {% if table_data.payment_pending_count > 0 %}
+                                        {% if table_data.active_orders_count > 0 %} • {% endif %}
+                                        <span class="text-red-600">{{ table_data.payment_pending_count }} payment</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Revenue Information -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm">
+                                <div class="font-medium text-green-600">₹{{ table_data.total_revenue|floatformat:0 }}</div>
+                                {% if table_data.total_orders_count > 0 %}
+                                <div class="text-gray-500">₹{{ table_data.avg_revenue_per_order|floatformat:0 }} avg</div>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- QR Code -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if table_data.table.qr_code %}
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-sm text-green-600">Generated</span>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                    </svg>
+                                    <span class="text-sm text-yellow-600">Pending</span>
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions - Grouped by functionality -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex flex-col space-y-1">
+                                <!-- Order Actions -->
+                                <div class="flex items-center justify-end space-x-1">
+                                    <a href="{% url 'restaurant:create_table_order' table_data.table.id %}" 
+                                       class="text-blue-600"
+                                       title="Create Order">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'restaurant:table_orders_list' %}?table={{ table_data.table.id }}" 
+                                       class="text-indigo-600"
+                                       title="View Orders">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                    </a>
+                                    {% if table_data.payment_pending_count > 0 %}
+                                    <a href="{% url 'restaurant:table_orders_list' %}?table={{ table_data.table.id }}&payment=pending" 
+                                       class="text-red-600"
+                                       title="Complete Payment">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                <!-- QR Code Actions -->
+                                <div class="flex items-center justify-end space-x-1">
+                                    {% if table_data.table.qr_code %}
+                                    <button onclick="viewQRCode('{{ table_data.table.id }}', '{{ table_data.table.table_number }}')" 
+                                            class="text-indigo-600"
+                                            title="View QR Code">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                    <a href="{% url 'restaurant:download_table_qr' table_data.table.id %}" 
+                                       class="text-purple-600"
+                                       title="Download QR Code">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                <!-- Table Management Actions -->
+                                <div class="flex items-center justify-end space-x-1">
+                                    <a href="{% url 'restaurant:edit_table' table_data.table.id %}" 
+                                       class="text-gray-600"
+                                       title="Edit Table">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'restaurant:toggle_table_status' table_data.table.id %}" 
+                                       class="{% if table_data.table.is_active %}text-yellow-600{% else %}text-green-600{% endif %}"
+                                       title="{% if table_data.table.is_active %}Deactivate{% else %}Activate{% endif %} Table"
+                                       onclick="return confirm('Toggle table status?')">
+                                        {% if table_data.table.is_active %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        {% endif %}
+                                    </a>
+                                    <a href="{% url 'restaurant:delete_table' table_data.table.id %}" 
+                                       class="text-red-600"
+                                       title="Delete Table"
+                                       onclick="return confirm('Are you sure you want to delete this table?')">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No tables found</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating your first table.</p>
+            <div class="mt-6">
+                <a href="{% url 'restaurant:add_table' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Your First Table
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- NEW: Floor Plan View Container -->
+    <div id="floorplanViewContainer" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hidden">
+        <div class="p-6">
+            <!-- Floor Plan Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">🗺️ Restaurant Floor Plan</h3>
+                    <p class="text-sm text-gray-600">Visual table layout with real-time status</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Legend -->
+                    <div class="flex items-center space-x-4 text-xs">
+                        <div class="flex items-center space-x-1">
+                            <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                            <span>Available</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                            <span>Occupied</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                            <span>Needs Attention</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-4 h-4 bg-gray-400 rounded-full"></div>
+                            <span>Inactive</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floor Plan Grid -->
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 border-2 border-gray-200">
+                <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4" id="floorPlanGrid">
+                    {% for table_data in tables_with_status %}
+                    <div class="table-card-floorplan cursor-pointer"
+                         onclick="handleTableClick('{{ table_data.table.id }}', '{{ table_data.table.table_number }}', '{{ table_data.status }}')"
+                         data-table-id="{{ table_data.table.id }}"
+                         data-table-status="{{ table_data.status }}"
+                         data-table-number="{{ table_data.table.table_number }}">
+                        
+                        <!-- Table Card -->
+                        <div class="relative">
+                            <!-- Main Table Card -->
+                            <div class="bg-white rounded-lg border-2 p-4 text-center relative overflow-hidden
+                                {% if table_data.status == 'available' %}border-green-400 bg-green-50{% endif %}
+                                {% if table_data.status == 'occupied' %}border-yellow-400 bg-yellow-50{% endif %}
+                                {% if table_data.status == 'needs-attention' %}border-red-400 bg-red-50{% endif %}
+                                {% if not table_data.table.is_active %}border-gray-400 bg-gray-50 opacity-60{% endif %}">
+                                
+                                <!-- Status Indicator -->
+                                <div class="absolute top-2 right-2 w-3 h-3 rounded-full
+                                    {% if table_data.status == 'available' %}bg-green-500{% endif %}
+                                    {% if table_data.status == 'occupied' %}bg-yellow-500{% endif %}
+                                    {% if table_data.status == 'needs-attention' %}bg-red-500{% endif %}
+                                    {% if not table_data.table.is_active %}bg-gray-400{% endif %}"></div>
+                                
+                                <!-- Table Number -->
+                                <div class="text-2xl font-bold mb-1
+                                    {% if table_data.status == 'available' %}text-green-700{% endif %}
+                                    {% if table_data.status == 'occupied' %}text-yellow-700{% endif %}
+                                    {% if table_data.status == 'needs-attention' %}text-red-700{% endif %}
+                                    {% if not table_data.table.is_active %}text-gray-600{% endif %}">
+                                    T{{ table_data.table.table_number }}
+                                </div>
+                                
+                                <!-- Table Info -->
+                                <div class="text-xs text-gray-600 mb-2">
+                                    {{ table_data.table.capacity }} seats
+                                </div>
+                                
+                                <!-- Status Badge -->
+                                <div class="text-xs font-medium px-2 py-1 rounded-full
+                                    {% if table_data.status == 'available' %}bg-green-100 text-green-800{% endif %}
+                                    {% if table_data.status == 'occupied' %}bg-yellow-100 text-yellow-800{% endif %}
+                                    {% if table_data.status == 'needs-attention' %}bg-red-100 text-red-800{% endif %}
+                                    {% if not table_data.table.is_active %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if table_data.status == 'available' %}Available{% endif %}
+                                    {% if table_data.status == 'occupied' %}{{ table_data.active_orders_count }} Orders{% endif %}
+                                    {% if table_data.status == 'needs-attention' %}Payment{% endif %}
+                                    {% if not table_data.table.is_active %}Inactive{% endif %}
+                                </div>
+                                
+                                <!-- Quick Actions -->
+                                <div class="mt-3 flex justify-center space-x-1">
+                                    {% if table_data.table.qr_code %}
+                                    <button onclick="event.stopPropagation(); viewQRCode('{{ table_data.table.id }}', '{{ table_data.table.table_number }}')" 
+                                            class="p-1 bg-indigo-100 rounded"
+                                            title="View QR Code">
+                                        <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                    {% if table_data.status == 'occupied' or table_data.status == 'needs-attention' %}
+                                    <a href="{% url 'restaurant:table_orders_list' %}?table={{ table_data.table.id }}" 
+                                       onclick="event.stopPropagation()"
+                                       class="p-1 bg-blue-100 rounded"
+                                       title="View Orders">
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                    {% if table_data.status == 'available' %}
+                                    <a href="{% url 'restaurant:create_table_order' table_data.table.id %}" 
+                                       onclick="event.stopPropagation()"
+                                       class="p-1 bg-green-100 rounded"
+                                       title="Create Order">
+                                        <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Pulse Animation for Active Tables -->
+                            {% if table_data.status == 'occupied' or table_data.status == 'needs-attention' %}
+                            <div class="absolute inset-0 rounded-lg border-2
+                                {% if table_data.status == 'occupied' %}border-yellow-400{% endif %}
+                                {% if table_data.status == 'needs-attention' %}border-red-400{% endif %}"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Add New Table Card -->
+                    <div class="transform">
+                        <a href="{% url 'restaurant:add_table' %}" 
+                           class="bg-white rounded-lg border-2 border-dashed border-gray-300 p-4 text-center group">
+                            <div class="text-gray-400 group-hover:text-indigo-600">
+                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <div class="text-xs font-medium">Add Table</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Floor Plan Stats -->
+                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-lg p-3 text-center border border-green-200">
+                        <div class="text-2xl font-bold text-green-600">{{ available_tables }}</div>
+                        <div class="text-xs text-gray-600">Available</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 text-center border border-yellow-200">
+                        <div class="text-2xl font-bold text-yellow-600">{{ occupied_tables }}</div>
+                        <div class="text-xs text-gray-600">Occupied</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 text-center border border-red-200">
+                        <div class="text-2xl font-bold text-red-600">{{ needs_attention_tables }}</div>
+                        <div class="text-xs text-gray-600">Needs Attention</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 text-center border border-gray-200">
+                        <div class="text-2xl font-bold text-gray-600">{{ inactive_tables|default:0 }}</div>
+                        <div class="text-xs text-gray-600">Inactive</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    {% if tables %}
+    <div class="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Generate Missing QR Codes -->
+            <a href="{% url 'restaurant:generate_missing_qr_codes' %}" 
+               onclick="return confirm('Generate QR codes for all tables that don\'t have one?')"
+               class="p-4 bg-white rounded-lg border border-indigo-200 text-left group">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900 group-hover:text-indigo-600">Generate Missing QR Codes</p>
+                        <p class="text-sm text-gray-600">Auto-generate for tables without QR codes</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Print QR Codes (Coming Soon) -->
+            <button onclick="showComingSoon('Print QR Codes')" 
+                    class="p-4 bg-white rounded-lg border border-gray-200 text-left opacity-75 cursor-not-allowed"
+                    title="Coming Soon">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gray-100 rounded-lg">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Print QR Codes</p>
+                        <p class="text-sm text-gray-600">Coming Soon</p>
+                    </div>
+                </div>
+            </button>
+
+            <!-- Export Table Data -->
+            <button onclick="exportTableData()" 
+                    class="p-4 bg-white rounded-lg border border-gray-200 text-left">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Export Table Data</p>
+                        <p class="text-sm text-gray-600">Download table information as CSV</p>
+                    </div>
+                </div>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Table QR Code</h3>
+                <button onclick="closeQRModal()" class="text-gray-400 hover:text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="qrCodeContent" class="text-center">
+                <!-- QR code will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Table Management -->
+<script>
+/* eslint-disable */
+/**
+ * Filter tables by status and QR code
+ */
+function filterTables() {
+    const status = document.getElementById('statusFilter').value;
+    const qrFilter = document.getElementById('qrFilter').value;
+    const url = new URL(window.location);
+    
+    // Update URL parameters
+    if (status) {
+        url.searchParams.set('status', status);
+    } else {
+        url.searchParams.delete('status');
+    }
+    
+    if (qrFilter) {
+        url.searchParams.set('qr_filter', qrFilter);
+    } else {
+        url.searchParams.delete('qr_filter');
+    }
+    
+    window.location.href = url.toString();
+}
+
+/**
+ * Search tables by table number or location with enhanced filtering
+ */
+function searchTables() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.table-row');
+    
+    rows.forEach(row => {
+        const tableNumber = row.getAttribute('data-number');
+        const location = row.getAttribute('data-location');
+        const tableStatus = row.getAttribute('data-table-status');
+        
+        // Check if search term matches table number or location
+        const matchesSearch = tableNumber.includes(searchTerm) || location.includes(searchTerm);
+        
+        // Apply additional filtering based on current filter selections
+        const statusFilter = document.getElementById('statusFilter').value;
+        const qrFilter = document.getElementById('qrFilter').value;
+        
+        let matchesStatus = true;
+        let matchesQR = true;
+        
+        // Status filtering (client-side for real-time filtering)
+        if (statusFilter && ['available', 'occupied', 'needs-attention'].includes(statusFilter)) {
+            matchesStatus = tableStatus === statusFilter;
+        }
+        
+        // QR code filtering (client-side)
+        if (qrFilter) {
+            const qrStatusCell = row.querySelector('td:nth-child(7)');
+            if (qrStatusCell) {
+                const qrText = qrStatusCell.textContent.toLowerCase();
+                matchesQR = qrFilter === 'generated' ? qrText.includes('generated') : qrText.includes('pending');
+            }
+        }
+        
+        // Show/hide row based on all filters
+        if (matchesSearch && matchesStatus && matchesQR) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+/**
+ * View QR code for a table
+ */
+function viewQRCode(tableId, tableNumber) {
+    const modal = document.getElementById('qrModal');
+    const content = document.getElementById('qrCodeContent');
+    
+    content.innerHTML = `
+        <div class="mb-4">
+            <p class="text-sm font-medium text-gray-900">Table ${tableNumber}</p>
+            <p class="text-xs text-gray-500">Scan to view menu</p>
+        </div>
+        <img src="/media/table_qr_codes/table_${tableId}_qr.png" 
+             alt="QR Code for Table ${tableNumber}" 
+             class="w-48 h-48 mx-auto border-2 border-gray-200 rounded-lg"
+             onerror="this.src='/media/placeholders/qr-placeholder.png'">
+        <div class="mt-4 flex justify-center space-x-2">
+            <button onclick="downloadQRCode('${tableId}', '${tableNumber}')" 
+                    class="px-3 py-2 bg-purple-600 text-white text-sm rounded-lg">
+                Download
+            </button>
+            <button onclick="printQRCode('${tableId}')" 
+                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg">
+                Print
+            </button>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Close QR code modal
+ */
+function closeQRModal() {
+    document.getElementById('qrModal').classList.add('hidden');
+}
+
+/**
+ * Download QR code for a table
+ */
+function downloadQRCode(tableId, tableNumber) {
+    const link = document.createElement('a');
+    link.href = `/media/table_qr_codes/table_${tableId}_qr.png`;
+    link.download = `table_${tableNumber}_qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Show coming soon message for features not yet implemented
+ */
+function showComingSoon(featureName) {
+    alert(`${featureName} feature is coming soon!\n\nCurrently available features:\n• Add new tables\n• Edit existing tables\n• Toggle table status\n• Delete tables\n• Download individual QR codes`);
+}
+
+/**
+ * Download all QR codes as ZIP (Coming Soon)
+ */
+function downloadAllQRCodes() {
+    showComingSoon('Download All QR Codes');
+}
+
+/**
+ * Generate missing QR codes (Coming Soon)
+ */
+function generateMissingQRCodes() {
+    showComingSoon('Generate Missing QR Codes');
+}
+
+/**
+ * Print QR codes (Coming Soon)
+ */
+function printQRCodes(tableId = null) {
+    if (tableId) {
+        showComingSoon('Print Individual QR Code');
+    } else {
+        showComingSoon('Print All QR Codes');
+    }
+}
+
+/**
+ * Edit table (redirect to actual URL)
+ */
+function editTable(tableId) {
+    window.location.href = `{% url 'restaurant:edit_table' 0 %}`.replace('0', tableId);
+}
+
+/**
+ * Toggle table status (redirect to actual URL)
+ */
+function toggleTableStatus(tableId) {
+    if (confirm('Toggle table status?')) {
+        window.location.href = `{% url 'restaurant:toggle_table_status' 0 %}`.replace('0', tableId);
+    }
+}
+
+/**
+ * Delete table (redirect to actual URL)
+ */
+function deleteTable(tableId, tableNumber) {
+    if (confirm(`Are you sure you want to delete Table ${tableNumber}? This action cannot be undone.`)) {
+        window.location.href = `{% url 'restaurant:delete_table' 0 %}`.replace('0', tableId);
+    }
+}
+
+/**
+ * Export table data as CSV
+ */
+function exportTableData() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Table Number,Location,Capacity,Status,QR Code,Created Date\n";
+    
+    // Add table data using Django template
+    {% for table in tables %}
+    csvContent += "{{ table.table_number|escapejs }},{{ table.location_description|default:'Not specified'|escapejs }},{{ table.capacity|escapejs }},{% if table.is_active %}Active{% else %}Inactive{% endif %},{% if table.qr_code %}Generated{% else %}Pending{% endif %},{{ table.created_at|date:'Y-m-d'|escapejs }}\n";
+    {% endfor %}
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "tables_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * NEW: Toggle between List View and Floor Plan View
+ * @param {string} view - The view to switch to ('list' or 'floorplan')
+ */
+function toggleTableView(view) {
+    const listViewContainer = document.getElementById('listViewContainer');
+    const floorplanViewContainer = document.getElementById('floorplanViewContainer');
+    const listViewBtn = document.getElementById('listViewBtn');
+    const floorplanViewBtn = document.getElementById('floorplanViewBtn');
+    const viewDescription = document.getElementById('viewDescription');
+    
+    // Update button states
+    if (view === 'list') {
+        listViewBtn.classList.add('active');
+        floorplanViewBtn.classList.remove('active');
+        
+        // Show list view, hide floor plan
+        listViewContainer.classList.remove('hidden');
+        floorplanViewContainer.classList.add('hidden');
+        
+        // Update description
+        viewDescription.textContent = 'Showing detailed table list with statistics';
+    } else if (view === 'floorplan') {
+        floorplanViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+        
+        // Show floor plan, hide list view
+        floorplanViewContainer.classList.remove('hidden');
+        listViewContainer.classList.add('hidden');
+        
+        // Update description
+        viewDescription.textContent = 'Showing visual floor plan with real-time table status';
+        
+        // Trigger animation for floor plan cards
+        const floorPlanCards = document.querySelectorAll('.table-card-floorplan');
+        floorPlanCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.05}s`;
+        });
+    }
+    
+    // Save preference to localStorage
+    localStorage.setItem('tableViewPreference', view);
+}
+
+/**
+ * Handle table card click in floor plan view
+ * @param {string} tableId - The table ID
+ * @param {string} tableNumber - The table number
+ * @param {string} status - The table status
+ */
+function handleTableClick(tableId, tableNumber, status) {
+    // Define actions based on table status
+    if (status === 'available') {
+        // Create new order for available table
+        window.location.href = `{% url 'restaurant:create_table_order' 0 %}`.replace('0', tableId);
+    } else if (status === 'occupied' || status === 'needs-attention') {
+        // View orders for occupied/needs attention table
+        window.location.href = `{% url 'restaurant:table_orders_list' %}?table=${tableId}`;
+    } else {
+        // Show table details for other statuses
+        window.location.href = `{% url 'restaurant:edit_table' 0 %}`.replace('0', tableId);
+    }
+}
+
+/**
+ * Load saved view preference from localStorage
+ */
+function loadViewPreference() {
+    const savedView = localStorage.getItem('tableViewPreference');
+    if (savedView && (savedView === 'list' || savedView === 'floorplan')) {
+        toggleTableView(savedView);
+    }
+}
+
+// Initialize view preference on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadViewPreference();
+    
+    // Add keyboard shortcuts for view switching
+    document.addEventListener('keydown', function(event) {
+        // Ctrl/Cmd + 1 for List View
+        if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+            event.preventDefault();
+            toggleTableView('list');
+        }
+        // Ctrl/Cmd + 2 for Floor Plan View
+        else if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+            event.preventDefault();
+            toggleTableView('floorplan');
+        }
+    });
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('qrModal');
+    if (event.target === modal) {
+        closeQRModal();
+    }
+}
+/* eslint-enable */
+</script>
+{% endblock %}

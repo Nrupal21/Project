@@ -1,0 +1,1211 @@
+<!-- ============================================================
+     POS Table View Component - Restaurant Dashboard (Redesigned)
+     Features: Real-time table status, KOT tracking, order management
+     Modern UI with enhanced UX and comprehensive functionality
+     ============================================================ -->
+
+<!-- POS Table View Header with Controls - Enhanced Design -->
+<div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-3xl p-8 mb-6 text-white shadow-2xl relative overflow-hidden">
+    <!-- Decorative background pattern -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/3 translate-y-1/3"></div>
+    </div>
+    
+    <div class="relative z-10">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight">
+                            POS Table Management
+                        </h2>
+                        <p class="text-indigo-100 text-sm mt-1">Real-time order tracking & table monitoring</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Floor Plan Selector -->
+                <div class="relative">
+                    <select id="floor-plan-select" onchange="changeFloorPlan()" 
+                            class="appearance-none px-5 py-3 pr-10 bg-white/20 backdrop-blur-md border-2 border-white/30 text-white rounded-xl font-semibold focus:ring-4 focus:ring-white/30 focus:border-white/50 transition-all cursor-pointer hover:bg-white/30">
+                        <option value="main" class="text-gray-800">🏢 Main Floor</option>
+                        <option value="terrace" class="text-gray-800">🌅 Terrace</option>
+                        <option value="private" class="text-gray-800">👥 Private Dining</option>
+                    </select>
+                    <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                
+                <!-- Auto-refresh Toggle -->
+                <button onclick="toggleAutoRefresh()" id="auto-refresh-btn"
+                        class="px-5 py-3 bg-white/20 backdrop-blur-md border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2 group">
+                    <svg class="w-5 h-5 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span id="refresh-status">Auto-refresh: ON</span>
+                </button>
+                
+                <!-- Manual Refresh Button -->
+                <button onclick="loadTableData()" 
+                        class="px-5 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Type Selection & Action Buttons - Enhanced Design -->
+<div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <!-- Order Type Tabs -->
+        <div class="flex flex-wrap gap-3">
+            <h3 class="w-full lg:w-auto text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 lg:mb-0 lg:mr-2 flex items-center">
+                Order Type:
+            </h3>
+            
+            <!-- Dine-in Button (Active) -->
+            <button onclick="setOrderType('dinein')" id="dinein-btn"
+                    class="px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-bold hover:from-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                Dine In
+            </button>
+            
+            <!-- Delivery Button -->
+            <button onclick="setOrderType('delivery')" id="delivery-btn"
+                    class="px-8 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border-2 border-gray-200 hover:border-gray-300 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                </svg>
+                Delivery
+            </button>
+            
+            <!-- Take Away Button -->
+            <button onclick="setOrderType('takeaway')" id="takeaway-btn"
+                    class="px-8 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border-2 border-gray-200 hover:border-gray-300 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+                Take Away
+            </button>
+        </div>
+        
+        <!-- Quick Action Buttons -->
+        <div class="flex flex-wrap gap-3">
+            <!-- Table Reservation -->
+            <button onclick="openTableReservation()" 
+                    class="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Reserve Table
+            </button>
+            
+            <!-- Contactless Ordering -->
+            <button onclick="openContactlessOrdering()" 
+                    class="px-6 py-3.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                QR Menu
+            </button>
+            
+            <!-- Move KOT/Items -->
+            <button onclick="openMoveKOT()" 
+                    class="px-6 py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-bold hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Move KOT
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Table Status Legend -->
+<div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            🎨 Table Status Legend
+        </h3>
+        <div class="text-sm text-gray-500">
+            Last Updated: <span id="legend-time" class="font-mono font-semibold">{{ current_time }}</span>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <!-- Blank Table -->
+        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="w-8 h-8 bg-white border-2 border-gray-300 rounded-lg shadow-sm"></div>
+            <div>
+                <span class="font-semibold text-gray-800">Blank</span>
+                <p class="text-xs text-gray-600">Available</p>
+            </div>
+        </div>
+        
+        <!-- Running Table -->
+        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-500 rounded-lg shadow-sm flex items-center justify-center">
+                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+                </svg>
+            </div>
+            <div>
+                <span class="font-semibold text-blue-800">Running</span>
+                <p class="text-xs text-gray-600">Active order</p>
+            </div>
+        </div>
+        
+        <!-- Printed Table -->
+        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-green-50 transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-green-100 to-green-200 border-2 border-green-500 rounded-lg shadow-sm flex items-center justify-center">
+                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
+                </svg>
+            </div>
+            <div>
+                <span class="font-semibold text-green-800">Printed</span>
+                <p class="text-xs text-gray-600">KOT printed</p>
+            </div>
+        </div>
+        
+        <!-- Paid Table -->
+        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-purple-50 transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-purple-100 to-purple-200 border-2 border-purple-500 rounded-lg shadow-sm flex items-center justify-center">
+                <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div>
+                <span class="font-semibold text-purple-800">Paid</span>
+                <p class="text-xs text-gray-600">Bill settled</p>
+            </div>
+        </div>
+        
+        <!-- Running KOT Table -->
+        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-yellow-50 transition-colors">
+            <div class="w-8 h-8 bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-500 rounded-lg shadow-sm flex items-center justify-center">
+                <div class="flex gap-1">
+                    <svg class="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4z"/>
+                    </svg>
+                    <svg class="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <span class="font-semibold text-yellow-800">Running KOT</span>
+                <p class="text-xs text-gray-600">Kitchen active</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table Sections Grid - Enhanced Design -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    
+    <!-- A/C Section - Enhanced Card -->
+    <div class="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl border-2 border-blue-100 p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b-2 border-blue-100">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">A/C Section</h3>
+                    <p class="text-xs text-gray-500">Air Conditioned</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.ac.available_count|default:0 }} Free
+                </span>
+                <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.ac.occupied_count|default:0 }} Busy
+                </span>
+            </div>
+        </div>
+        
+        <!-- A/C Tables Grid -->
+        <div class="grid grid-cols-6 gap-3" id="ac-tables">
+            <!-- Real table data from database -->
+            {% if tables_by_section.ac.tables %}
+                {% for table_data in tables_by_section.ac.tables %}
+                <div class="table-card-pos {{ table_data.status_class }}" 
+                     data-table-id="{{ table_data.table.table_number }}" 
+                     data-table-db-id="{{ table_data.table.id }}"
+                     data-section="ac" 
+                     data-status="{{ table_data.status }}"
+                     onclick="handleTableClick('{{ table_data.table.id }}', '{{ table_data.status }}', event)">
+                    <div class="table-number-pos">{{ table_data.table.table_number }}</div>
+                    <div class="table-status-indicators">
+                        {% if table_data.status_icons %}
+                            {% for icon in table_data.status_icons %}
+                                <div class="status-icon status-{{ icon }}"></div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="table-info-popup">
+                        {% if table_data.order_info %}
+                            Table {{ table_data.table.table_number }} - {{ table_data.order_info.customer_name }}
+                            <br>Items: {{ table_data.order_info.item_count }} | Amount: ₹{{ table_data.order_info.total_amount }}
+                            <br>Duration: {{ table_data.order_info.duration_minutes }} min
+                        {% else %}
+                            Table {{ table_data.table.table_number }} - {{ table_data.status|title }}
+                            {% if table_data.capacity %}<br>Capacity: {{ table_data.capacity }}{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="col-span-6 text-center text-gray-500 py-8">
+                No tables available in A/C section
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Non A/C Section - Enhanced Card -->
+    <div class="bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-xl border-2 border-orange-100 p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b-2 border-orange-100">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Non A/C Section</h3>
+                    <p class="text-xs text-gray-500">Open Air</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.non_ac.available_count|default:0 }} Free
+                </span>
+                <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.non_ac.occupied_count|default:0 }} Busy
+                </span>
+            </div>
+        </div>
+        
+        <!-- Non A/C Tables Grid -->
+        <div class="grid grid-cols-6 gap-3" id="non-ac-tables">
+            <!-- Real table data from database -->
+            {% if tables_by_section.non_ac.tables %}
+                {% for table_data in tables_by_section.non_ac.tables %}
+                <div class="table-card-pos {{ table_data.status_class }}" 
+                     data-table-id="{{ table_data.table.table_number }}" 
+                     data-table-db-id="{{ table_data.table.id }}"
+                     data-section="non_ac" 
+                     data-status="{{ table_data.status }}"
+                     onclick="handleTableClick('{{ table_data.table.id }}', '{{ table_data.status }}', event)">
+                    <div class="table-number-pos">{{ table_data.table.table_number }}</div>
+                    <div class="table-status-indicators">
+                        {% if table_data.status_icons %}
+                            {% for icon in table_data.status_icons %}
+                                <div class="status-icon status-{{ icon }}"></div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="table-info-popup">
+                        {% if table_data.order_info %}
+                            Table {{ table_data.table.table_number }} - {{ table_data.order_info.customer_name }}
+                            <br>Items: {{ table_data.order_info.item_count }} | Amount: ₹{{ table_data.order_info.total_amount }}
+                            <br>Duration: {{ table_data.order_info.duration_minutes }} min
+                        {% else %}
+                            Table {{ table_data.table.table_number }} - {{ table_data.status|title }}
+                            {% if table_data.capacity %}<br>Capacity: {{ table_data.capacity }}{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="col-span-6 text-center text-gray-500 py-8">
+                No tables available in Non A/C section
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Bar Section - Enhanced Card -->
+    <div class="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-xl border-2 border-purple-100 p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b-2 border-purple-100">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v7m0 0l-3-3m3 3l3-3m-3 11v7m0-7l-3 3m3-3l3 3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Bar Section</h3>
+                    <p class="text-xs text-gray-500">Beverages & Drinks</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.bar.available_count|default:0 }} Free
+                </span>
+                <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ tables_by_section.bar.occupied_count|default:0 }} Busy
+                </span>
+            </div>
+        </div>
+        
+        <!-- Bar Tables Grid -->
+        <div class="grid grid-cols-6 gap-3" id="bar-tables">
+            <!-- Real table data from database -->
+            {% if tables_by_section.bar.tables %}
+                {% for table_data in tables_by_section.bar.tables %}
+                <div class="table-card-pos {{ table_data.status_class }}" 
+                     data-table-id="{{ table_data.table.table_number }}" 
+                     data-table-db-id="{{ table_data.table.id }}"
+                     data-section="bar" 
+                     data-status="{{ table_data.status }}"
+                     onclick="handleTableClick('{{ table_data.table.id }}', '{{ table_data.status }}', event)">
+                    <div class="table-number-pos">{{ table_data.table.table_number }}</div>
+                    <div class="table-status-indicators">
+                        {% if table_data.status_icons %}
+                            {% for icon in table_data.status_icons %}
+                                <div class="status-icon status-{{ icon }}"></div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="table-info-popup">
+                        {% if table_data.order_info %}
+                            Bar Table {{ table_data.table.table_number }} - {{ table_data.order_info.customer_name }}
+                            <br>Items: {{ table_data.order_info.item_count }} | Amount: ₹{{ table_data.order_info.total_amount }}
+                            <br>Duration: {{ table_data.order_info.duration_minutes }} min
+                        {% else %}
+                            Bar Table {{ table_data.table.table_number }} - {{ table_data.status|title }}
+                            {% if table_data.capacity %}<br>Capacity: {{ table_data.capacity }}{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="col-span-6 text-center text-gray-500 py-8">
+                No tables available in Bar section
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Statistics Footer - Real-time data from database with Enhanced Design -->
+<div class="mt-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <!-- Decorative background -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full translate-x-1/3 -translate-y-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 translate-y-1/2"></div>
+    </div>
+    
+    <div class="relative z-10">
+        <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Live Statistics Dashboard
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Available Tables Counter -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-green-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h4 class="text-4xl font-black text-green-600 mb-2 tracking-tight" data-stat="available">{{ total_available_tables|default:0 }}</h4>
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Available Tables</p>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">Ready for customers</p>
+                </div>
+            </div>
+            
+            <!-- Occupied Tables Counter -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h4 class="text-4xl font-black text-blue-600 mb-2 tracking-tight" data-stat="occupied">{{ total_occupied_tables|default:0 }}</h4>
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Occupied Tables</p>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">Currently serving</p>
+                </div>
+            </div>
+            
+            <!-- Running KOTs Counter -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-yellow-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h4 class="text-4xl font-black text-yellow-600 mb-2 tracking-tight" data-stat="running-kot">{{ total_running_kot|default:0 }}</h4>
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Running KOTs</p>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">In kitchen queue</p>
+                </div>
+            </div>
+            
+            <!-- Today's Revenue Display -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-purple-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h4 class="text-4xl font-black text-purple-600 mb-2 tracking-tight">₹{{ revenue_today|default:0 }}</h4>
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Today's Revenue</p>
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">Total earnings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/**
+ * POS Table View Styles - Enhanced Modern Design
+ * Comprehensive styling for table management interface
+ * Uses standard CSS instead of @apply for better compatibility
+ */
+
+/* ============================================
+   Individual Table Cards - POS Style Design
+   ============================================ */
+.table-card-pos {
+    width: 4rem;
+    height: 4rem;
+    border: 2px solid #d1d5db;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transform: translateY(0);
+}
+
+/* Table card hover effects - Enhanced interaction */
+.table-card-pos:hover {
+    transform: translateY(-2px) scale(1.1);
+    border-color: #6366f1;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Table number text styling */
+.table-number-pos {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* ============================================
+   Status Indicators - Visual Feedback
+   ============================================ */
+.table-status-indicators {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+/* Status icon dots */
+.status-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+}
+
+/* Status color codes */
+.status-running { background-color: #3b82f6; }
+.status-printed { background-color: #10b981; }
+.status-paid { background-color: #a855f7; }
+.status-kot { background-color: #eab308; }
+.status-payment-pending { background-color: #f59e0b; }
+
+/* ============================================
+   Table Information Popup - Hover Details
+   ============================================ */
+.table-info-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0.5rem;
+    background-color: #111827;
+    color: #ffffff;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Show popup on table card hover */
+.table-card-pos:hover .table-info-popup {
+    opacity: 1;
+}
+
+/* ============================================
+   Table Status States - Color Coding
+   ============================================ */
+
+/* Blank/Available table - Default white */
+.table-card-pos.blank {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+/* Running order - Blue gradient */
+.table-card-pos.running {
+    background-image: linear-gradient(to bottom right, #eff6ff, #dbeafe);
+    border-color: #3b82f6;
+}
+
+/* Printed KOT - Green gradient */
+.table-card-pos.printed {
+    background-image: linear-gradient(to bottom right, #f0fdf4, #dcfce7);
+    border-color: #10b981;
+}
+
+/* Paid/Settled - Purple gradient */
+.table-card-pos.paid {
+    background-image: linear-gradient(to bottom right, #faf5ff, #f3e8ff);
+    border-color: #a855f7;
+}
+
+/* Running KOT - Yellow gradient */
+.table-card-pos.running-kot {
+    background-image: linear-gradient(to bottom right, #fefce8, #fef9c3);
+    border-color: #eab308;
+}
+
+/* Needs attention - Orange gradient */
+.table-card-pos.needs-attention {
+    background-image: linear-gradient(to bottom right, #fff7ed, #ffedd5);
+    border-color: #f97316;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================
+   Animations - Smooth Transitions
+   ============================================ */
+
+/* Pulse animation for attention-needed tables */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ============================================
+   Responsive Design - Mobile Optimization
+   ============================================ */
+@media (max-width: 768px) {
+    /* Smaller table cards on mobile */
+    .table-card-pos {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    /* Smaller text on mobile */
+    .table-number-pos {
+        font-size: 0.75rem;
+    }
+    
+    /* Adjust status indicators */
+    .status-icon {
+        width: 0.5rem;
+        height: 0.5rem;
+    }
+}
+</style>
+
+<script>
+/**
+ * POS Table View JavaScript - Enhanced table management interface
+ * Handles table interactions, real-time updates, and POS-style operations
+ */
+
+// Global state for POS operations
+let currentOrderType = 'dinein';
+let autoRefreshEnabled = true;
+let refreshInterval = null;
+let currentFloorPlan = 'main';
+
+/**
+ * Initialize POS table view functionality
+ * Sets up real-time updates, event listeners, and table interactions
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('POS Table View initializing...');
+    
+    // Initialize auto-refresh
+    if (autoRefreshEnabled) {
+        startAutoRefresh();
+    }
+    
+    // Load initial table data
+    loadTableData();
+    
+    // Setup keyboard shortcuts
+    setupPOSShortcuts();
+    
+    console.log('POS Table View initialized');
+});
+
+/**
+ * Handle table click with context-aware actions
+ * Routes to appropriate action based on table status and current mode
+ */
+function handleTableClick(tableId, status, event) {
+    console.log(`Table ${tableId} clicked with status: ${status}`);
+    
+    // Prevent event bubbling
+    event.stopPropagation();
+    
+    // Add visual feedback
+    showClickFeedback(event.target);
+    
+    // Determine action based on table status
+    if (status === 'available') {
+        // Available table - create new order
+        createTableOrder(tableId);
+    } else if (status === 'occupied' || status === 'running') {
+        // Occupied table - show order details
+        showTableOrderDetails(tableId);
+    } else if (status === 'printed') {
+        // Printed table - view KOT details
+        showKOTDetails(tableId);
+    } else if (status === 'paid') {
+        // Paid table - show receipt options
+        showReceiptOptions(tableId);
+    } else if (status === 'running-kot') {
+        // Running KOT - view kitchen status
+        showKitchenStatus(tableId);
+    }
+}
+
+/**
+ * Create new order for selected table
+ * Redirects to order creation page with table context
+ * 
+ * @param {number} tableId - The database ID of the table
+ */
+function createTableOrder(tableId) {
+    // Get the table card to extract the database ID
+    const tableCard = document.querySelector(`[data-table-id="${tableId}"]`);
+    const dbId = tableCard ? tableCard.getAttribute('data-table-db-id') : tableId;
+    
+    if (!dbId) {
+        showNotification('Table ID not found. Please refresh the page.', 'error');
+        return;
+    }
+    
+    const url = `{% url 'restaurant:create_table_order' 0 %}`.replace('0', dbId);
+    window.location.href = url;
+}
+
+/**
+ * Show table order details in modal
+ * Displays active order information with quick actions
+ * 
+ * @param {number} tableId - The table number
+ */
+function showTableOrderDetails(tableId) {
+    // Get the table card to extract the database ID
+    const tableCard = document.querySelector(`[data-table-id="${tableId}"]`);
+    const dbId = tableCard ? tableCard.getAttribute('data-table-db-id') : tableId;
+    
+    if (!dbId) {
+        showNotification('Table ID not found. Please refresh the page.', 'error');
+        return;
+    }
+    
+    // Redirect to table orders list filtered by table
+    const url = `{% url 'restaurant:table_orders_list' %}?table=${dbId}`;
+    window.location.href = url;
+}
+
+/**
+ * Show KOT (Kitchen Order Ticket) details
+ * Displays kitchen order information and status
+ */
+function showKOTDetails(tableId) {
+    console.log(`Showing KOT details for table ${tableId}`);
+    // Implementation for KOT modal
+}
+
+/**
+ * Show receipt options for paid tables
+ * Provides options to print or email receipts
+ */
+function showReceiptOptions(tableId) {
+    console.log(`Showing receipt options for table ${tableId}`);
+    // Implementation for receipt options
+}
+
+/**
+ * Show kitchen status for running KOT tables
+ * Displays real-time kitchen preparation status
+ */
+function showKitchenStatus(tableId) {
+    console.log(`Showing kitchen status for table ${tableId}`);
+    // Implementation for kitchen status modal
+}
+
+/**
+ * Set order type (Dine In, Delivery, Take Away)
+ * Updates UI and stores preference
+ * 
+ * @param {string} type - Order type ('dinein', 'delivery', 'takeaway')
+ */
+function setOrderType(type) {
+    currentOrderType = type;
+    
+    // Update all order type buttons to inactive state
+    const orderButtons = ['dinein-btn', 'delivery-btn', 'takeaway-btn'];
+    orderButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            // Remove active gradient classes
+            btn.classList.remove('bg-gradient-to-r', 'from-red-500', 'to-red-600', 'text-white', 'shadow-lg');
+            // Add inactive classes
+            btn.classList.add('bg-gray-100', 'text-gray-700', 'border-2', 'border-gray-200');
+        }
+    });
+    
+    // Set active button to active state
+    const activeBtn = document.getElementById(type + '-btn');
+    if (activeBtn) {
+        // Remove inactive classes
+        activeBtn.classList.remove('bg-gray-100', 'text-gray-700', 'border-2', 'border-gray-200');
+        // Add active gradient classes
+        activeBtn.classList.add('bg-gradient-to-r', 'from-red-500', 'to-red-600', 'text-white', 'shadow-lg');
+    }
+    
+    showNotification(`Order type changed to: ${type.charAt(0).toUpperCase() + type.slice(1)}`, 'success');
+    console.log(`Order type changed to: ${type}`);
+}
+
+/**
+ * Change floor plan layout
+ * Updates table arrangement based on selected floor
+ */
+function changeFloorPlan() {
+    const select = document.getElementById('floor-plan-select');
+    currentFloorPlan = select.value;
+    
+    console.log(`Floor plan changed to: ${currentFloorPlan}`);
+    loadTableData();
+}
+
+/**
+ * Toggle auto-refresh functionality
+ * Enables/disables real-time table updates
+ */
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    const btn = document.getElementById('auto-refresh-btn');
+    const statusSpan = document.getElementById('refresh-status');
+    
+    if (autoRefreshEnabled) {
+        startAutoRefresh();
+        if (statusSpan) {
+            statusSpan.textContent = 'Auto-refresh: ON';
+        }
+        btn.classList.remove('bg-gray-200', 'text-gray-700');
+        btn.classList.add('bg-white/20', 'backdrop-blur-md', 'border-2', 'border-white/30', 'text-white');
+        showNotification('Auto-refresh enabled - Updates every 30 seconds', 'success');
+    } else {
+        stopAutoRefresh();
+        if (statusSpan) {
+            statusSpan.textContent = 'Auto-refresh: OFF';
+        }
+        btn.classList.remove('bg-white/20', 'backdrop-blur-md', 'border-2', 'border-white/30', 'text-white');
+        btn.classList.add('bg-gray-200', 'text-gray-700');
+        showNotification('Auto-refresh disabled', 'success');
+    }
+}
+
+/**
+ * Start auto-refresh with polling
+ * Updates table data every 30 seconds
+ */
+function startAutoRefresh() {
+    refreshInterval = setInterval(function() {
+        loadTableData();
+    }, 30000);
+}
+
+/**
+ * Stop auto-refresh
+ * Clears polling interval
+ */
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
+
+/**
+ * Load table data from server via AJAX
+ * Fetches real-time table statuses and information from API
+ */
+function loadTableData() {
+    console.log('Loading table data from API...');
+    
+    // Fetch real data from API endpoint
+    fetch('{% url "restaurant:table_status_api" %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Table data loaded successfully:', data);
+            updateTableStatuses(data);
+            updateStatistics(data);
+            updateLastRefreshTime(data.timestamp);
+        })
+        .catch(error => {
+            console.error('Error loading table data:', error);
+            showNotification('Failed to load table data. Please refresh the page.', 'error');
+        });
+}
+
+/**
+ * Update table statuses based on real server data
+ * Applies visual states to table cards from API response
+ * 
+ * @param {Object} data - API response data containing table statuses by section
+ */
+function updateTableStatuses(data) {
+    console.log('Updating table statuses with real data...');
+    
+    // Process each section (ac, non_ac, bar)
+    Object.keys(data.sections).forEach(sectionKey => {
+        const section = data.sections[sectionKey];
+        
+        // Update each table in the section
+        section.tables.forEach(tableData => {
+            const tableCard = document.querySelector(`[data-table-id="${tableData.table_number}"]`);
+            
+            if (tableCard) {
+                // Remove existing status classes
+                tableCard.classList.remove('blank', 'running', 'printed', 'paid', 'running-kot', 'needs-attention');
+                
+                // Add new status class
+                tableCard.classList.add(tableData.status_class);
+                
+                // Update data attributes
+                tableCard.setAttribute('data-status', tableData.status);
+                
+                // Update status indicators
+                updateTableIndicators(tableCard, tableData.status, tableData.status_icons);
+                
+                // Update popup information
+                updateTablePopup(tableCard, tableData);
+            }
+        });
+    });
+}
+
+/**
+ * Update table status indicators
+ * Adds appropriate icons based on table status from API data
+ * 
+ * @param {HTMLElement} tableCard - The table card DOM element
+ * @param {string} status - Table status (available, occupied, needs-attention)
+ * @param {Array} statusIcons - Array of icon identifiers from API
+ */
+function updateTableIndicators(tableCard, status, statusIcons = []) {
+    const indicatorsContainer = tableCard.querySelector('.table-status-indicators');
+    if (!indicatorsContainer) return;
+    
+    indicatorsContainer.innerHTML = '';
+    
+    // Add icons based on status icons array from API
+    statusIcons.forEach(iconType => {
+        const icon = document.createElement('div');
+        icon.className = `status-icon status-${iconType}`;
+        indicatorsContainer.appendChild(icon);
+    });
+}
+
+/**
+ * Update last refresh time display
+ * Shows when data was last updated from server
+ * 
+ * @param {string} timestamp - Server timestamp from API response
+ */
+function updateLastRefreshTime(timestamp = null) {
+    const timeString = timestamp || new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    
+    const legendTime = document.getElementById('legend-time');
+    if (legendTime) {
+        legendTime.textContent = timeString;
+    }
+}
+
+/**
+ * Update table popup information with real data
+ * Updates the hover popup with current order details
+ * 
+ * @param {HTMLElement} tableCard - The table card DOM element
+ * @param {Object} tableData - Table data from API response
+ */
+function updateTablePopup(tableCard, tableData) {
+    const popup = tableCard.querySelector('.table-info-popup');
+    if (!popup) return;
+    
+    let popupContent = '';
+    
+    if (tableData.order_info) {
+        // Table has active order - show order details
+        popupContent = `
+            Table ${tableData.table_number} - ${tableData.order_info.customer_name}
+            <br>Items: ${tableData.order_info.item_count} | Amount: ₹${tableData.order_info.total_amount.toFixed(2)}
+            <br>Duration: ${tableData.order_info.duration_minutes} min
+            <br>Status: ${tableData.order_info.status_display}
+        `;
+    } else {
+        // Table is available or needs attention
+        popupContent = `
+            Table ${tableData.table_number} - ${tableData.status.charAt(0).toUpperCase() + tableData.status.slice(1)}
+        `;
+        
+        if (tableData.capacity) {
+            popupContent += `<br>Capacity: ${tableData.capacity} persons`;
+        }
+        
+        if (tableData.location) {
+            popupContent += `<br>Location: ${tableData.location}`;
+        }
+    }
+    
+    popup.innerHTML = popupContent;
+}
+
+/**
+ * Update statistics display with real-time data
+ * Updates the footer statistics from API response
+ * 
+ * @param {Object} data - API response data containing totals
+ */
+function updateStatistics(data) {
+    // Update available tables count
+    const availableElement = document.querySelector('[data-stat="available"]');
+    if (availableElement) {
+        availableElement.textContent = data.totals.available;
+    }
+    
+    // Update occupied tables count
+    const occupiedElement = document.querySelector('[data-stat="occupied"]');
+    if (occupiedElement) {
+        occupiedElement.textContent = data.totals.occupied;
+    }
+    
+    // Update running KOT count
+    const kotElement = document.querySelector('[data-stat="running-kot"]');
+    if (kotElement) {
+        kotElement.textContent = data.totals.running_kot;
+    }
+    
+    console.log('Statistics updated:', data.totals);
+}
+
+/**
+ * Show notification message to user
+ * Displays a temporary notification with success or error styling
+ * 
+ * @param {string} message - The message to display
+ * @param {string} type - The notification type ('success' or 'error')
+ */
+function showNotification(message, type = 'success') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 transition-all transform ${
+        type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+/**
+ * Show visual click feedback on table card
+ * Provides haptic-like visual feedback when table is clicked
+ * 
+ * @param {HTMLElement} element - The clicked element
+ */
+function showClickFeedback(element) {
+    // Find the table card (might be a child element)
+    const tableCard = element.closest('.table-card-pos');
+    if (!tableCard) return;
+    
+    // Add pulse animation
+    tableCard.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        tableCard.style.transform = '';
+    }, 150);
+}
+
+/**
+ * Setup POS-specific keyboard shortcuts
+ * Provides quick access to common functions
+ */
+function setupPOSShortcuts() {
+    document.addEventListener('keydown', function(event) {
+        // Only process shortcuts when not typing in input fields
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        switch(event.key.toLowerCase()) {
+            case 'd':
+                setOrderType('dinein');
+                break;
+            case 'l':
+                setOrderType('delivery');
+                break;
+            case 't':
+                setOrderType('takeaway');
+                break;
+            case 'r':
+                toggleAutoRefresh();
+                break;
+            case 'f5':
+                event.preventDefault();
+                loadTableData();
+                break;
+        }
+    });
+}
+
+/**
+ * Open table reservation modal
+ * Shows interface for creating table reservations
+ */
+function openTableReservation() {
+    console.log('Opening table reservation modal...');
+    showNotification('Table Reservation feature coming soon!', 'success');
+    // Redirect to table selection page
+    window.location.href = '{% url "restaurant:table_selection" %}';
+}
+
+/**
+ * Open contactless ordering interface
+ * Shows QR code generation and contactless options
+ */
+function openContactlessOrdering() {
+    console.log('Opening contactless ordering...');
+    showNotification('Redirecting to table management...', 'success');
+    // Redirect to table management page for QR codes
+    window.location.href = '{% url "restaurant:table_management" %}';
+}
+
+/**
+ * Open Move KOT/Items interface
+ * Shows options to transfer orders between tables
+ */
+function openMoveKOT() {
+    console.log('Opening Move KOT/Items interface...');
+    showNotification('Move KOT/Items feature coming soon!', 'success');
+    // Future: Show modal to select source and destination tables
+}
+
+// Note: showClickFeedback function is defined above (line 1085)
+
+/**
+ * Cleanup function for page unload
+ * Prevents memory leaks and cleans up intervals
+ */
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
+});
+</script>

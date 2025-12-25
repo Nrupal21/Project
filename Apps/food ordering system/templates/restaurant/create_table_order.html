@@ -1,0 +1,577 @@
+{% extends 'restaurant/restaurant_base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Create table order custom styles - no animation to prevent disappearing effect */
+    .menu-item-card {
+        cursor: pointer;
+    }
+    
+    .menu-item-card.selected {
+        border-color: #4F46E5;
+        background: linear-gradient(to right, #EEF2FF, #F9FAFB);
+    }
+    
+    .quantity-input {
+        width: 80px;
+    }
+    
+    .category-section {
+        margin-bottom: 2rem;
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .cart-sidebar {
+        position: sticky;
+        top: 80px;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    
+    .cart-item {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .table-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .floating-total {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        min-width: 200px;
+        z-index: 1000;
+    }
+</style>
+{% endblock %}
+
+{% block restaurant_content %}
+<div class="min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        🍽️ {{ title }}
+                    </h1>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Create order for Table {{ table.table_number }}
+                    </p>
+                </div>
+                <a href="{% url 'restaurant:active_tables' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    ← Back to Tables
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <!-- Table Information -->
+                <div class="table-info-card rounded-lg p-6 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold">Table {{ table.table_number }}</h2>
+                            <p class="text-sm opacity-90">Capacity: {{ table.capacity }} people</p>
+                            {% if table.location_description %}
+                            <p class="text-sm opacity-90">Location: {{ table.location_description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
+                                {{ table.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                Customer Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="customer_name" 
+                                   name="customer_name" 
+                                   value="Table {{ table.table_number }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   required>
+                        </div>
+                        <div>
+                            <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                Phone Number
+                            </label>
+                            <input type="tel" 
+                                   id="customer_phone" 
+                                   name="customer_phone" 
+                                   placeholder="Optional"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Selection -->
+                <form method="post" id="create-order-form">
+                    {% csrf_token %}
+                    
+                    <!-- Search Bar -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" 
+                                   id="menu-search" 
+                                   placeholder="Search menu items..." 
+                                   class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Categories -->
+                    <div id="menu-categories">
+                        {% for category, items in items_by_category.items %}
+                        <div class="category-section" data-category="{{ category.name|lower }}">
+                            <div class="category-header">
+                                <h3 class="text-lg font-semibold">{{ category.name }}</h3>
+                                <p class="text-sm opacity-90">{{ items|length }} items available</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {% for item in items %}
+                                <div class="menu-item-card bg-white rounded-lg border-2 border-gray-200 p-4" 
+                                     data-item-id="{{ item.id }}"
+                                     data-item-name="{{ item.name }}"
+                                     data-item-price="{{ item.price }}">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h4 class="font-semibold text-gray-900">{{ item.name }}</h4>
+                                            <p class="text-sm text-gray-600 mt-1">{{ item.description|truncatewords:15 }}</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="text-lg font-bold text-green-600">₹{{ item.price }}</span>
+                                                {% if item.is_spicy %}
+                                                <span class="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">🌶️ Spicy</span>
+                                                {% endif %}
+                                                {% if item.is_vegetarian %}
+                                                <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">🥬 Veg</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if item.image %}
+                                        <img src="{{ item.image.url }}" 
+                                             alt="{{ item.name }}" 
+                                             class="w-20 h-20 object-cover rounded-lg ml-4">
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Quantity Selector (Hidden by default) -->
+                                    <div class="quantity-selector mt-4 hidden">
+                                        <div class="flex items-center space-x-3">
+                                            <label class="text-sm font-medium text-gray-700">Quantity:</label>
+                                            <input type="number" 
+                                                   name="quantities[]" 
+                                                   min="1" 
+                                                   max="20" 
+                                                   value="1" 
+                                                   class="quantity-input px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                                                   disabled>
+                                            <!-- Hidden input for menu_items[] will be added by JavaScript when item is selected -->
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No menu items available</h3>
+                            <p class="mt-1 text-sm text-gray-500">Please add some items to your menu first.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Special Instructions -->
+                    <div class="mt-8 bg-white rounded-lg shadow-sm p-6">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            Special Instructions
+                        </label>
+                        <textarea id="notes" 
+                                  name="notes" 
+                                  rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                                  placeholder="Add any special instructions for this order..."></textarea>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="mt-6 bg-white rounded-lg shadow-sm p-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="print_kitchen" 
+                                   name="print_kitchen" 
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="print_kitchen" class="ml-2 block text-sm text-gray-900">
+                                Print kitchen receipt immediately
+                            </label>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Automatically open print dialog for kitchen staff when order is created
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Cart Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="cart-sidebar bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        🛒 Order Summary
+                    </h3>
+                    
+                    <div id="cart-items">
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            <p class="mt-2 text-sm text-gray-500">No items selected</p>
+                            <p class="text-xs text-gray-400">Click on menu items to add them</p>
+                        </div>
+                    </div>
+                    
+                    <div id="cart-summary" class="hidden">
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="font-medium">Total Items:</span>
+                                <span class="font-semibold" id="total-items">0</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="font-medium">Total Amount:</span>
+                                <span class="text-xl font-bold text-green-600" id="total-amount">₹0</span>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" 
+                                form="create-order-form"
+                                id="submit-order-btn"
+                                class="w-full px-4 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
+                            Create Order
+                        </button>
+                        
+                        <button type="button" 
+                                onclick="clearCart()"
+                                class="w-full mt-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition duration-200">
+                            Clear Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Total (Mobile) -->
+    <div class="floating-total lg:hidden" id="floating-total" style="display: none;">
+        <div class="flex justify-between items-center">
+            <span class="font-medium">Total:</span>
+            <span class="text-lg font-bold text-green-600" id="floating-amount">₹0</span>
+        </div>
+        <button type="submit" 
+                form="create-order-form"
+                class="w-full mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-200">
+            Create Order
+        </button>
+    </div>
+</div>
+
+<script>
+/**
+ * Create table order JavaScript functionality
+ * Handles menu item selection, cart management, and order creation
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedItems = new Map(); // item_id -> {name, price, quantity}
+    const menuCards = document.querySelectorAll('.menu-item-card');
+    const submitBtn = document.getElementById('submit-order-btn');
+    const searchInput = document.getElementById('menu-search');
+    const cartItems = document.getElementById('cart-items');
+    const cartSummary = document.getElementById('cart-summary');
+    const floatingTotal = document.getElementById('floating-total');
+    
+    // Handle menu item card clicks
+    menuCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't select if clicking on quantity input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') {
+                return;
+            }
+            
+            toggleItemSelection(this);
+        });
+    });
+    
+    /**
+     * Toggle item selection
+     * Dynamically adds/removes hidden input for menu_items[] to ensure only selected items are submitted
+     */
+    function toggleItemSelection(card) {
+        const itemId = card.dataset.itemId;
+        const itemName = card.dataset.itemName;
+        const itemPrice = parseFloat(card.dataset.itemPrice);
+        const quantitySelector = card.querySelector('.quantity-selector');
+        const quantityInput = card.querySelector('input[type="number"]');
+        
+        if (selectedItems.has(itemId)) {
+            // Deselect item
+            selectedItems.delete(itemId);
+            card.classList.remove('selected');
+            quantitySelector.classList.add('hidden');
+            quantityInput.value = 1;
+            quantityInput.disabled = true;
+            
+            // Remove hidden input for menu_items[]
+            const hiddenInput = quantitySelector.querySelector('input[name="menu_items[]"]');
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+        } else {
+            // Select item
+            selectedItems.set(itemId, {
+                name: itemName,
+                price: itemPrice,
+                quantity: 1
+            });
+            card.classList.add('selected');
+            quantitySelector.classList.remove('hidden');
+            quantityInput.disabled = false;
+            
+            // Add hidden input for menu_items[]
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'menu_items[]';
+            hiddenInput.value = itemId;
+            quantitySelector.querySelector('.flex').appendChild(hiddenInput);
+        }
+        
+        updateCartDisplay();
+        updateSubmitButton();
+    }
+    
+    /**
+     * Handle quantity changes
+     */
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const card = this.closest('.menu-item-card');
+            const itemId = card.dataset.itemId;
+            const quantity = parseInt(this.value) || 1;
+            
+            if (selectedItems.has(itemId)) {
+                selectedItems.get(itemId).quantity = quantity;
+                updateCartDisplay();
+            }
+        });
+    });
+    
+    /**
+     * Update cart display
+     */
+    function updateCartDisplay() {
+        if (selectedItems.size === 0) {
+            cartItems.innerHTML = `
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">No items selected</p>
+                    <p class="text-xs text-gray-400">Click on menu items to add them</p>
+                </div>
+            `;
+            cartSummary.classList.add('hidden');
+            floatingTotal.style.display = 'none';
+            return;
+        }
+        
+        let html = '';
+        let totalItems = 0;
+        let totalAmount = 0;
+        
+        selectedItems.forEach((item, itemId) => {
+            const itemTotal = item.price * item.quantity;
+            totalItems += item.quantity;
+            totalAmount += itemTotal;
+            
+            html += `
+                <div class="cart-item bg-gray-50 rounded-lg p-3 mb-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900">${item.name}</h4>
+                            <p class="text-sm text-gray-500">₹${item.price} × ${item.quantity}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-green-600">₹${itemTotal.toFixed(2)}</p>
+                            <button type="button" 
+                                    onclick="removeFromCart('${itemId}')"
+                                    class="text-red-500 hover:text-red-700 text-sm mt-1">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        cartItems.innerHTML = html;
+        cartSummary.classList.remove('hidden');
+        
+        // Update totals
+        document.getElementById('total-items').textContent = totalItems;
+        document.getElementById('total-amount').textContent = `₹${totalAmount.toFixed(2)}`;
+        document.getElementById('floating-amount').textContent = `₹${totalAmount.toFixed(2)}`;
+        
+        // Show floating total on mobile
+        if (window.innerWidth < 1024) {
+            floatingTotal.style.display = 'block';
+        }
+    }
+    
+    /**
+     * Remove item from cart
+     */
+    window.removeFromCart = function(itemId) {
+        const card = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (card) {
+            toggleItemSelection(card);
+        }
+    };
+    
+    /**
+     * Clear entire cart
+     */
+    window.clearCart = function() {
+        selectedItems.clear();
+        document.querySelectorAll('.menu-item-card.selected').forEach(card => {
+            card.classList.remove('selected');
+            const quantitySelector = card.querySelector('.quantity-selector');
+            const quantityInput = card.querySelector('.quantity-input');
+            
+            quantitySelector.classList.add('hidden');
+            quantityInput.value = 1;
+            quantityInput.disabled = true;
+            
+            // Remove hidden input for menu_items[]
+            const hiddenInput = quantitySelector.querySelector('input[name="menu_items[]"]');
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+        });
+        updateCartDisplay();
+        updateSubmitButton();
+    };
+    
+    /**
+     * Update submit button state
+     */
+    function updateSubmitButton() {
+        submitBtn.disabled = selectedItems.size === 0;
+    }
+    
+    /**
+     * Search functionality
+     */
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        document.querySelectorAll('.category-section').forEach(section => {
+            const category = section.dataset.category;
+            const items = section.querySelectorAll('.menu-item-card');
+            let hasVisibleItems = false;
+            
+            items.forEach(card => {
+                const itemName = card.dataset.itemName.toLowerCase();
+                const itemDesc = card.querySelector('.text-gray-600').textContent.toLowerCase();
+                
+                if (itemName.includes(searchTerm) || itemDesc.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    hasVisibleItems = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            section.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+    });
+    
+    /**
+     * Form submission validation
+     */
+    document.getElementById('create-order-form').addEventListener('submit', function(e) {
+        if (selectedItems.size === 0) {
+            e.preventDefault();
+            alert('Please select at least one item to create an order.');
+            return false;
+        }
+        
+        // Validate customer name
+        const customerName = document.getElementById('customer_name').value.trim();
+        if (!customerName) {
+            e.preventDefault();
+            alert('Please enter a customer name.');
+            document.getElementById('customer_name').focus();
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Creating Order...';
+    });
+    
+    /**
+     * Handle window resize for floating total
+     */
+    window.addEventListener('resize', function() {
+        if (selectedItems.size > 0) {
+            floatingTotal.style.display = window.innerWidth < 1024 ? 'block' : 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

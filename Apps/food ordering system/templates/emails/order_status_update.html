@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Update</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin: 15px 0;
+        }
+        .status-pending { background-color: #ffc107; color: #856404; }
+        .status-accepted { background-color: #17a2b8; color: #fff; }
+        .status-preparing { background-color: #6f42c1; color: #fff; }
+        .status-out_for_delivery { background-color: #007bff; color: #fff; }
+        .status-delivered { background-color: #28a745; color: #fff; }
+        .status-cancelled { background-color: #dc3545; color: #fff; }
+        
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .order-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .info-value {
+            color: #495057;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #ff6b35;
+            color: #ffffff;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #e55a2b;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .status-timeline {
+            margin: 20px 0;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .timeline-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .completed { background-color: #28a745; color: white; }
+        .current { background-color: #ff6b35; color: white; }
+        .pending { background-color: #dee2e6; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍽️ Food Ordering System</div>
+            <h1>Order Status Update</h1>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <h2>Hi {{ customer_name }},</h2>
+            <p style="font-size: 18px; color: #495057;">Your order status has been updated!</p>
+            <div class="status-badge status-{{ new_status }}">
+                {{ status_display }}
+            </div>
+        </div>
+
+        <div class="order-info">
+            <h3>Order Details</h3>
+            <div class="info-row">
+                <span class="info-label">Order ID:</span>
+                <span class="info-value">#{{ order.order_id|slice:":8" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Restaurant:</span>
+                <span class="info-value">{{ restaurant_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Amount:</span>
+                <span class="info-value">₹{{ order.total_amount }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Delivery Method:</span>
+                <span class="info-value">{{ order.get_delivery_method_display }}</span>
+            </div>
+            {% if order.customer_address %}
+            <div class="info-row">
+                <span class="info-label">Delivery Address:</span>
+                <span class="info-value">{{ order.customer_address }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="status-timeline">
+            <h3 style="margin-bottom: 15px; color: #495057;">Order Progress</h3>
+            <div class="timeline-item">
+                <div class="timeline-icon {% if new_status == 'pending' or new_status == 'accepted' or new_status == 'preparing' or new_status == 'out_for_delivery' or new_status == 'delivered' %}completed{% else %}pending{% endif %}">✓</div>
+                <span>Order Placed</span>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon {% if new_status == 'accepted' or new_status == 'preparing' or new_status == 'out_for_delivery' or new_status == 'delivered' %}completed{% elif new_status == 'pending' %}current{% else %}pending{% endif %}">✓</div>
+                <span>Order Accepted</span>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon {% if new_status == 'preparing' or new_status == 'out_for_delivery' or new_status == 'delivered' %}completed{% elif new_status == 'accepted' %}current{% else %}pending{% endif %}">✓</div>
+                <span>Preparing Food</span>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon {% if new_status == 'out_for_delivery' or new_status == 'delivered' %}completed{% elif new_status == 'preparing' %}current{% else %}pending{% endif %}">🚚</div>
+                <span>Out for Delivery</span>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon {% if new_status == 'delivered' %}completed{% elif new_status == 'out_for_delivery' %}current{% else %}pending{% endif %}">🎉</div>
+                <span>Delivered</span>
+            </div>
+        </div>
+
+        {% if new_status == 'out_for_delivery' %}
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;">
+            <p style="margin: 0; color: #1565c0; font-weight: 600;">🚚 Your order is on the way!</p>
+            <p style="margin: 5px 0 0 0; color: #1976d2;">Track your delivery in real-time on our website.</p>
+        </div>
+        {% endif %}
+
+        {% if new_status == 'delivered' %}
+        <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+            <p style="margin: 0; color: #2e7d32; font-weight: 600;">🎉 Enjoy your meal!</p>
+            <p style="margin: 5px 0 0 0; color: #388e3c;">Thank you for ordering from {{ restaurant_name }}.</p>
+        </div>
+        {% endif %}
+
+        {% if new_status == 'cancelled' %}
+        <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #d32f2f;">
+            <p style="margin: 0; color: #c62828; font-weight: 600;">❌ Order Cancelled</p>
+            <p style="margin: 5px 0 0 0; color: #d32f2f;">Please contact the restaurant for more information.</p>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center;">
+            <a href="{% url 'customer:order_history' %}" class="cta-button">
+                View Order Details
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for using our Food Ordering System!</p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                If you have any questions, please contact our customer support.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

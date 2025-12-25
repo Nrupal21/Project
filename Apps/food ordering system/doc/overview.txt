@@ -1,0 +1,320 @@
+Project Title: Online Food Ordering System with Restaurant Dashboard
+Technology Used: Django, PostgreSQL, Tailwind CSS
+Duration: 20 Days
+Team Size: 1 (Individual MCA Mini Project)
+
+1. Introduction
+
+The Online Food Ordering System is a web-based platform that enables customers to view restaurant menus, add items to a cart, and place orders online. The system also includes a Restaurant Login Panel, where authorized restaurant staff can manage orders and update their statuses.
+
+This project uses:
+
+Django as the backend framework
+
+PostgreSQL as the production-level relational database
+
+Tailwind CSS for modern, responsive, utility-first styling
+
+The combination makes the system scalable, clean, and production-ready for MCA academic standards.
+
+2. Objective of the Project
+
+To create a responsive online food ordering web application using Tailwind CSS.
+
+To store and manage data securely using PostgreSQL.
+
+To allow customers to place orders easily and quickly.
+
+To provide a restaurant dashboard for managing incoming orders.
+
+To implement authentication using Django’s built-in auth system.
+
+To streamline restaurant service workflow through digital automation.
+
+3. Scope of the Project
+
+The project covers:
+
+Customer browsing and order placement
+
+Session-based cart
+
+Restaurant-side dashboard for order management
+
+Admin backend using Django’s admin panel
+
+Secure database storage using PostgreSQL
+
+Not included (future scope):
+
+Online payments
+
+Delivery personnel module
+
+Push notifications
+
+4. Project Features
+A. Customer-Side Features
+✔ Home Page
+
+Shows categories, banner, and popular food items (designed using Tailwind CSS).
+
+✔ Menu Page
+
+Displays all available food items
+
+Each item has name, price, description, and "Add to Cart" button
+
+✔ Cart System
+
+Session-based
+
+Update item quantity
+
+Remove items
+
+Calculate total price automatically
+
+✔ Checkout
+
+Customer enters:
+
+Name
+
+Phone number
+
+Address
+
+✔ Order Confirmation
+
+Shows success message and unique Order ID.
+
+B. Restaurant-Side Features
+✔ Restaurant Login
+
+Secure login using Django authentication.
+
+✔ Restaurant Dashboard
+
+Restaurant can view:
+
+All new orders
+
+Customer details
+
+Ordered items and quantities
+
+Time of order
+
+✔ Update Order Status
+
+Statuses:
+
+Pending
+
+Accepted
+
+Out for Delivery
+
+Delivered
+
+Cancelled
+
+C. Admin Features
+
+Using Django Admin:
+
+Add/Edit/Delete food categories
+
+Add/Edit/Delete menu items
+
+Create restaurant staff login
+
+View all orders
+
+5. Technologies Used
+Frontend
+
+HTML5
+
+Tailwind CSS (utility-first modern framework)
+
+JavaScript
+
+Backend
+
+Python 3
+
+Django 4.x framework
+
+Django Authentication System
+
+Database
+
+PostgreSQL
+(Reason: Highly reliable, scalable, better than SQLite for production-level projects)
+
+Tools
+
+VS Code
+
+pgAdmin / DBeaver
+
+Python venv
+
+Git (optional)
+
+Browser – Chrome/Edge
+
+6. System Architecture
+Customer → Tailwind UI → Django Views → PostgreSQL Database
+Restaurant → Login → Dashboard → Update Orders → Database
+Admin → Django Admin Panel → Manage Menu & Restaurant Users
+
+7. Module Description
+1. Customer Module
+
+Home Page
+
+View Menu
+
+Add to Cart
+
+Checkout
+
+Place Order
+
+2. Cart Module
+
+Implemented using Django sessions:
+
+Add items
+
+Increment/Decrement quantity
+
+Remove items
+
+Total calculation
+
+3. Order Module
+
+Handles:
+
+Order creation
+
+Saving order items
+
+Linking order to restaurant
+
+Order status updates
+
+4. Restaurant Module
+
+Includes:
+
+Authentication
+
+Dashboard
+
+Order list
+
+Order status update
+
+Order details view
+
+5. Admin Module
+
+Django Admin handles:
+
+Category management
+
+Menu item management
+
+Creating restaurant accounts
+
+Monitoring orders
+
+8. System Requirements
+Hardware Requirements
+
+4 GB RAM
+
+1.6 GHz+ processor
+
+20 GB storage
+
+Software Requirements
+
+Python 3.10+
+
+Django 4.x
+
+PostgreSQL 13+
+
+Tailwind CSS (via CDN or npm)
+
+pgAdmin / PostgreSQL CLI
+
+9. Advantages of Using Tailwind CSS
+
+Faster UI development using utility classes
+
+Highly responsive and mobile-first
+
+Clean and modern design
+
+No bulky CSS files
+
+Easy customization
+
+10. Advantages of Using PostgreSQL
+
+ACID-compliant
+
+Highly reliable & production-ready
+
+Supports complex queries and indexing
+
+Better performance than SQLite for multi-user apps
+
+Secure and scalable
+
+11. Limitations
+
+No payment gateway integration
+
+No live tracking module
+
+No customer login (optional enhancement)
+
+12. Future Enhancements
+
+Online payment gateway (Razorpay)
+
+Add delivery boy login
+
+Add customer registration & order history
+
+Push notifications via WebSockets
+
+Multi-restaurant architecture
+
+UI enhancements with Tailwind Components
+
+13. Conclusion
+
+The Online Food Ordering System built with Django, PostgreSQL, and Tailwind CSS offers a modern, responsive, and efficient platform for online food ordering and restaurant order management. It reduces manual workload, improves accuracy, and enhances customer convenience.
+
+This project demonstrates practical knowledge in:
+
+Backend development
+
+Frontend UI design
+
+Relational database integration
+
+Authentication & authorization
+
+Real-world web application workflow
+
+Perfect for MCA students seeking a clean, industry-quality mini project

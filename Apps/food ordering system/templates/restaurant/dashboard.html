@@ -1,0 +1,1249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Restaurant Owner Dashboard - Analytics & Reports{% endblock %}
+
+{% block content %}
+<!-- ============================================================
+     Restaurant Owner Dashboard with Comprehensive Analytics
+     Features: Sales analytics, revenue tracking, menu performance,
+               table management, QR code ordering system
+     ============================================================ -->
+<div class="max-w-7xl mx-auto">
+    
+    <!-- ==================== HEADER SECTION ====================
+         Contains breadcrumb navigation, title, and date filter
+         ========================================================= -->
+    <div class="mb-8">
+        <!-- Breadcrumb Navigation -->
+        <nav class="text-sm text-gray-600 mb-4" aria-label="Breadcrumb">
+            <a href="{% url 'customer:home' %}" class="hover:text-orange-500 transition-colors">Home</a>
+            <span class="mx-2">/</span>
+            <span class="text-orange-600 font-medium">Restaurant Dashboard</span>
+        </nav>
+        
+        <!-- Header with Title and Controls -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <div>
+                <!-- Dashboard Title with Gradient Text -->
+                <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    Restaurant Dashboard 📊
+                </h1>
+                <p class="text-gray-600 mt-2">Sales analytics, revenue tracking, and menu performance insights</p>
+            </div>
+            
+            <!-- Date Filter and Export Controls -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Date Range Filter Form -->
+                <form method="GET" class="flex items-center">
+                    <select name="date_filter" onchange="this.form.submit()" 
+                            class="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white shadow-sm transition-all hover:border-orange-300"
+                            aria-label="Select date range">
+                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
+                        <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
+                    </select>
+                </form>
+                
+                <!-- Export Report Button -->
+                <button onclick="exportReport()" 
+                        class="px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
+                        aria-label="Export dashboard report">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Export Report</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== NAVIGATION TABS ====================
+         Main navigation for restaurant management features
+         Includes: Dashboard, Menu, Orders, Tables, QR Code, etc.
+         ============================================================ -->
+    <div class="mb-8">
+        <!-- Scrollable Navigation Container for Mobile -->
+        <div class="border-b border-gray-200 overflow-x-auto scrollbar-hide">
+            <nav class="-mb-px flex space-x-1 min-w-max" aria-label="Dashboard navigation">
+                
+                <!-- POS Table View Tab (NEW - Enhanced) -->
+                <a href="#" onclick="showTablePOSView(); return false;" 
+                   id="pos-table-tab"
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span>POS Table View</span>
+                </a>
+                
+                <!-- Dashboard Tab (Analytics) -->
+                <a href="#" onclick="showAnalyticsView(); return false;" 
+                   id="analytics-tab"
+                   class="py-3 px-4 border-b-2 border-orange-500 font-medium text-sm text-orange-600 bg-orange-50 rounded-t-lg flex items-center space-x-2 transition-all"
+                   aria-current="page">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span>Analytics</span>
+                </a>
+                
+                <!-- Menu Management Tab -->
+                <a href="{% url 'restaurant:menu_management' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span>Menu</span>
+                </a>
+                
+                <!-- Orders Tab -->
+                <a href="{% url 'restaurant:order_list' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span>Orders</span>
+                </a>
+                
+
+                
+                <!-- Table Management Tab (NEW) -->
+                <a href="{% url 'restaurant:table_management' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-purple-600 hover:border-purple-300 hover:bg-purple-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                    <span>QR & Tables</span>
+                </a>
+                
+                <!-- Table Orders Tab (NEW) -->
+                <a href="{% url 'restaurant:table_selection' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-green-600 hover:border-green-300 hover:bg-green-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span>Table Orders</span>
+                </a>
+                
+                <!-- Table Layout Tab (NEW) -->
+                <a href="{% url 'restaurant:table_layout' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                    <span>Table Layout</span>
+                </a>
+                
+                <!-- Categories Tab -->
+                <a href="{% url 'restaurant:category_management' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span>Categories</span>
+                </a>
+                
+                <!-- Promo Codes Tab -->
+                <a href="{% url 'orders:promo_code_list' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                    </svg>
+                    <span>Promos</span>
+                </a>
+                
+                <!-- Seasonal Promotions Tab -->
+                <a href="{% url 'orders:seasonal_promotion_list' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Seasonal</span>
+                </a>
+                
+                <!-- Marketing Campaigns Tab -->
+                <a href="{% url 'restaurant:campaign_list' %}" 
+                   class="py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50/50 rounded-t-lg flex items-center space-x-2 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Campaigns</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD CONTENT SECTIONS ====================
+         Dynamic content area that switches between Analytics and POS Table View
+         ============================================================== -->
+    
+    <!-- Analytics Dashboard Section (Default) -->
+    <div id="analytics-dashboard" class="dashboard-content">
+        
+        <!-- ==================== KEY METRICS OVERVIEW ====================
+             Displays primary KPIs: Total Orders, Revenue, AOV, Growth
+             Cards feature gradient backgrounds and hover effects
+             ============================================================== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Total Orders Card -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-blue-700">Total Orders</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_orders_all_time }}</p>
+                    <p class="text-xs text-blue-600 mt-2 flex items-center">
+                        <span class="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1.5 animate-pulse"></span>
+                        {{ orders_in_period }} in selected period
+                    </p>
+                </div>
+                <div class="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue Card -->
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-green-700">Total Revenue</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">₹{{ total_revenue_all_time|floatformat:0 }}</p>
+                    <p class="text-xs text-green-600 mt-2 flex items-center">
+                        <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+                        ₹{{ revenue_in_period|floatformat:0 }} in selected period
+                    </p>
+                </div>
+                <div class="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Order Value Card -->
+        <div class="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl shadow-sm border border-purple-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-purple-700">Avg Order Value</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">₹{{ avg_order_value|floatformat:0 }}</p>
+                    <p class="text-xs text-purple-600 mt-2">Per order in selected period</p>
+                </div>
+                <div class="p-4 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Growth Card -->
+        <div class="bg-gradient-to-br {% if revenue_growth > 0 %}from-emerald-50 to-teal-50 border-emerald-100{% elif revenue_growth < 0 %}from-red-50 to-rose-50 border-red-100{% else %}from-gray-50 to-slate-50 border-gray-100{% endif %} rounded-2xl shadow-sm border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium {% if revenue_growth > 0 %}text-emerald-700{% elif revenue_growth < 0 %}text-red-700{% else %}text-gray-700{% endif %}">Revenue Growth</p>
+                    <p class="text-3xl font-bold mt-1 {% if revenue_growth > 0 %}text-emerald-600{% elif revenue_growth < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+                        {% if revenue_growth > 0 %}+{% endif %}{{ revenue_growth|floatformat:1 }}%
+                    </p>
+                    <p class="text-xs {% if revenue_growth > 0 %}text-emerald-600{% elif revenue_growth < 0 %}text-red-600{% else %}text-gray-500{% endif %} mt-2">vs yesterday</p>
+                </div>
+                <div class="p-4 bg-gradient-to-br {% if revenue_growth > 0 %}from-emerald-500 to-teal-600{% elif revenue_growth < 0 %}from-red-500 to-rose-600{% else %}from-gray-400 to-slate-500{% endif %} rounded-2xl shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {% if revenue_growth > 0 %}
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        {% elif revenue_growth < 0 %}
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                        {% else %}
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                        {% endif %}
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TABLE & QR CODE MANAGEMENT ====================
+         Quick access cards for table ordering system features
+         Includes: Active Tables, Table Orders, QR Code Management
+         ==================================================================== -->
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+            </svg>
+            Table & QR Code Management
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Active Tables Card -->
+            <a href="{% url 'restaurant:active_tables' %}" 
+               class="group bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                    </div>
+                    <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">Live</span>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Active Tables</h3>
+                <p class="text-green-100 text-sm">View real-time table status board</p>
+                <div class="mt-4 flex items-center text-green-100">
+                    <span class="text-sm font-medium">View Dashboard</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
+            
+            <!-- Table Orders Card -->
+            <a href="{% url 'restaurant:table_orders_list' %}" 
+               class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">Orders</span>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Table Orders</h3>
+                <p class="text-blue-100 text-sm">Manage dine-in & QR orders</p>
+                <div class="mt-4 flex items-center text-blue-100">
+                    <span class="text-sm font-medium">View Orders</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
+            
+            <!-- QR Code & Table Management Card -->
+            <a href="{% url 'restaurant:table_management' %}" 
+               class="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-6 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                    <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">QR</span>
+                </div>
+                <h3 class="text-xl font-bold mb-1">QR & Tables</h3>
+                <p class="text-purple-100 text-sm">Manage tables & generate QR codes</p>
+                <div class="mt-4 flex items-center text-purple-100">
+                    <span class="text-sm font-medium">Manage Tables</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
+            
+            <!-- Create Table Order Card -->
+            <a href="{% url 'restaurant:table_management' %}" 
+               class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">New</span>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Create Order</h3>
+                <p class="text-orange-100 text-sm">Start a new table order</p>
+                <div class="mt-4 flex items-center text-orange-100">
+                    <span class="text-sm font-medium">Select Table</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ==================== PROMO CODE STATISTICS ====================
+         Displays promo code metrics and quick actions
+         ============================================================== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Active Promo Codes Widget -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-gradient-to-br from-purple-100 to-violet-100 rounded-xl">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                    </svg>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Promo Codes</h3>
+                        <p class="text-sm text-gray-500">Manage discount campaigns</p>
+                    </div>
+                </div>
+                <a href="{% url 'orders:create_promo_code' %}" 
+                   class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium">
+                    Create New
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <p class="text-2xl font-bold text-green-600">{{ active_promo_codes }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Active Codes</p>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <p class="text-2xl font-bold text-blue-600">{{ total_redemptions }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Total Redemptions</p>
+                </div>
+            </div>
+            
+            {% if expiring_soon_promo_codes > 0 %}
+            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="text-sm text-yellow-800">
+                        <strong>{{ expiring_soon_promo_codes }}</strong> promo code(s) expiring soon
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Total discount given</span>
+                    <span class="text-sm font-semibold text-gray-900">₹{{ total_discount_given }}</span>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                    <p class="text-sm text-gray-500">Common promotional tasks</p>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <a href="{% url 'orders:create_promo_code' %}" 
+                   class="block p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-purple-600 rounded-lg">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Create New Promo Code</p>
+                            <p class="text-sm text-gray-600">Launch a new discount campaign</p>
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="{% url 'orders:promo_code_list' %}" 
+                   class="block p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-gray-600 rounded-lg">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Manage Existing Codes</p>
+                            <p class="text-sm text-gray-600">Edit, deactivate, or analyze performance</p>
+                        </div>
+                    </div>
+                </a>
+                
+                {% if expiring_soon_promo_codes > 0 %}
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-yellow-600 rounded-lg">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Expiring Soon</p>
+                            <p class="text-sm text-gray-600">{{ expiring_soon_promo_codes }} codes need attention</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Seasonal Promotion Statistics Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Active Seasonal Promotions Widget -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-orange-100 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Seasonal Promotions</h3>
+                        <p class="text-sm text-gray-500">Manage time-sensitive campaigns</p>
+                    </div>
+                </div>
+                <a href="{% url 'orders:create_seasonal_promotion' %}" 
+                   class="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium">
+                    Create New
+                </a>
+            </div>
+            
+            <!-- Campaign Stats Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="text-center p-3 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600">{{ active_seasonal_promotions }}</div>
+                    <div class="text-xs text-green-600 font-medium">Active</div>
+                </div>
+                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600">{{ upcoming_seasonal_promotions }}</div>
+                    <div class="text-xs text-blue-600 font-medium">Upcoming</div>
+                </div>
+                <div class="text-center p-3 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600">{{ total_seasonal_promotions }}</div>
+                    <div class="text-xs text-purple-600 font-medium">Total Created</div>
+                </div>
+                <div class="text-center p-3 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-600">{{ total_seasonal_codes }}</div>
+                    <div class="text-xs text-orange-600 font-medium">Codes Generated</div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="flex space-x-3">
+                <a href="{% url 'orders:seasonal_promotion_list' %}" 
+                   class="flex-1 text-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                    View All Campaigns
+                </a>
+                <a href="{% url 'customer:home' %}" 
+                   class="flex-1 text-center px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
+                    Preview as Customer
+                </a>
+            </div>
+        </div>
+        
+        <!-- Campaign Performance Widget -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Campaign Performance</h3>
+                        <p class="text-sm text-gray-500">Track promotion effectiveness</p>
+                    </div>
+                </div>
+                <div class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    Live Data
+                </div>
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div>
+                            <p class="font-medium text-gray-900">Active Campaigns</p>
+                            <p class="text-sm text-gray-600">Currently running promotions</p>
+                        </div>
+                    </div>
+                    <div class="text-lg font-bold text-green-600">{{ active_seasonal_promotions }}</div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div>
+                            <p class="font-medium text-gray-900">Upcoming Campaigns</p>
+                            <p class="text-sm text-gray-600">Scheduled to start soon</p>
+                        </div>
+                    </div>
+                    <div class="text-lg font-bold text-blue-600">{{ upcoming_seasonal_promotions }}</div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <div>
+                            <p class="font-medium text-gray-900">Total Codes Generated</p>
+                            <p class="text-sm text-gray-600">From all seasonal campaigns</p>
+                        </div>
+                    </div>
+                    <div class="text-lg font-bold text-purple-600">{{ total_seasonal_codes }}</div>
+                </div>
+            </div>
+            
+            <!-- Action Button -->
+            {% if active_seasonal_promotions > 0 %}
+            <div class="mt-4 p-3 bg-orange-50 rounded-lg">
+                <a href="{% url 'customer:home' %}" 
+                   class="flex items-center justify-center space-x-2 text-orange-600 hover:text-orange-700 font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <span>Preview Active Promotions</span>
+                </a>
+            </div>
+            {% else %}
+            <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                <a href="{% url 'orders:create_seasonal_promotion' %}" 
+                   class="flex items-center justify-center space-x-2 text-gray-600 hover:text-gray-700 font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Create Your First Campaign</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ==================== CHARTS SECTION ====================
+         Visual analytics: Sales Trend and Order Status Distribution
+         ============================================================ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Sales Trend Chart Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gradient-to-br from-orange-100 to-red-100 rounded-xl">
+                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-900">Sales Trend</h2>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="updateChart('daily')" id="dailyBtn" 
+                            class="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl">
+                        Daily
+                    </button>
+                    <button onclick="updateChart('monthly')" id="monthlyBtn" 
+                            class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl">
+                        Monthly
+                    </button>
+                </div>
+            </div>
+            <canvas id="salesChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Order Status Distribution Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Order Status Distribution</h2>
+            </div>
+            <canvas id="statusChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- ==================== MENU PERFORMANCE SECTION ====================
+         Displays: Best Sellers, Category Performance, Unavailable Items
+         ================================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- Best Selling Items Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="p-2 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-xl">
+                    <span class="text-xl">🏆</span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Best Selling Items</h2>
+            </div>
+            <div class="space-y-3">
+                {% for item in best_selling_items %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">{{ item.menu_item__name }}</p>
+                        <p class="text-sm text-gray-600">{{ item.total_sold }} sold • ₹{{ item.revenue|floatformat:0 }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-green-600">₹{{ item.menu_item__price }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">No sales data available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Category Performance Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl">
+                    <span class="text-xl">📊</span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Category Performance</h2>
+            </div>
+            <div class="space-y-3">
+                {% for category in category_performance %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">{{ category.menu_item__category__name }}</p>
+                        <p class="text-sm text-gray-600">{{ category.total_sold }} items sold</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-blue-600">₹{{ category.revenue|floatformat:0 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">No category data available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Unavailable Items Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="p-2 bg-gradient-to-br from-red-100 to-rose-100 rounded-xl">
+                    <span class="text-xl">🚫</span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Unavailable Items</h2>
+            </div>
+            <div class="space-y-3">
+                {% for item in unavailable_items %}
+                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-100">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">{{ item.name }}</p>
+                        <p class="text-sm text-gray-600">{{ item.category.name }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 text-xs font-bold text-red-600 bg-red-100 rounded-full">Unavailable</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <p class="text-green-600 font-medium">All items available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ADDITIONAL ANALYTICS ====================
+         Delivery Methods Chart and Peak Hours Analysis
+         ============================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Delivery Method Breakdown Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-gradient-to-br from-purple-100 to-violet-100 rounded-xl">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Delivery Methods</h2>
+            </div>
+            <canvas id="deliveryChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Peak Hours Analysis Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl">
+                    <span class="text-xl">🕐</span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Peak Hours</h2>
+            </div>
+            <div class="space-y-4">
+                {% for hour in peak_hours %}
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-bold text-gray-700 w-14">{{ hour.hour }}:00</span>
+                    <div class="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div class="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full" 
+                             style="width: {{ hour.order_count }}0%;"></div>
+                    </div>
+                    <span class="text-sm font-bold text-orange-600 w-20 text-right">{{ hour.order_count }} orders</span>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">No peak hour data available</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== RECENT ORDERS & REVIEWS ====================
+         Latest orders and customer satisfaction metrics
+         ================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Orders Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl">
+                        <span class="text-xl">📦</span>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-900">Recent Orders</h2>
+                </div>
+                <a href="{% url 'restaurant:order_list' %}" class="text-sm text-orange-600 font-medium">View All →</a>
+            </div>
+            <div class="space-y-3">
+                {% for order in recent_orders %}
+                <a href="{% url 'restaurant:order_detail' order.order_id %}" class="block">
+                    <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900">Order #{{ order.order_id|truncatechars:8 }}</p>
+                            <p class="text-sm text-gray-600">{{ order.user.username }} • ₹{{ order.total_amount }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1.5 text-xs font-bold 
+                                {% if order.status == 'delivered' %}bg-green-100 text-green-700
+                                {% elif order.status == 'pending' %}bg-yellow-100 text-yellow-700
+                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %} rounded-full">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4">No recent orders</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Customer Satisfaction Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="p-2 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-xl">
+                    <span class="text-xl">⭐</span>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">Customer Satisfaction</h2>
+            </div>
+            <div class="text-center py-6">
+                <!-- Rating Display with Gradient Background -->
+                <div class="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 mb-4">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                        {% if recent_reviews.avg_rating %}{{ recent_reviews.avg_rating|floatformat:1 }}{% else %}N/A{% endif %}
+                    </div>
+                </div>
+                <p class="text-gray-700 font-medium mb-2">Average Rating</p>
+                <p class="text-sm text-gray-500">
+                    {% if recent_reviews.total_reviews %}
+                        <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            {{ recent_reviews.total_reviews }} reviews in selected period
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                            No reviews in selected period
+                        </span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== POS TABLE VIEW DASHBOARD ====================
+     Real-time table management interface with status tracking
+     Includes table categories, order information, and action buttons
+     ============================================================== -->
+<div id="pos-table-dashboard" class="dashboard-content hidden">
+    {% include 'restaurant/components/pos_table_view.html' %}
+</div>
+
+<!-- ==================== CHART.JS LIBRARY ====================
+     External library for rendering interactive charts
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/**
+ * ============================================================
+ * RESTAURANT DASHBOARD JAVASCRIPT
+ * Handles chart rendering, data updates, and export functionality
+ * ============================================================
+ */
+
+// @ts-nocheck - Suppress TypeScript/JavaScript linter warnings for Django template variables
+
+/**
+ * Sales Trend Chart Configuration
+ * Displays daily/monthly revenue and order count trends
+ * @type {Chart} - Chart.js line chart instance
+ */
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+// @ts-ignore
+const dailySales = {{ daily_sales_json|safe }};
+// @ts-ignore
+const monthlySales = {{ monthly_sales_json|safe }};
+
+let salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: dailySales.map(item => item.date),
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: dailySales.map(item => item.revenue),
+            borderColor: 'rgb(251, 146, 60)',
+            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+            pointBackgroundColor: 'rgb(251, 146, 60)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }, {
+            label: 'Orders',
+            data: dailySales.map(item => item.order_count),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+            pointBackgroundColor: 'rgb(59, 130, 246)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { size: 12, weight: '500' }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Revenue (₹)',
+                    font: { size: 12, weight: '500' }
+                },
+                grid: { color: 'rgba(0, 0, 0, 0.05)' }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Orders',
+                    font: { size: 12, weight: '500' }
+                },
+                grid: { drawOnChartArea: false }
+            },
+            x: {
+                grid: { color: 'rgba(0, 0, 0, 0.05)' }
+            }
+        }
+    }
+});
+
+/**
+ * Order Status Distribution Chart
+ * Displays doughnut chart showing order status breakdown
+ * @type {Chart} - Chart.js doughnut chart instance
+ */
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusStats = {{ status_stats_json|safe }};
+
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: statusStats.map(item => item.status),
+        datasets: [{
+            data: statusStats.map(item => item.count),
+            backgroundColor: [
+                'rgb(251, 146, 60)',
+                'rgb(34, 197, 94)',
+                'rgb(239, 68, 68)',
+                'rgb(156, 163, 175)'
+            ],
+            borderWidth: 0,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '60%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { size: 12, weight: '500' }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8
+            }
+        }
+    }
+});
+
+/**
+ * Delivery Methods Chart
+ * Displays pie chart showing revenue by delivery method
+ * @type {Chart} - Chart.js pie chart instance
+ */
+const deliveryCtx = document.getElementById('deliveryChart').getContext('2d');
+const deliveryStats = {{ delivery_stats_json|safe }};
+
+new Chart(deliveryCtx, {
+    type: 'pie',
+    data: {
+        labels: deliveryStats.map(item => item.delivery_method),
+        datasets: [{
+            data: deliveryStats.map(item => item.revenue),
+            backgroundColor: [
+                'rgb(59, 130, 246)',
+                'rgb(34, 197, 94)',
+                'rgb(251, 146, 60)',
+                'rgb(168, 85, 247)'
+            ],
+            borderWidth: 0,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { size: 12, weight: '500' }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: function(context) {
+                        return `${context.label}: ₹${context.raw.toLocaleString()}`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+/**
+ * Updates the sales chart between daily and monthly views
+ * @param {string} period - Either 'daily' or 'monthly'
+ * @returns {void}
+ */
+function updateChart(period) {
+    const data = period === 'daily' ? dailySales : monthlySales;
+    const labels = period === 'daily' 
+        ? data.map(item => item.date)
+        : data.map(item => new Date(item.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+    
+    // Update chart data
+    salesChart.data.labels = labels;
+    salesChart.data.datasets[0].data = data.map(item => item.revenue);
+    salesChart.data.datasets[1].data = data.map(item => item.order_count);
+    salesChart.update('active');
+    
+    // Update button styles with improved classes
+    document.getElementById('dailyBtn').className = period === 'daily' 
+        ? 'px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl'
+        : 'px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors';
+    document.getElementById('monthlyBtn').className = period === 'monthly'
+        ? 'px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-xl'
+        : 'px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors';
+}
+
+/**
+ * Show POS Table View - Switches to table management interface
+ * Hides analytics dashboard and shows POS table view with real-time status
+ */
+function showTablePOSView() {
+    // Hide analytics dashboard
+    document.getElementById('analytics-dashboard').classList.add('hidden');
+    
+    // Show POS table dashboard
+    document.getElementById('pos-table-dashboard').classList.remove('hidden');
+    
+    // Update tab styling
+    updateTabStyling('pos-table-tab');
+    
+    // Initialize POS view if needed
+    initializePOSView();
+    
+    console.log('Switched to POS Table View');
+}
+
+/**
+ * Show Analytics View - Switches back to analytics dashboard
+ * Hides POS table view and shows analytics with charts and metrics
+ */
+function showAnalyticsView() {
+    // Hide POS table dashboard
+    document.getElementById('pos-table-dashboard').classList.add('hidden');
+    
+    // Show analytics dashboard
+    document.getElementById('analytics-dashboard').classList.remove('hidden');
+    
+    // Update tab styling
+    updateTabStyling('analytics-tab');
+    
+    // Reinitialize charts if needed
+    if (typeof salesChart !== 'undefined') {
+        salesChart.update();
+    }
+    
+    console.log('Switched to Analytics View');
+}
+
+/**
+ * Update tab styling to reflect active view
+ * Applies proper visual states to navigation tabs
+ */
+function updateTabStyling(activeTabId) {
+    // Remove active styling from all tabs
+    document.querySelectorAll('[id$="-tab"]').forEach(tab => {
+        tab.classList.remove('border-orange-500', 'text-orange-600', 'bg-orange-50');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Add active styling to selected tab
+    const activeTab = document.getElementById(activeTabId);
+    if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+        activeTab.classList.add('border-orange-500', 'text-orange-600', 'bg-orange-50');
+    }
+}
+
+/**
+ * Initialize POS Table View
+ * Sets up real-time updates and table interactions when switching to POS view
+ */
+function initializePOSView() {
+    // Check if POS view is already initialized
+    if (window.posViewInitialized) {
+        return;
+    }
+    
+    // Initialize POS-specific functionality
+    console.log('Initializing POS Table View...');
+    
+    // Load table data
+    if (typeof loadTableData === 'function') {
+        loadTableData();
+    }
+    
+    // Setup POS keyboard shortcuts
+    if (typeof setupPOSShortcuts === 'function') {
+        setupPOSShortcuts();
+    }
+    
+    // Mark as initialized
+    window.posViewInitialized = true;
+}
+
+/**
+ * Exports dashboard report as CSV file
+ * Generates a downloadable CSV with key metrics
+ * @returns {void}
+ */
+function exportReport() {
+    // Create CSV content with dashboard metrics
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Restaurant Dashboard Report\n";
+    csvContent += `Generated: ${new Date().toLocaleString()}\n`;
+    csvContent += `Restaurant: {{ user_restaurant.name }}\n`;
+    csvContent += `Period: {{ date_filter }}\n\n`;
+    csvContent += "Metric,Value\n";
+    csvContent += `Total Orders,{{ total_orders_all_time }}\n`;
+    csvContent += `Orders in Period,{{ orders_in_period }}\n`;
+    csvContent += `Total Revenue,₹{{ total_revenue_all_time|floatformat:0 }}\n`;
+    csvContent += `Revenue in Period,₹{{ revenue_in_period|floatformat:0 }}\n`;
+    csvContent += `Average Order Value,₹{{ avg_order_value|floatformat:0 }}\n`;
+    csvContent += `Revenue Growth,{{ revenue_growth|floatformat:1 }}%\n`;
+    
+    // Create and trigger download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `{{ user_restaurant.name|slugify }}_dashboard_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Auto-refresh functionality
+ * Reloads the dashboard every 5 minutes to show latest data
+ */
+setTimeout(() => {
+    location.reload();
+}, 300000); // 5 minutes = 300000ms
+</script>
+{% endblock %}

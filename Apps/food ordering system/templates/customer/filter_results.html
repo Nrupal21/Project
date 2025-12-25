@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load image_filters %}
+
+{% block title %}Restaurant Search Results - Food Ordering System{% endblock %}
+
+{% block content %}
+<!-- Filter Results Header -->
+<div class="bg-gradient-to-r from-orange-400 via-rose-500 to-pink-600 py-8">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    {% if search_query %}
+                        Search Results for "{{ search_query }}"
+                    {% elif selected_cuisine %}
+                        {{ selected_cuisine|title }} Restaurants
+                    {% else %}
+                        All Restaurants
+                    {% endif %}
+                </h1>
+                <p class="text-white/90">
+                    {{ total_results }} restaurant{{ total_results|pluralize }} found
+                </p>
+            </div>
+            <a href="{% url 'customer:home' %}" class="text-white hover:text-white/80 transition-colors">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Active Filters Bar -->
+{% if search_query or selected_cuisine or selected_price_range or selected_delivery_fee or selected_rating %}
+<div class="bg-gray-50 border-b border-gray-200 py-3">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-700">Active filters:</span>
+                <div class="flex flex-wrap gap-2">
+                    {% if search_query %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                            Search: {{ search_query }}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'search' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="ml-2 hover:text-blue-600">×</a>
+                        </span>
+                    {% endif %}
+                    {% if selected_cuisine %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                            Cuisine: {{ selected_cuisine|title }}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'cuisine' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="ml-2 hover:text-green-600">×</a>
+                        </span>
+                    {% endif %}
+                    {% if selected_price_range %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
+                            Price: {{ selected_price_range|title }}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'price_range' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="ml-2 hover:text-yellow-600">×</a>
+                        </span>
+                    {% endif %}
+                    {% if selected_delivery_fee %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                            Delivery: {{ selected_delivery_fee|title }}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'delivery_fee' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="ml-2 hover:text-purple-600">×</a>
+                        </span>
+                    {% endif %}
+                    {% if selected_rating %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800">
+                            Rating: {{ selected_rating }}+
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'rating' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="ml-2 hover:text-orange-600">×</a>
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'customer:filter_results' %}" class="text-sm text-gray-600 hover:text-gray-800">
+                Clear all filters
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex gap-8">
+        <!-- Filters Sidebar -->
+        <div class="w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+                
+                <form method="GET" class="space-y-4">
+                    <!-- Keep existing GET parameters -->
+                    {% for key, value in request.GET.items %}
+                        {% if key not in 'cuisine,price_range,delivery_fee,rating,sort' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Cuisine Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cuisine Type</label>
+                        <select name="cuisine" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="">All Cuisines</option>
+                            {% for value, label in cuisine_choices %}
+                            <option value="{{ value }}" {% if selected_cuisine == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Price Range Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                        <select name="price_range" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="">Any Price</option>
+                            <option value="low" {% if selected_price_range == 'low' %}selected{% endif %}>Budget Friendly (≤₹100)</option>
+                            <option value="medium" {% if selected_price_range == 'medium' %}selected{% endif %}>Mid Range (₹101-₹200)</option>
+                            <option value="high" {% if selected_price_range == 'high' %}selected{% endif %}>Premium (>₹200)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Delivery Fee Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Fee</label>
+                        <select name="delivery_fee" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="">Any Delivery</option>
+                            <option value="free" {% if selected_delivery_fee == 'free' %}selected{% endif %}>Free Delivery</option>
+                            <option value="low" {% if selected_delivery_fee == 'low' %}selected{% endif %}>Low Fee (≤₹50)</option>
+                            <option value="medium" {% if selected_delivery_fee == 'medium' %}selected{% endif %}>Medium Fee (₹51-₹100)</option>
+                            <option value="high" {% if selected_delivery_fee == 'high' %}selected{% endif %}>High Fee (>₹100)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
+                        <select name="rating" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="">Any Rating</option>
+                            <option value="4.5" {% if selected_rating == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                            <option value="4.0" {% if selected_rating == '4.0' %}selected{% endif %}>4.0+ Stars</option>
+                            <option value="3.5" {% if selected_rating == '3.5' %}selected{% endif %}>3.5+ Stars</option>
+                            <option value="3.0" {% if selected_rating == '3.0' %}selected{% endif %}>3.0+ Stars</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <select name="sort" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Top Rated</option>
+                            <option value="name" {% if selected_sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="min_order" {% if selected_sort == 'min_order' %}selected{% endif %}>Minimum Order</option>
+                            <option value="delivery_fee" {% if selected_sort == 'delivery_fee' %}selected{% endif %}>Delivery Fee</option>
+                            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="flex-1">
+            <!-- Results Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    Showing {{ restaurants|length }} of {{ total_results }} restaurants
+                </h2>
+                
+                <!-- Mobile Sort Dropdown -->
+                <div class="md:hidden">
+                    <form method="GET" class="inline">
+                        {% for key, value in request.GET.items %}
+                            {% if key != 'sort' %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <select name="sort" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Top Rated</option>
+                            <option value="name" {% if selected_sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="min_order" {% if selected_sort == 'min_order' %}selected{% endif %}>Minimum Order</option>
+                            <option value="delivery_fee" {% if selected_sort == 'delivery_fee' %}selected{% endif %}>Delivery Fee</option>
+                            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Restaurant Cards Grid -->
+            {% if restaurants %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for restaurant in restaurants %}
+                    <!-- Restaurant Card -->
+                    <div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 overflow-hidden">
+                        <!-- Restaurant Image -->
+                        <div class="aspect-[4/3] overflow-hidden bg-gray-100 relative">
+                            <img src="{{ restaurant|get_restaurant_image:'full' }}" alt="{{ restaurant.name }}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='/media/placeholders/restaurant_default.jpg'">
+                            
+                            <!-- Wishlist Button -->
+                            {% if user.is_authenticated %}
+                                <button onclick="toggleWishlist('{{ restaurant.id }}')" 
+                                        class="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-200 shadow-sm">
+                                    {% if restaurant|is_in_wishlist:user %}
+                                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    {% endif %}
+                                </button>
+                            {% endif %}
+                            
+                            <!-- Cuisine Badge -->
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700">
+                                    {{ restaurant.get_cuisine_type_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Restaurant Details -->
+                        <div class="p-4">
+                            <!-- Restaurant Name and Rating -->
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-semibold text-gray-900 text-lg">{{ restaurant.name }}</h3>
+                                <div class="flex items-center text-sm">
+                                    <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <span class="font-medium">{{ restaurant.rating|default:"0.0" }}</span>
+                                    <span class="text-gray-500">({{ restaurant.review_count|default:"0" }})</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Restaurant Description -->
+                            <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ restaurant.description }}</p>
+                            
+                            <!-- Delivery Info -->
+                            <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    {% if restaurant.delivery_fee == 0 %}
+                                        Free Delivery
+                                    {% else %}
+                                        ₹{{ restaurant.delivery_fee }} Delivery
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Min ₹{{ restaurant.minimum_order }}
+                                </div>
+                            </div>
+                            
+                            <!-- View Restaurant Button -->
+                            <a href="{% url 'customer:restaurant_detail' restaurant.id %}" class="block w-full bg-rose-500 hover:bg-rose-600 text-white text-center font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                                View Menu
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="flex justify-center items-center space-x-2 mt-8">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                            First
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-3 py-2 text-sm text-gray-700">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                            Next
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                            Last
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+            {% else %}
+                <!-- No Results -->
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No restaurants found</h3>
+                    <p class="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+                    <a href="{% url 'customer:filter_results' %}" class="inline-flex items-center px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors duration-200">
+                        Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Wishlist Toggle -->
+{% csrf_token %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function toggleWishlist(restaurantId) {
+    fetch(`/customer/wishlist/toggle/${restaurantId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the page to update wishlist status
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}

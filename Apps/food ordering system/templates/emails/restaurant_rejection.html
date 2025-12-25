@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Application Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        .logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #ea4335;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .rejection {
+            background: linear-gradient(135deg, #fce8e6, #f8d7da);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ea4335;
+        }
+        .rejection h2 {
+            color: #ea4335;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .reason {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #ea4335;
+        }
+        .reason h4 {
+            margin: 0 0 10px 0;
+            color: #ea4335;
+        }
+        .reason p {
+            margin: 0;
+            color: #5f6368;
+            font-style: italic;
+        }
+        .details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .details h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+            font-size: 16px;
+        }
+        .details p {
+            margin: 8px 0;
+            color: #5f6368;
+        }
+        .details strong {
+            color: #202124;
+        }
+        .steps {
+            margin: 25px 0;
+        }
+        .steps h4 {
+            margin: 0 0 15px 0;
+            color: #202124;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .steps li {
+            margin-bottom: 8px;
+        }
+        .common-reasons {
+            background-color: #fff8e1;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #fbbc04;
+        }
+        .common-reasons h4 {
+            margin: 0 0 10px 0;
+            color: #9e6a00;
+        }
+        .common-reasons ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #5f6368;
+        }
+        .common-reasons li {
+            margin-bottom: 6px;
+        }
+        .contact {
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #1a73e8;
+            text-align: center;
+        }
+        .contact h4 {
+            margin: 0 0 10px 0;
+            color: #1a73e8;
+        }
+        .contact p {
+            margin: 5px 0;
+            color: #5f6368;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #f1f3f4;
+            color: #5f6368;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📋</div>
+            <h1 class="title">Restaurant Application Update</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ user.first_name|default:user.username }},</p>
+            
+            <div class="rejection">
+                <h2>Application Could Not Be Approved</h2>
+                <p>We regret to inform you that your restaurant application for "<strong>{{ restaurant.name }}</strong>" has been reviewed and could not be approved at this time.</p>
+            </div>
+            
+            {% if reason %}
+            <div class="reason">
+                <h4>Reason for Rejection:</h4>
+                <p>{{ reason }}</p>
+            </div>
+            {% else %}
+            <div class="reason">
+                <h4>Reason for Rejection:</h4>
+                <p>Our team has carefully reviewed your application, but it does not currently meet our quality standards or requirements.</p>
+            </div>
+            {% endif %}
+            
+            <div class="details">
+                <h4>Application Details:</h4>
+                <p><strong>Restaurant Name:</strong> {{ restaurant.name }}</p>
+                <p><strong>Cuisine Type:</strong> {{ restaurant.get_cuisine_type_display }}</p>
+                <p><strong>Address:</strong> {{ restaurant.address }}</p>
+                <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
+            </div>
+            
+            <div class="steps">
+                <h4>What You Can Do:</h4>
+                <ol>
+                    <li>Review the feedback provided above</li>
+                    <li>Update your restaurant information and address any issues</li>
+                    <li>Submit a new application with the corrected details</li>
+                    <li>Contact our support team if you need clarification</li>
+                </ol>
+            </div>
+            
+            <div class="common-reasons">
+                <h4>Common Reasons for Rejection:</h4>
+                <ul>
+                    <li>Incomplete or inaccurate restaurant information</li>
+                    <li>Missing contact details or invalid phone number</li>
+                    <li>Address verification issues</li>
+                    <li>Compliance with local food service regulations</li>
+                </ul>
+            </div>
+            
+            <div class="contact">
+                <h4>Need Help?</h4>
+                <p>If you believe this decision was made in error or would like to appeal this decision, please contact our support team:</p>
+                <p><strong>Email:</strong> {{ contact_email }}</p>
+            </div>
+            
+            <p>We encourage you to review our restaurant guidelines and requirements before reapplying.</p>
+            
+            <p>We appreciate your interest in partnering with {{ site_name }} and hope to work with you in the future.</p>
+            
+            <p>Best regards,<br>
+            The {{ site_name }} Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>© {{ current_year }} {{ site_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

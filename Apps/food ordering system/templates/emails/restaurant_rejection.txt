@@ -1,0 +1,41 @@
+Restaurant Application Update
+
+Dear {{ user.first_name|default:user.username }},
+
+We regret to inform you that your restaurant application for "{{ restaurant.name }}" has been reviewed and could not be approved at this time.
+
+{% if reason %}
+Reason for Rejection:
+{{ reason }}
+{% else %}
+Our team has carefully reviewed your application, but it does not currently meet our quality standards or requirements.
+{% endif %}
+
+Application Details:
+- Restaurant Name: {{ restaurant.name }}
+- Cuisine Type: {{ restaurant.get_cuisine_type_display }}
+- Address: {{ restaurant.address }}
+- Phone: {{ restaurant.phone }}
+
+What You Can Do:
+1. Review the feedback provided above
+2. Update your restaurant information and address any issues
+3. Submit a new application with the corrected details
+4. Contact our support team if you need clarification
+
+We encourage you to review our restaurant guidelines and requirements before reapplying. Common reasons for rejection include:
+- Incomplete or inaccurate restaurant information
+- Missing contact details or invalid phone number
+- Address verification issues
+- Compliance with local food service regulations
+
+If you believe this decision was made in error or would like to appeal this decision, please contact our support team at {{ contact_email }}.
+
+We appreciate your interest in partnering with {{ site_name }} and hope to work with you in the future.
+
+Best regards,
+The {{ site_name }} Team
+
+---
+This is an automated message. Please do not reply to this email.
+© {{ current_year }} {{ site_name }}. All rights reserved.

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Promo Codes - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<!-- Promo Codes Management Header -->
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Promo Codes</h1>
+            <p class="text-gray-600 mt-2">Manage discount codes and promotional campaigns</p>
+        </div>
+        <a href="{% url 'orders:create_promo_code' %}" 
+           class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Create New Promo Code</span>
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-green-100 rounded-lg">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Active Codes</p>
+                <p class="text-2xl font-bold text-gray-900">{{ active_promo_codes }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-blue-100 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Codes</p>
+                <p class="text-2xl font-bold text-gray-900">{{ promo_codes|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-purple-100 rounded-lg">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Redemptions</p>
+                <p class="text-2xl font-bold text-gray-900">{{ total_redemptions }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-3">
+            <div class="p-3 bg-yellow-100 rounded-lg">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Expiring Soon</p>
+                <p class="text-2xl font-bold text-gray-900">{{ expiring_soon_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Promo Codes List -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">All Promo Codes</h2>
+    </div>
+    
+    {% if promo_codes %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Code
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Discount
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Usage
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Valid Until
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for promo in promo_codes %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono font-medium
+                            {% if promo.usage_stats.is_active %}bg-green-100 text-green-800
+                            {% elif promo.usage_stats.is_expired %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ promo.code|upper }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ promo.name }}</p>
+                            {% if promo.description %}
+                            <p class="text-sm text-gray-500">{{ promo.description|truncatechars:50 }}</p>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            {% if promo.discount_type == 'percentage' %}
+                                {{ promo.discount_value }}% off
+                            {% elif promo.discount_type == 'fixed' %}
+                                ₹{{ promo.discount_value }} off
+                            {% elif promo.discount_type == 'free_delivery' %}
+                                Free delivery
+                            {% endif %}
+                        </div>
+                        {% if promo.minimum_order_amount > 0 %}
+                        <p class="text-xs text-gray-500">Min: ₹{{ promo.minimum_order_amount }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if promo.usage_stats.is_active %}bg-green-100 text-green-800
+                            {% elif promo.usage_stats.is_expired %}bg-red-100 text-red-800
+                            {% elif not promo.is_active %}bg-gray-100 text-gray-800
+                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {% if promo.usage_stats.is_active %}Active
+                            {% elif promo.usage_stats.is_expired %}Expired
+                            {% elif not promo.is_active %}Inactive
+                            {% else %}Scheduled{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div class="flex flex-col space-y-1">
+                            <span>{{ promo.usage_stats.total_used }} used</span>
+                            {% if promo.usage_stats.remaining %}
+                            <span class="text-xs text-gray-500">{{ promo.usage_stats.remaining }} left</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ promo.end_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'orders:edit_promo_code' promo.id %}" 
+                               class="text-purple-600 hover:text-purple-900">
+                                Edit
+                            </a>
+                            {% if promo.times_used == 0 %}
+                            <form method="post" action="{% url 'orders:delete_promo_code' promo.id %}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this promo code?')">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                    Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <div class="text-6xl mb-4">🎫</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No promo codes yet</h3>
+        <p class="text-gray-500 mb-6">Create your first promo code to start attracting customers with discounts.</p>
+        <a href="{% url 'orders:create_promo_code' %}" 
+           class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Your First Promo Code
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Back to Dashboard -->
+<div class="mt-8">
+    <a href="{% url 'restaurant:dashboard' %}" 
+       class="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Dashboard
+    </a>
+</div>
+{% endblock %}
