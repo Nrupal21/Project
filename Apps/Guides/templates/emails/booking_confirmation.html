@@ -1,0 +1,98 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}
+Booking Confirmation - {{ booking.tour.name }}
+{% endblock %}
+
+{% block email_content %}
+<div style="font-family: Arial, sans-serif; color: #333333;">
+    <!-- Booking confirmation section -->
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #4f46e5; margin-bottom: 15px;">Your Booking is Confirmed!</h2>
+        <p>Dear {{ user.first_name|default:user.username }},</p>
+        <p>Thank you for booking with TravelGuide! Your booking for <strong>{{ booking.tour.name }}</strong> has been confirmed.</p>
+    </div>
+
+    <!-- Booking details section -->
+    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <h3 style="color: #6d28d9; margin-top: 0;">Booking Details</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; width: 40%;"><strong>Booking Reference:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">{{ booking.id }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Tour:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">{{ booking.tour.name }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Date:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                    {{ booking.tour_date.start_date|date:"F j, Y" }} to 
+                    {{ booking.tour_date.end_date|date:"F j, Y" }}
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Number of Participants:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">{{ booking.participants }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Total Amount:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${{ booking.total_price|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Payment Status:</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">{% if booking.is_paid %}Paid{% else %}Pending{% endif %}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0;"><strong>Booking Status:</strong></td>
+                <td style="padding: 8px 0;">{{ booking.status|capfirst }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Tour information section -->
+    <div style="margin-bottom: 20px;">
+        <h3 style="color: #6d28d9;">Tour Information</h3>
+        <p>{{ booking.tour.description|truncatewords:50 }}</p>
+        
+        <!-- Meeting point -->
+        <h4 style="margin-bottom: 5px; color: #4f46e5;">Meeting Point</h4>
+        <p style="margin-top: 0;">{{ booking.tour.meeting_point|default:"Details will be sent closer to the tour date" }}</p>
+        
+        <!-- Inclusions -->
+        <h4 style="margin-bottom: 5px; color: #4f46e5;">What's Included</h4>
+        <p style="margin-top: 0;">{{ booking.tour.inclusions|default:"Please refer to the tour details on our website" }}</p>
+    </div>
+
+    <!-- Next steps section -->
+    <div style="background-color: #eef2ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <h3 style="color: #6d28d9; margin-top: 0;">Next Steps</h3>
+        <ul style="padding-left: 20px; margin-top: 10px;">
+            <li style="margin-bottom: 8px;">Save this confirmation for your records</li>
+            <li style="margin-bottom: 8px;">Check your email for any updates or changes to your tour</li>
+            <li style="margin-bottom: 8px;">Visit your <a href="{{ site_url }}{% url 'bookings:booking_detail' booking.id %}" style="color: #4f46e5; text-decoration: none; font-weight: bold;">booking details</a> page for more information</li>
+            {% if not booking.is_paid %}
+            <li style="margin-bottom: 8px; color: #b91c1c; font-weight: bold;">Complete your payment to secure your spot</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Cancellation policy -->
+    <div style="margin-bottom: 20px; font-size: 0.9em; color: #6b7280;">
+        <h4 style="color: #6d28d9; margin-bottom: 5px;">Cancellation Policy</h4>
+        <p>
+            Free cancellation up to 48 hours before the tour. 
+            Cancellations less than 48 hours before the tour start time may be subject to a fee.
+            Please refer to our <a href="{{ site_url }}{% url 'accounts:terms' %}" style="color: #4f46e5;">terms and conditions</a> for more details.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block email_footer %}
+<p style="font-size: 12px; color: #6b7280;">
+    If you have any questions about your booking, please contact us at 
+    <a href="mailto:support@travelguide.com" style="color: #4f46e5;">support@travelguide.com</a>
+</p>
+{% endblock %}

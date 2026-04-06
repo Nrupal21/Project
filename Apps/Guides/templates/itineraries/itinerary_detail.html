@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load humanize %}
+
+{% block title %}{{ itinerary.title }}{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container my-4">
+    <!-- Itinerary Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <!-- Title and date range -->
+            <h1 class="display-5">{{ itinerary.title }}</h1>
+            <p class="lead text-secondary">
+                {{ itinerary.start_date|date:"F j, Y" }} - {{ itinerary.end_date|date:"F j, Y" }}
+                <span class="badge {% if itinerary.is_public %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                    {% if itinerary.is_public %}{% trans "Public" %}{% else %}{% trans "Private" %}{% endif %}
+                </span>
+            </p>
+            <!-- Description of the itinerary -->
+            <div class="mt-3">
+                <h5>{% trans "Description" %}</h5>
+                <p>{{ itinerary.description|linebreaks }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <!-- Action buttons for itinerary owner -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">{% trans "Itinerary Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Itinerary metadata -->
+                    <dl class="row mb-0">
+                        <dt class="col-6">{% trans "Created by" %}</dt>
+                        <dd class="col-6">{{ itinerary.user.username }}</dd>
+                        
+                        <dt class="col-6">{% trans "Duration" %}</dt>
+                        <dd class="col-6">{{ itinerary.get_duration }} {% trans "days" %}</dd>
+                        
+                        {% if itinerary.tour %}
+                        <dt class="col-6">{% trans "Based on" %}</dt>
+                        <dd class="col-6">
+                            <a href="{% url 'tours:tour_detail' itinerary.tour.pk %}">{{ itinerary.tour.name }}</a>
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+                {% if can_edit %}
+                <div class="card-footer">
+                    <!-- Edit and management buttons for the owner -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'itineraries:itinerary_update' itinerary.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil-square me-1"></i>{% trans "Edit" %}
+                        </a>
+                        <a href="{% url 'itineraries:itinerary_share' itinerary.pk %}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-share me-1"></i>{% trans "Share" %}
+                        </a>
+                        <a href="{% url 'itineraries:itinerary_delete' itinerary.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>{% trans "Delete" %}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Day-by-day Itinerary Section -->
+    <div class="my-5">
+        <h2 class="mb-4">{% trans "Day-by-Day Schedule" %}</h2>
+        
+        <!-- Accordion for each day's details -->
+        <div class="accordion" id="itineraryAccordion">
+            {% for day in days %}
+            <div class="accordion-item shadow-sm mb-3">
+                <!-- Day header -->
+                <h3 class="accordion-header" id="heading{{ day.id }}">
+                    <button class="accordion-button {% if forloop.first %}{% else %}collapsed{% endif %}" 
+                            type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapse{{ day.id }}" 
+                            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                            aria-controls="collapse{{ day.id }}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <strong>{% trans "Day" %} {{ day.day_number }}: {{ day.date|date:"l, F j, Y" }}</strong>
+                            {% if day.destination %}
+                            <span class="badge bg-info ms-2">{{ day.destination.name }}</span>
+                            {% endif %}
+                        </div>
+                    </button>
+                </h3>
+                
+                <!-- Day content -->
+                <div id="collapse{{ day.id }}" 
+                     class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                     aria-labelledby="heading{{ day.id }}" 
+                     data-bs-parent="#itineraryAccordion">
+                    <div class="accordion-body">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <!-- Day metadata and notes -->
+                                {% if day.notes %}
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{% trans "Notes" %}</h5>
+                                        <p class="card-text">{{ day.notes|linebreaks }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if day.accommodation_details %}
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{% trans "Accommodation" %}</h5>
+                                        <p class="card-text">{{ day.accommodation_details|linebreaks }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Edit day button (for owner) -->
+                                {% if can_edit %}
+                                <div class="mb-3">
+                                    <a href="{% url 'itineraries:edit_day' day.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil-square me-1"></i>{% trans "Edit Day Details" %}
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Activities for this day -->
+                        <h4>{% trans "Activities" %}</h4>
+                        {% if day.activities.all %}
+                            <div class="timeline">
+                                {% for activity in day.activities.all %}
+                                <div class="timeline-item">
+                                    <!-- Activity card -->
+                                    <div class="card mb-3">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span>{{ activity.start_time|time:"H:i" }} - {{ activity.end_time|time:"H:i" }}</span>
+                                            {% if can_edit %}
+                                            <div>
+                                                <a href="{% url 'itineraries:edit_activity' activity.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'itineraries:delete_activity' activity.id %}" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ activity.title }}</h5>
+                                            {% if activity.location %}
+                                            <h6 class="card-subtitle mb-2 text-muted">
+                                                <i class="bi bi-geo-alt me-1"></i>{{ activity.location }}
+                                            </h6>
+                                            {% endif %}
+                                            {% if activity.description %}
+                                            <p class="card-text">{{ activity.description|linebreaks }}</p>
+                                            {% endif %}
+                                            <div class="d-flex justify-content-between mt-2">
+                                                {% if activity.cost %}
+                                                <span class="badge bg-secondary">
+                                                    {% trans "Cost" %}: {{ activity.cost|intcomma }} 
+                                                </span>
+                                                {% endif %}
+                                                
+                                                {% if activity.booking_reference %}
+                                                <span class="badge bg-info">
+                                                    {% trans "Booking" %}: {{ activity.booking_reference }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light">
+                                {% trans "No activities planned for this day." %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Add activity button (for owner) -->
+                        {% if can_edit %}
+                        <div class="mt-3">
+                            <a href="{% url 'itineraries:add_activity' day.id %}" class="btn btn-success">
+                                <i class="bi bi-plus-circle me-2"></i>{% trans "Add Activity" %}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Navigation buttons -->
+    <div class="my-4">
+        <a href="{% url 'itineraries:itinerary_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Itineraries" %}
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'itineraries:my_itineraries' %}" class="btn btn-outline-primary ms-2">
+            {% trans "My Itineraries" %}
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Custom CSS for the timeline display -->
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+<style>
+    /* Timeline styling for activities */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -36px;
+        top: 15px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #007bff;
+    }
+    /* Card hover effect */
+    .hover-shadow:hover {
+        transition: box-shadow 0.3s ease-in-out;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+{% endblock %}
+{% endblock %}

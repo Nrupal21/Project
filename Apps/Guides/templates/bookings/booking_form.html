@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Tour - {{ tour.name }} - Guides{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="bg-gray-50 py-12">
+  <div class="max-w-screen-2xl w-full mx-auto px-6 sm:px-8 lg:px-12">
+    <div class="max-w-4xl w-full mx-auto">
+      <!-- Booking header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          Book Your Tour
+        </h1>
+        <p class="mt-2 text-lg text-gray-600">
+          Complete the form below to book "{{ tour.name }}"
+        </p>
+      </div>
+
+      <!-- Tour summary -->
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              Tour Summary
+            </h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+              Review your tour details before booking
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-bold text-gray-900">${{ tour.price|floatformat:2 }} <span class="text-sm font-normal text-gray-500">per person</span></p>
+          </div>
+        </div>
+        <div class="border-t border-gray-200">
+          <dl>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Tour Name
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ tour.name }}
+              </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Destination
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ tour.destination.name }}, {{ tour.destination.country }}
+              </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Duration
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ tour.duration }} days
+              </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Tour Date
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ selected_date|date:"F j, Y" }}
+              </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Group Size
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ selected_travelers }} travelers
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Booking form -->
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Traveler Information
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Please provide details for all travelers
+          </p>
+        </div>
+
+        {% if messages %}
+          <div class="px-4 py-3">
+            {% for message in messages %}
+              <div class="rounded-md {% if message.tags == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} p-4 mb-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                      <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      </svg>
+                    {% else %}
+                      <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                      </svg>
+                    {% endif %}
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium {% if message.tags == 'success' %}text-green-800{% else %}text-red-800{% endif %}">
+                      {{ message }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="POST" class="px-4 py-5 sm:p-6">
+          {% csrf_token %}
+          
+          <!-- Lead traveler information -->
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-base font-medium text-gray-900">Lead Traveler (Your Information)</h4>
+              <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-3">
+                  <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    First name
+                  </label>
+                  <div class="mt-1">
+                    {{ form.first_name }}
+                  </div>
+                  {% if form.first_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.first_name.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-3">
+                  <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Last name
+                  </label>
+                  <div class="mt-1">
+                    {{ form.last_name }}
+                  </div>
+                  {% if form.last_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.last_name.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-3">
+                  <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Email address
+                  </label>
+                  <div class="mt-1">
+                    {{ form.email }}
+                  </div>
+                  {% if form.email.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.email.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-3">
+                  <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Phone number
+                  </label>
+                  <div class="mt-1">
+                    {{ form.phone }}
+                  </div>
+                  {% if form.phone.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.phone.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional travelers -->
+            {% if selected_travelers > 1 %}
+              <div class="pt-6 border-t border-gray-200">
+                <h4 class="text-base font-medium text-gray-900">Additional Travelers</h4>
+                <p class="mt-1 text-sm text-gray-500">Please provide information for all travelers in your group</p>
+                
+                {% for traveler_form in traveler_formset %}
+                  <div class="mt-6 p-4 bg-gray-50 rounded-md">
+                    <h5 class="text-sm font-medium text-gray-700">Traveler #{{ forloop.counter|add:"1" }}</h5>
+                    <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                      <div class="sm:col-span-3">
+                        <label for="{{ traveler_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                          First name
+                        </label>
+                        <div class="mt-1">
+                          {{ traveler_form.first_name }}
+                        </div>
+                        {% if traveler_form.first_name.errors %}
+                          <p class="mt-2 text-sm text-red-600">
+                            {{ traveler_form.first_name.errors.0 }}
+                          </p>
+                        {% endif %}
+                      </div>
+
+                      <div class="sm:col-span-3">
+                        <label for="{{ traveler_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                          Last name
+                        </label>
+                        <div class="mt-1">
+                          {{ traveler_form.last_name }}
+                        </div>
+                        {% if traveler_form.last_name.errors %}
+                          <p class="mt-2 text-sm text-red-600">
+                            {{ traveler_form.last_name.errors.0 }}
+                          </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+                {{ traveler_formset.management_form }}
+              </div>
+            {% endif %}
+
+            <!-- Special requirements -->
+            <div class="pt-6 border-t border-gray-200">
+              <div>
+                <label for="{{ form.special_requirements.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                  Special Requirements
+                </label>
+                <div class="mt-1">
+                  {{ form.special_requirements }}
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                  Please let us know if you have any dietary restrictions, accessibility needs, or other special requirements.
+                </p>
+              </div>
+            </div>
+
+            <!-- Payment information -->
+            <div class="pt-6 border-t border-gray-200">
+              <h4 class="text-base font-medium text-gray-900">Payment Information</h4>
+              <p class="mt-1 text-sm text-gray-500">Secure payment processing</p>
+              
+              <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-4">
+                  <label for="{{ form.card_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Card number
+                  </label>
+                  <div class="mt-1">
+                    {{ form.card_number }}
+                  </div>
+                  {% if form.card_number.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.card_number.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="{{ form.card_expiry.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Expiration date
+                  </label>
+                  <div class="mt-1">
+                    {{ form.card_expiry }}
+                  </div>
+                  {% if form.card_expiry.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.card_expiry.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="{{ form.card_cvc.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    CVC
+                  </label>
+                  <div class="mt-1">
+                    {{ form.card_cvc }}
+                  </div>
+                  {% if form.card_cvc.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.card_cvc.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="sm:col-span-4">
+                  <label for="{{ form.card_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Name on card
+                  </label>
+                  <div class="mt-1">
+                    {{ form.card_name }}
+                  </div>
+                  {% if form.card_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.card_name.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Terms and conditions -->
+            <div class="pt-6 border-t border-gray-200">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  {{ form.agree_terms }}
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="{{ form.agree_terms.id_for_label }}" class="font-medium text-gray-700">
+                    I agree to the terms and conditions
+                  </label>
+                  <p class="text-gray-500">
+                    By checking this box, you agree to our <a href="#" class="text-indigo-600 hover:text-indigo-500">Terms of Service</a> and <a href="#" class="text-indigo-600 hover:text-indigo-500">Privacy Policy</a>.
+                  </p>
+                  {% if form.agree_terms.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                      {{ form.agree_terms.errors.0 }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order summary -->
+          <div class="mt-8 pt-6 border-t border-gray-200">
+            <h4 class="text-base font-medium text-gray-900">Order Summary</h4>
+            <div class="mt-4 bg-gray-50 p-4 rounded-md">
+              <div class="flex justify-between py-2">
+                <span class="text-sm text-gray-500">Tour price (per person)</span>
+                <span class="text-sm font-medium text-gray-900">${{ tour.price|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between py-2">
+                <span class="text-sm text-gray-500">Number of travelers</span>
+                <span class="text-sm font-medium text-gray-900">{{ selected_travelers }}</span>
+              </div>
+              {% if discount_amount %}
+              <div class="flex justify-between py-2">
+                <span class="text-sm text-gray-500">Discount</span>
+                <span class="text-sm font-medium text-green-600">-${{ discount_amount|floatformat:2 }}</span>
+              </div>
+              {% endif %}
+              <div class="flex justify-between py-2">
+                <span class="text-sm text-gray-500">Taxes and fees</span>
+                <span class="text-sm font-medium text-gray-900">${{ taxes|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-t border-gray-200 mt-2 pt-2">
+                <span class="text-base font-medium text-gray-900">Total</span>
+                <span class="text-base font-bold text-gray-900">${{ total_price|floatformat:2 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit button -->
+          <div class="mt-8 flex justify-end">
+            <a href="{% url 'tours:detail' tour.slug %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Cancel
+            </a>
+            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Complete Booking
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // This is a placeholder for client-side form validation
+  // In a real application, you would add proper validation here
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+      // Add validation logic here if needed
+    });
+  });
+</script>
+{% endblock %}

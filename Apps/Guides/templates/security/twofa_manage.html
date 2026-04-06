@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Two-Factor Authentication - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">Manage Two-Factor Authentication</h1>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Current 2FA Status -->
+                    <div class="alert alert-success mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-shield-check fa-2x me-3"></i>
+                            <div>
+                                <h5 class="mb-1">Two-Factor Authentication is Enabled</h5>
+                                <p class="mb-0">Your account is currently protected using {{ twofa.get_method_display }}.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 2FA Settings -->
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">Current Settings</h3>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Method</strong>
+                                    <p class="mb-0 small text-muted">Authentication method used</p>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">{{ twofa.get_method_display }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Enabled On</strong>
+                                    <p class="mb-0 small text-muted">Date 2FA was set up</p>
+                                </div>
+                                <span>{{ twofa.created_at|date:"M d, Y" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Backup Codes</strong>
+                                    <p class="mb-0 small text-muted">Number of unused backup codes</p>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">{{ backup_codes_remaining }} remaining</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mb-4">
+                        <h3 class="h5 mb-3">Available Actions</h3>
+                        <div class="list-group">
+                            <!-- Regenerate Backup Codes -->
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">Regenerate Backup Codes</h5>
+                                        <p class="mb-0">Create new backup codes (invalidates existing ones)</p>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#regenerateModal">
+                                        Regenerate
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Change 2FA Method -->
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">Change Authentication Method</h5>
+                                        <p class="mb-0">Switch to a different 2FA method</p>
+                                    </div>
+                                    <a href="{% url 'security:twofa_setup' %}" class="btn btn-sm btn-outline-primary">
+                                        Change
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Disable 2FA -->
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">Disable Two-Factor Authentication</h5>
+                                        <p class="mb-0">Remove 2FA protection from your account</p>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#disableModal">
+                                        Disable
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-primary">Back to Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Regenerate Backup Codes Modal -->
+<div class="modal fade" id="regenerateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Regenerate Backup Codes?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to regenerate your backup codes?</p>
+                <p class="mb-0"><strong>Warning:</strong> This will invalidate all your existing backup codes.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'security:twofa_regenerate_backup' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">Regenerate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disable 2FA Modal -->
+<div class="modal fade" id="disableModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Disable Two-Factor Authentication?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will significantly reduce the security of your account.
+                </div>
+                <p>Are you sure you want to disable two-factor authentication?</p>
+                <p class="mb-0">You will no longer need to enter a verification code when signing in, but your account will be more vulnerable to unauthorized access.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'security:twofa_disable' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Disable Two-Factor</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

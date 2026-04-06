@@ -1,0 +1,760 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/**
+ * TravelGuide - Guide Section Styles
+ * Updated with indigo/violet color scheme
+ * Comprehensive styling for guide interface with modern design elements
+ */
+
+/* Main guide container styles */
+.guide-content {
+    padding: 2rem 1.5rem;
+    background-color: #f9fafb;
+}
+
+/* Guide navbar styling with indigo/violet palette */
+.guide-navbar {
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 1rem;
+}
+
+/* Guide navbar link styling */
+.guide-navbar .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    margin-right: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+/* Guide navbar active link state */
+.guide-navbar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* Guide navbar hover state for non-active links */
+.guide-navbar .nav-link:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Guide card components styling */
+.guide-card {
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Guide card hover animation effect */
+.guide-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.1), 0 2px 10px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Guide card image styling */
+.guide-card-img {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Guide card body content styling */
+.guide-card-body {
+    padding: 1.25rem;
+}
+
+/* Guide card title typography */
+.guide-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+}
+
+/* Active link indicator - bottom border */
+.guide-navbar .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    width: 50%;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile menu toggle button styling */
+.guide-navbar .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+/* Remove default focus style and add custom focus effect */
+.guide-navbar .navbar-toggler:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+    outline: none;
+}
+
+.guide-navbar .navbar-toggler:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Brand/logo styling */
+.guide-navbar .navbar-brand {
+    position: relative;
+    font-weight: 700;
+    background: linear-gradient(to right, #ffffff, #ede9fe);
+    -webkit-background-clip: text;
+    background-clip: text; /* Standard property for browser compatibility */
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* Standard property for modern browsers */
+    padding-right: 0.5rem;
+}
+
+/* Add subtle shine effect to brand */
+.guide-navbar .navbar-brand::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3));
+    transform: skewX(-20deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) skewX(-20deg); }
+    100% { transform: translateX(200%) skewX(-20deg); }
+}
+
+/**
+ * Guide Content Area
+ * Main content container with proper spacing and responsive adjustments
+ */
+.guide-content {
+    padding: 2rem 0;
+    min-height: calc(100vh - 180px); /* Account for navbar and footer */
+}
+
+/**
+ * Guide Cards
+ * Card components for destinations, attractions, etc.
+ */
+.guide-card {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* Subtle lift and shadow enhancement on hover */
+.guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+    border-color: rgba(79, 70, 229, 0.1);
+}
+
+/* Card image styling with consistent height */
+.guide-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+/* Subtle zoom effect on card image hover */
+.guide-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Card footer with gradient background */
+.guide-card .card-footer {
+    background: linear-gradient(to right, rgba(67, 56, 202, 0.05), rgba(126, 34, 206, 0.05));
+    border-top: 1px solid rgba(67, 56, 202, 0.1);
+}
+
+/**
+ * Image Previews
+ * System for displaying image upload previews with remove functionality
+ */
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.image-preview-item {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Hover effects for image previews */
+.image-preview-item:hover {
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
+}
+
+.image-preview-item:hover img {
+    transform: scale(1.05);
+}
+
+/* Remove button for image previews */
+.image-preview-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.image-preview-remove:hover {
+    background-color: rgba(220, 38, 38, 0.8);
+    transform: scale(1.1);
+}
+
+/**
+ * Destination Image
+ * Feature image display for destination details page
+ */
+.destination-image-wrapper {
+    position: relative;
+    height: 350px;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.destination-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+/* Add subtle zoom effect on hover */
+.destination-image-wrapper:hover .destination-image {
+    transform: scale(1.02);
+}
+
+/* Gradient overlay for text visibility */
+.destination-image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    padding: 3rem 1.5rem 1.5rem;
+    color: #fff;
+}
+
+/**
+ * Weather Cards
+ * Displays for weather information with indigo accent
+ */
+.weather-card {
+    background-color: #f8fafc;
+    border-radius: 0.75rem;
+    border-left: 4px solid #4338ca;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.weather-card:hover {
+    background-color: #f1f5f9;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Weather icon styling */
+.weather-card .weather-icon {
+    font-size: 2rem;
+    color: #4338ca;
+    margin-right: 1rem;
+}
+
+/* Weather temperature display */
+.weather-card .weather-temp {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/**
+ * Quick Action Buttons
+ * Styled action buttons with indigo/violet colors
+ */
+.btn-quick-action {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-quick-action.primary {
+    background: linear-gradient(to right, #4338ca, #6d28d9);
+    color: white;
+    border: none;
+    box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3);
+}
+
+.btn-quick-action.primary:hover {
+    background: linear-gradient(to right, #4338ca, #7e22ce);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-quick-action.secondary {
+    background-color: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+
+.btn-quick-action.secondary:hover {
+    background-color: #ede9fe;
+    border-color: #c4b5fd;
+}
+
+.btn-quick-action.danger {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.btn-quick-action.danger:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+}
+
+/**
+ * Responsive Styles
+ * Adjustments for different screen sizes
+ */
+@media (max-width: 992px) {
+    /* Adjust navbar items for medium screens */
+    .guide-navbar .nav-link {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Mobile layout adjustments */
+    .guide-content {
+        padding: 1rem 0;
+    }
+    
+    .destination-image-wrapper {
+        height: 220px;
+    }
+    
+    /* Adjust navbar padding and layout for mobile */
+    .guide-navbar {
+        padding: 0.5rem;
+    }
+    
+    .guide-navbar .navbar-nav {
+        padding-top: 0.5rem;
+    }
+    
+    .guide-navbar .nav-link {
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Make header elements stack more neatly */
+    .guide-page-header .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .guide-page-header .btn-toolbar {
+        justify-content: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top spacing to account for fixed main navbar -->
+<div class="h-20"></div>
+
+<!-- Guide Navigation Bar - Horizontal navbar with indigo/violet gradient background -->
+<!-- This secondary navigation replaces the sidebar for better wide screen layout -->
+<nav class="navbar navbar-expand-lg guide-navbar sticky-top">
+    <div class="container-fluid">
+        <!-- Brand logo/title with indigo styling -->
+        <a class="navbar-brand text-white font-semibold" href="{% url 'destinations:destination_list' %}">
+            <i class="fas fa-compass me-2"></i> Travel Guide
+        </a>
+        
+        <!-- Mobile toggle button with custom styling -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#guideNavbar"
+                aria-controls="guideNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation links with improved styling -->
+        <div class="collapse navbar-collapse" id="guideNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- Dashboard link with proper active state for the dashboard view -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'guide_dashboard' %}active{% endif %}" 
+                       href="{% url 'destinations:guide_dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                    </a>
+                </li>
+                
+                <!-- Add Destination link -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'destination_create' %}active{% endif %}" 
+                       href="{% url 'destinations:destination_create' %}">
+                        <i class="fas fa-plus-circle me-1"></i> Add Destination
+                    </a>
+                </li>
+                
+                <!-- My Destinations link -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'destination_list' and not request.GET.view == 'all' %}active{% endif %}" 
+                       href="{% url 'destinations:destination_list' %}?view=my">
+                        <i class="fas fa-map-marked-alt me-1"></i> My Destinations
+                    </a>
+                </li>
+                
+                <!-- My Attractions link -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'attraction_list' %}active{% endif %}" 
+                       href="{% url 'destinations:attraction_list' %}">
+                        <i class="fas fa-umbrella-beach me-1"></i> My Attractions
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Right-aligned action button to go back to profile -->
+            <div class="d-flex">
+                <a class="btn btn-outline-light" href="{% url 'accounts:profile' %}">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container for Guide Content -->
+<div class="container-fluid">
+    <!-- Page Header with Title and Action Buttons -->
+    <div class="guide-page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between flex-wrap align-items-center">
+                <!-- Page Title - Dynamic heading from child templates -->
+                <h1 class="h2 mb-0">{% block page_title %}Guide Dashboard{% endblock %}</h1>
+                
+                <!-- Action Buttons Area - Populated by child templates -->
+                <div class="btn-toolbar">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Container with wider layout for better screen utilization -->
+    <!-- Uses max-w-screen-2xl class from Tailwind for controlled wide screen display -->
+    <div class="container guide-content mx-auto max-w-screen-2xl px-4 md:px-6">
+        <!-- Alert Messages Display System - Shows Django messages with appropriate styling -->
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <!-- Message alert with styling based on message type (error, success, info, etc.) -->
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm rounded-lg border-l-4 {% if message.tags == 'success' %}border-green-500{% elif message.tags == 'error' %}border-red-500{% elif message.tags == 'warning' %}border-amber-500{% else %}border-indigo-500{% endif %}" role="alert">
+                <!-- Message content -->
+                <div class="flex items-center">
+                    <!-- Icon based on message type -->
+                    {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle text-green-500 me-2"></i>
+                    {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle text-red-500 me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-triangle text-amber-500 me-2"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle text-indigo-500 me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                </div>
+                <!-- Close button for dismissing the alert -->
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Main Content Area - Populated by child templates via guide_content block -->
+        <!-- This is where page-specific content from extending templates will be rendered -->
+        {% block guide_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+/**
+ * TravelGuide Guide Interface JavaScript
+ * Controls UI interactions, image previews, and mapping functionality
+ */
+
+/**
+ * Bootstrap Tooltip Initialization
+ * Enables tooltip display across the guide interface
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips for enhanced UI feedback
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+        new bootstrap.Tooltip(tooltipTriggerEl, {
+            boundary: document.body, // Ensures tooltips remain visible within viewport
+            placement: 'auto'        // Automatically positions tooltip based on available space
+        });
+    });
+
+    /**
+     * Bootstrap Popover Initialization
+     * Enables popover display for enhanced content viewing
+     */
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(popoverTriggerEl => {
+        new bootstrap.Popover(popoverTriggerEl, {
+            html: true,             // Allows HTML content in popovers
+            sanitize: false,        // Disable sanitization for custom HTML
+            trigger: 'focus'        // Shows on focus/click, hides on blur
+        });
+    });
+
+    /**
+     * Responsive Navbar Handling
+     * Improves mobile navigation experience
+     */
+    const guideNavbar = document.querySelector('.guide-navbar');
+    if (guideNavbar) {
+        // Add shadow when scrolling
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 10) {
+                guideNavbar.classList.add('shadow-md');
+            } else {
+                guideNavbar.classList.remove('shadow-md');
+            }
+        });
+
+        // Handle navbar collapse on mobile
+        const navLinks = document.querySelectorAll('.guide-navbar .nav-link');
+        const navbarCollapse = document.querySelector('#guideNavbar');
+        const bsCollapse = navbarCollapse ? new bootstrap.Collapse(navbarCollapse, {toggle: false}) : null;
+
+        // Close navbar when clicking a link on mobile
+        if (bsCollapse) {
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) { // Bootstrap lg breakpoint
+                        bsCollapse.hide();
+                    }
+                });
+            });
+        }
+    }
+
+    /**
+     * Image Preview System
+     * Handles dynamic preview generation for file uploads
+     * 
+     * @param {Event} e - Change event from file input
+     */
+    const handleImagePreviews = () => {
+        const fileInputs = document.querySelectorAll('input[type="file"][data-preview]');
+        
+        fileInputs.forEach(input => {
+            const previewContainer = document.getElementById(input.dataset.preview);
+            
+            if (previewContainer) {
+                input.addEventListener('change', function(e) {
+                    previewContainer.innerHTML = ''; // Clear previous previews
+                    
+                    if (this.files && this.files.length > 0) {
+                        // Limit previews to maximum 5 files
+                        for (let i = 0; i < Math.min(this.files.length, 5); i++) {
+                            const file = this.files[i];
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(e) {
+                                const previewItem = document.createElement('div');
+                                previewItem.className = 'image-preview-item';
+                                
+                                // Create preview with remove button
+                                previewItem.innerHTML = `
+                                    <img src="${e.target.result}" alt="Preview" class="img-fluid">
+                                    <button type="button" class="image-preview-remove" aria-label="Remove image">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                `;
+                                
+                                previewContainer.appendChild(previewItem);
+                                
+                                // Setup remove button functionality
+                                const removeBtn = previewItem.querySelector('.image-preview-remove');
+                                if (removeBtn) {
+                                    removeBtn.addEventListener('click', function() {
+                                        previewItem.remove();
+                                    });
+                                }
+                            };
+                            
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            }
+        });
+    };
+
+    // Initialize image previews
+    handleImagePreviews();
+    
+    /**
+     * Location Map Initialization
+     * Only initializes if a map element is present on the page
+     */
+    if (document.getElementById('location-map')) {
+        initMap();
+    }
+});
+
+/**
+ * Initialize Interactive Map for Location Selection
+ * Provides visual location selection with marker drag-and-drop functionality
+ * 
+ * @requires Leaflet.js library to be loaded
+ */
+function initMap() {
+    const mapElement = document.getElementById('location-map');
+    if (!mapElement) return;
+    
+    // Get initial coordinates or default to India's geographical center
+    const defaultLat = parseFloat(mapElement.dataset.lat) || 20.5937;
+    const defaultLng = parseFloat(mapElement.dataset.lng) || 78.9629;
+    const zoom = parseInt(mapElement.dataset.zoom) || 5;
+    
+    // Initialize the map with center position
+    const map = L.map('location-map').setView([defaultLat, defaultLng], zoom);
+    
+    // Add tile layer from OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19 // Maximum zoom level
+    }).addTo(map);
+    
+    // Add draggable marker at initial position
+    let marker = L.marker([defaultLat, defaultLng], {
+        draggable: true,
+        autoPan: true // Automatically pans map when marker is dragged to edge
+    }).addTo(map);
+    
+    /**
+     * Update form fields when marker is moved
+     * @param {Event} e - Dragend event
+     */
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        updateCoordinateFields(position.lat, position.lng);
+    });
+    
+    /**
+     * Update marker position when clicking on the map
+     * @param {Event} e - Click event with latlng property
+     */
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateCoordinateFields(e.latlng.lat, e.latlng.lng);
+    });
+    
+    /**
+     * Update coordinate fields in the form
+     * @param {number} lat - Latitude value
+     * @param {number} lng - Longitude value
+     */
+    function updateCoordinateFields(lat, lng) {
+        const latField = document.getElementById('id_latitude');
+        const lngField = document.getElementById('id_longitude');
+        
+        if (latField) latField.value = lat.toFixed(6);
+        if (lngField) lngField.value = lng.toFixed(6);
+        
+        // Trigger change events for form validation
+        if (latField) latField.dispatchEvent(new Event('change'));
+        if (lngField) lngField.dispatchEvent(new Event('change'));
+    }
+    
+    /**
+     * Update marker when coordinates are manually changed in form
+     */
+    ['latitude', 'longitude'].forEach(field => {
+        const input = document.getElementById(`id_${field}`);
+        if (input) {
+            input.addEventListener('change', function() {
+                const lat = parseFloat(document.getElementById('id_latitude').value) || defaultLat;
+                const lng = parseFloat(document.getElementById('id_longitude').value) || defaultLng;
+                
+                // Update marker position
+                marker.setLatLng([lat, lng]);
+                
+                // Center map on new position
+                map.setView([lat, lng], map.getZoom());
+            });
+        }
+    });
+    
+    // Force map to recalculate size after initialization
+    // Fixes issues with maps in tabs or hidden elements
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+}
+</script>
+{% endblock %}

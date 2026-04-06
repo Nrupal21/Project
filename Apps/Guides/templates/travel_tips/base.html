@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block head_title %}{% endblock %} - Travel Tips & Guides{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/travel_tips.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Main Content -->
+        <main class="w-full md:w-2/3 lg:w-3/4">
+            {% block breadcrumbs %}{% endblock %}
+            
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="px-4 py-3 rounded-md {% if message.tags %}{{ message.tags }}{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block tip_content %}{% endblock %}
+        </main>
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-1/3 lg:w-1/4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Tips</h3>
+                <form action="{% url 'travel_tips:list' %}" method="get" class="mb-4">
+                    <div class="relative">
+                        <input type="text" name="q" placeholder="Search tips..." 
+                               class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                               value="{{ request.GET.q }}">
+                        <button type="submit" class="absolute right-2 top-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+                
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Categories</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{% url 'travel_tips:list' %}" 
+                           class="flex items-center px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
+                            <span class="mr-2">📚</span>
+                            <span>All Tips</span>
+                            <span class="ml-auto bg-gray-200 dark:bg-gray-600 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                {{ total_tips_count|default:0 }}
+                            </span>
+                        </a>
+                    </li>
+                    {% for category in categories %}
+                    <li>
+                        <a href="{% url 'travel_tips:category_detail' category.slug %}" 
+                           class="flex items-center px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
+                            <span class="mr-2">{{ category.icon|default:'📌' }}</span>
+                            <span>{{ category.name }}</span>
+                            <span class="ml-auto bg-gray-200 dark:bg-gray-600 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                {{ category.tip_count|default:0 }}
+                            </span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                {% if user.is_staff %}
+                <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Actions</h3>
+                    <a href="{% url 'travel_tips:create' %}" 
+                       class="block w-full text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition duration-200 mb-2">
+                        + New Travel Tip
+                    </a>
+                    <a href="{% url 'travel_tips:draft_list' %}" 
+                       class="block w-full text-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition duration-200 mb-2">
+                        View Drafts
+                    </a>
+                    <a href="{% url 'travel_tips:pending_comments' %}" 
+                       class="block w-full text-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition duration-200">
+                        Pending Comments
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if featured_tips %}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Featured Tips</h3>
+                <div class="space-y-4">
+                    {% for tip in featured_tips %}
+                    <a href="{% url 'travel_tips:detail' tip.slug %}" 
+                       class="block group">
+                        <div class="flex items-start">
+                            {% if tip.featured_image %}
+                            <div class="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
+                                <img src="{{ tip.featured_image.url }}" 
+                                     alt="{{ tip.title }}"
+                                     class="w-full h-full object-cover">
+                            </div>
+                            {% endif %}
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                                    {{ tip.title|truncatewords:6 }}
+                                </h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ tip.published_at|date:"M d, Y" }}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add any JavaScript specific to travel tips here
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any tooltips, modals, etc.
+});
+</script>
+{% endblock %}

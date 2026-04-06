@@ -1,0 +1,273 @@
+{% comment %}
+/**
+ * Base Email Template
+ * 
+ * This template serves as the foundation for all email communications sent from the TravelGuide website.
+ * It provides a consistent layout and styling for all transactional emails including:
+ * - Account verification emails
+ * - Password reset emails
+ * - Guide application status updates
+ * - Booking confirmations
+ * - Newsletter communications
+ * 
+ * The design follows the website's indigo/violet color scheme and maintains brand consistency
+ * across all communications.
+ */
+{% endcomment %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TravelGuide{% endblock %}</title>
+    <style>
+        /* Base Styles - consistent with website's indigo/violet color scheme */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #4a5568;
+            margin: 0;
+            padding: 0;
+            background-color: #f7fafc;
+        }
+
+        /* Email Container - main wrapper for email content */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header - contains logo and primary branding */
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header img {
+            max-height: 60px;
+            width: auto;
+        }
+
+        /* Content - main email message area */
+        .content {
+            padding: 30px 25px;
+        }
+
+        /* Footer - contains contact info, social links, and legal text */
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 25px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Typography Styles */
+        h1 {
+            color: #4338ca; /* indigo-700 */
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: #5b21b6; /* violet-800 */
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        /* Link Styling - uses the indigo color scheme */
+        a {
+            color: #4f46e5; /* indigo-600 */
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Button Styling - primary action button */
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+            text-decoration: none;
+        }
+
+        /* Responsive Design - ensures proper rendering on mobile devices */
+        @media only screen and (max-width: 620px) {
+            .email-container {
+                width: 100% !important;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .button {
+                display: block;
+                width: 100%;
+            }
+        }
+        
+        /* Additional mobile optimization for landscape orientation */
+        @media only screen and (max-height: 500px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .header img {
+                max-height: 40px;
+            }
+            
+            .content {
+                padding: 15px 10px;
+            }
+            
+            .footer {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            p {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            
+            .button {
+                padding: 8px 16px;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Email Container -->
+    <div class="email-container">
+        <!-- Header with Logo -->
+        <div class="header">
+            <img src="https://yourwebsite.com/static/images/logo-white.png" alt="TravelGuide Logo" />
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="content">
+            <!-- Email Title -->
+            <h1>{% block email_title %}Welcome to TravelGuide{% endblock %}</h1>
+            
+            <!-- Email Body Content -->
+            {% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+            <p>Default email content. This should be replaced in child templates.</p>
+            {% endblock %}
+            
+            <!-- Optional Action Button -->
+            {% block action_button %}{% endblock %}
+            
+            <!-- Email Signature -->
+            <p>
+                Best regards,<br>
+                The TravelGuide Team
+            </p>
+        </div>
+        
+        <!-- Footer with Legal Information -->
+        <div class="footer">
+            <!-- Contact Information -->
+            <p>
+                If you have any questions, please contact us at 
+                <a href="mailto:support@travelguide.com">support@travelguide.com</a>
+            </p>
+            
+            <!-- Legal Text and Unsubscribe -->
+            <p>
+                &copy; {% now "Y" %} TravelGuide. All rights reserved.<br>
+                {% block unsubscribe %}
+                You're receiving this email because you have an account with TravelGuide.
+                {% endblock %}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

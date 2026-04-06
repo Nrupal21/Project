@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Set Up Two-Factor Authentication - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">Set Up Two-Factor Authentication</h1>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Two-factor authentication adds an extra layer of security to your account. After enabling, you'll need to enter a verification code from your authentication app each time you log in.
+                    </div>
+                    
+                    <!-- Step 1: Install Auth App -->
+                    <h3 class="h5 mb-3">Step 1: Install Authentication App</h3>
+                    <p>If you haven't already, install an authentication app on your mobile device:</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fab fa-android me-2"></i>Google Authenticator (Android)
+                        </a>
+                        <a href="https://apps.apple.com/us/app/google-authenticator/id388497605" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fab fa-apple me-2"></i>Google Authenticator (iOS)
+                        </a>
+                        <a href="https://authy.com/download/" target="_blank" class="btn btn-outline-secondary">
+                            <i class="fas fa-mobile-alt me-2"></i>Authy
+                        </a>
+                    </div>
+                    
+                    <!-- Step 2: Scan QR Code -->
+                    <h3 class="h5 mb-3">Step 2: Scan QR Code</h3>
+                    <p>Scan this QR code with your authentication app:</p>
+                    <div class="text-center mb-4">
+                        <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" class="img-fluid border p-2" style="max-width: 200px;">
+                    </div>
+                    
+                    <!-- Step 3: Manual Entry Option -->
+                    <h3 class="h5 mb-3">Step 3: Can't scan the code?</h3>
+                    <p>Manually enter this key in your authentication app:</p>
+                    <div class="input-group mb-4">
+                        <input type="text" class="form-control font-monospace" value="{{ secret_key }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copySecretKey()" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Step 4: Choose Method -->
+                    <h3 class="h5 mb-3">Step 4: Choose Authentication Method</h3>
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            {% for radio in form.method %}
+                            <div class="form-check mb-2">
+                                {{ radio.tag }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                    {{ radio.choice_label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% if form.method.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.method.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                {{ form.method.help_text }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'security:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Continue</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to copy the secret key to clipboard
+    function copySecretKey() {
+        const secretField = document.querySelector('.input-group input');
+        secretField.select();
+        document.execCommand('copy');
+        
+        // Show tooltip or notification (could be enhanced with a proper toast/tooltip)
+        alert('Secret key copied to clipboard');
+    }
+</script>
+{% endblock %}

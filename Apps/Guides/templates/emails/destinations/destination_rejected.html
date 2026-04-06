@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destination Submission Feedback - TravelGuide</title>
+    <!-- 
+     * ==========================================================================
+     * DESTINATION REJECTION EMAIL TEMPLATE
+     * ==========================================================================
+     * This template is used to send notification emails when a destination is rejected.
+     * 
+     * Features:
+     * - Responsive design that works across email clients
+     * - Branded with the indigo/violet color scheme
+     * - Clear feedback about why the destination was rejected
+     * - Constructive guidance for resubmission
+     * - Call-to-action button for editing and resubmitting
+     * 
+     * Email styles must be inline for maximum compatibility with email clients.
+     */
+    -->
+    <style>
+        /* Base styles - Sets the foundation for the email */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Container and card styles */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        /* Header styles with indigo/violet gradient */
+        .header {
+            background: linear-gradient(to right, #6366f1, #8b5cf6); /* indigo-500 to violet-600 gradient */
+            padding: 24px;
+            color: white;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        /* Content styles */
+        .content {
+            padding: 24px;
+        }
+        
+        /* Feedback box styling - Highlights the rejection reason */
+        .feedback-box {
+            background-color: #f5f3ff; /* Light violet background */
+            border-left: 4px solid #8b5cf6; /* violet-600 accent */
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        /* Button styles with indigo/violet gradient - Consistent with our color scheme */
+        .button {
+            display: inline-block;
+            background: linear-gradient(to right, #6366f1, #8b5cf6); /* indigo-500 to violet-600 gradient */
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            margin: 16px 0;
+        }
+        
+        /* Footer styles */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main email container - Wraps entire email with max width -->
+    <div class="container">
+        <!-- Email card with header - Provides the white background and shadow -->
+        <div class="card">
+            <!-- Header with our branded indigo/violet gradient -->
+            <div class="header">
+                <h1>Destination Submission Update</h1>
+            </div>
+            
+            <!-- Main content area - Contains the email message body -->
+            <div class="content">
+                <!-- Personalized greeting -->
+                <p>Hi {{ destination.created_by.get_full_name|default:destination.created_by.username }},</p>
+                
+                <!-- Reference to specific destination -->
+                <p>Thank you for submitting "<strong>{{ destination.name }}</strong>" to TravelGuide. Our review team has carefully assessed your submission.</p>
+                
+                <!-- Gentle rejection with encouragement -->
+                <p>After review, we're unable to approve this destination at this time. We appreciate your contribution and encourage you to submit again after addressing the feedback below.</p>
+                
+                <!-- Rejection reason and feedback -->
+                <div class="feedback-box">
+                    <p><strong>Feedback from our review team:</strong></p>
+                    <p>{{ rejection_reason|linebreaks|default:"Our team has determined that this submission does not meet our current guidelines for published destinations." }}</p>
+                </div>
+                
+                <p>Here's a summary of your submitted destination:</p>
+                
+                <ul>
+                    <li><strong>Name:</strong> {{ destination.name }}</li>
+                    <li><strong>Location:</strong> {{ destination.city }}, {{ destination.country }}</li>
+                    <li><strong>Category:</strong> {{ destination.category }}</li>
+                    <li><strong>Review Date:</strong> {{ destination.review_date|date:"F j, Y" }}</li>
+                </ul>
+                
+                <p>You can review our content guidelines and submit another destination by clicking the button below:</p>
+                
+                <!-- CTA button -->
+                <div style="text-align: center;">
+                    <a href="{{ submission_guidelines_url }}" class="button">View Submission Guidelines</a>
+                </div>
+                
+                <p>We value your contributions to the TravelGuide community and hope you'll consider submitting again in the future.</p>
+                
+                <p>If you have any questions about this decision or need clarification on our guidelines, please don't hesitate to contact our support team.</p>
+                
+                <p>Best regards,<br>The TravelGuide Team</p>
+            </div>
+            
+            <!-- Email footer -->
+            <div class="footer">
+                <p>&copy; {% now "Y" %} TravelGuide. All rights reserved.</p>
+                <p>
+                    If you have any questions, please contact us at 
+                    <a href="mailto:support@travelguide.com">support@travelguide.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

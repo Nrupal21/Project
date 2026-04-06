@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Your Rewards Dashboard | TravelGuide{% endblock %}
+{% block meta_description %}Manage your rewards, check your points balance, and redeem exciting rewards with TravelGuide's rewards program.{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<style>
+    /**
+     * Rewards Dashboard Styles
+     * - Custom styling for the rewards dashboard components
+     * - Uses the indigo/violet color scheme for consistency
+     * - Includes responsive adjustments for mobile devices
+     */
+    .tier-progress-bar {
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        overflow: hidden;
+        background-color: #e5e7eb; /* gray-200 */
+    }
+    
+    .tier-progress-fill {
+        height: 100%;
+        border-radius: 0.25rem;
+        background: linear-gradient(to right, #6366f1, #8b5cf6); /* indigo-500 to purple-500 */
+        transition: width 0.5s ease-in-out;
+    }
+    
+    .activity-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .activity-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .redemption-option {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .redemption-option:hover {
+        background-color: rgba(99, 102, 241, 0.05); /* indigo-500 with low opacity */
+    }
+    
+    /* Responsive adjustments for mobile landscape orientation */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .rewards-container {
+            padding: 0.75rem;
+        }
+        
+        .tier-card {
+            padding: 0.75rem;
+        }
+        
+        .section-heading {
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+ * Rewards Dashboard Main Container
+ * - Layout structure for the rewards dashboard with responsive grid
+ * - Contains tier status, points balance, activity history, and redemption options
+ * - Uses consistent indigo/violet color scheme with the rest of the site
+ -->
+<div class="bg-gray-50 dark:bg-gray-900 py-8 md:py-12 rewards-container">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <!-- Page Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">Rewards Dashboard</h1>
+            <p class="text-gray-600 dark:text-gray-300">Earn points, reach new tiers, and unlock exclusive benefits</p>
+        </div>
+        
+        <!-- User Points Summary -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-6 tier-card">
+            <div class="p-6">
+                <!-- Current Tier and Points -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold 
+                               {% if user_tier.name == 'Gold' %}bg-yellow-100 text-yellow-800
+                               {% elif user_tier.name == 'Platinum' %}bg-purple-100 text-purple-800
+                               {% elif user_tier.name == 'Diamond' %}bg-blue-100 text-blue-800
+                               {% else %}bg-indigo-100 text-indigo-800{% endif %} 
+                               mb-2">{{ user_tier.name }}</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{{ points_balance|intcomma }} Points</h2>
+                    </div>
+                    <a href="{% url 'rewards:redeem_points' %}" class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 rounded-md text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Redeem Points
+                    </a>
+                </div>
+                
+                <!-- Tier Progress -->
+                <div class="mb-2">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600 dark:text-gray-300">Current: {{ user_tier.name }}</span>
+                        {% if next_tier %}
+                            <span class="text-gray-600 dark:text-gray-300">Next: {{ next_tier.name }} ({{ next_tier.min_points|intcomma }} points)</span>
+                        {% else %}
+                            <span class="text-gray-600 dark:text-gray-300">Highest Tier Achieved!</span>
+                        {% endif %}
+                    </div>
+                    <div class="tier-progress-bar">
+                        <div class="tier-progress-fill" style="width: {{ tier_progress }}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Points to Next Tier -->
+                {% if next_tier %}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">You need {{ points_to_next_tier|intcomma }} more points to reach {{ next_tier.name }}</p>
+                {% endif %}
+                
+                <!-- Tier Benefits Summary -->
+                <div class="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                    <h4 class="font-medium text-indigo-700 dark:text-indigo-300 mb-2">Your {{ user_tier.name }} Benefits:</h4>
+                    <ul class="text-gray-600 dark:text-gray-300 text-sm">
+                        <li class="flex items-center mb-1">
+                            <svg class="w-4 h-4 mr-2 text-indigo-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            {{ user_tier.multiplier }}x points on all activities
+                        </li>
+                        {% if user_tier.benefits %}
+                            {% for benefit in user_tier.get_benefits_list %}
+                                <li class="flex items-center mb-1">
+                                    <svg class="w-4 h-4 mr-2 text-indigo-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                    {{ benefit }}
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                    <a href="{% url 'rewards:tier_benefits' %}" class="inline-block mt-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                        View all tier benefits
+                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity and Redemption Options -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Activity Section -->
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white section-heading">Recent Activity</h3>
+                            <a href="{% url 'rewards:points_history' %}" class="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">View all</a>
+                        </div>
+                        
+                        {% if recent_points %}
+                            <div class="space-y-4">
+                                {% for point in recent_points %}
+                                    <div class="activity-card flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div class="flex items-center">
+                                            <div class="{% if point.points > 0 %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %} rounded-full p-2 mr-3">
+                                                {% if point.points > 0 %}
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                                {% else %}
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-800 dark:text-white">{{ point.get_activity_display }}</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ point.created_at|date:"M d, Y" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold {% if point.points > 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                                {{ point.points|intcomma }}
+                                            </p>
+                                            {% if point.expiry_date %}
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Expires: {{ point.expiry_date|date:"M d, Y" }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-6">
+                                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="text-gray-500 dark:text-gray-400">No activity yet. Start exploring to earn points!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Redemption Options -->
+            <div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 section-heading">Redemption Options</h3>
+                        
+                        {% if points_balance >= 500 %}
+                            <div class="space-y-3">
+                                {% if points_balance >= 500 %}
+                                    <a href="{% url 'rewards:redeem_points' %}?option=coupon" class="redemption-option block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-medium text-gray-800 dark:text-white">10% Discount Coupon</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">For any tour booking</p>
+                                            </div>
+                                            <span class="font-bold text-indigo-600 dark:text-indigo-400">500 pts</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if points_balance >= 1000 %}
+                                    <a href="{% url 'rewards:redeem_points' %}?option=coupon" class="redemption-option block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-medium text-gray-800 dark:text-white">25% Discount Coupon</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">For any tour booking</p>
+                                            </div>
+                                            <span class="font-bold text-indigo-600 dark:text-indigo-400">1,000 pts</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if points_balance >= 2500 %}
+                                    <a href="{% url 'rewards:redeem_points' %}?option=travel" class="redemption-option block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-medium text-gray-800 dark:text-white">$50 Travel Credit</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Added to your account</p>
+                                            </div>
+                                            <span class="font-bold text-indigo-600 dark:text-indigo-400">2,500 pts</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if points_balance >= 5000 %}
+                                    <a href="{% url 'rewards:redeem_points' %}?option=cash" class="redemption-option block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <p class="font-medium text-gray-800 dark:text-white">$100 Cash Transfer</p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">To your linked account</p>
+                                            </div>
+                                            <span class="font-bold text-indigo-600 dark:text-indigo-400">5,000 pts</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'rewards:redeem_points' %}" class="block text-center p-2 text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mt-2">
+                                    View all redemption options
+                                    <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-6">
+                                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-gray-500 dark:text-gray-400">You need at least 500 points to redeem rewards.</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Keep earning to unlock redemption options!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mt-6">
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Quick Links</h3>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="{% url 'rewards:points_history' %}" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                    Points History
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'rewards:redemption_history' %}" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    Redemption History
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'rewards:tier_benefits' %}" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                    Tier Benefits
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'rewards:redeem_points' %}" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Redeem Points
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

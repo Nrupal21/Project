@@ -1,0 +1,25 @@
+"""
+Accounts App Initialization.
+
+This module initializes the accounts app and exposes important models and utilities.
+"""
+
+# Import models to make them available at the package level
+from .models import (
+    User,
+    UserProfile,
+    UserPreference,
+    UserFavorite,
+    GuideApplication,
+    VerificationToken
+)
+
+# Define what gets imported with 'from accounts import *'
+__all__ = [
+    'User',
+    'UserProfile',
+    'UserPreference',
+    'UserFavorite',
+    'GuideApplication',
+    'VerificationToken'
+]

@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Your Notifications{% endblock %}
+
+{% block content %}
+<!-- 
+ * ==========================================================================
+ * NOTIFICATION LIST PAGE
+ * ==========================================================================
+ * This template displays all notifications for the current user with:
+ * - Filtering options (all vs unread)
+ * - Interactive notification cards with different styling based on notification level
+ * - Action buttons for individual and batch operations
+ * - AJAX functionality for smooth user experience
+ * - Responsive design for all device sizes
+ */
+-->
+<div class="max-w-screen-2xl w-full mx-auto px-4 py-8">
+    <!-- 
+     * Notification page header with title and counter 
+     * Shows total unread notifications and provides action buttons
+     * Uses the indigo/violet color scheme for consistency
+     -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 md:mb-0">
+            Your Notifications
+            {% if unread_count > 0 %}
+            <span class="ml-2 px-2 py-1 text-sm bg-gradient-to-r from-indigo-600 to-violet-600 text-white dark:from-indigo-500 dark:to-violet-500 rounded-full">
+                {{ unread_count }} new
+            </span>
+            {% endif %}
+        </h1>
+        
+        <!-- Action buttons for notifications -->
+        <div class="flex space-x-3">
+            {% if unread_count > 0 %}
+            <form action="{% url 'notifications:mark_all_read' %}" method="POST" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                    class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-lg shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    <!-- Button with consistent gradient styling from the new color palette -->
+                    Mark All as Read
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Notification filters -->
+    <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+            <li class="mr-2">
+                <a href="?filter=all" class="inline-block p-4 rounded-t-lg {% if request.GET.filter != 'unread' %}text-indigo-600 border-b-2 border-indigo-600 dark:text-indigo-400 dark:border-indigo-400{% else %}hover:text-indigo-600 hover:border-indigo-600 dark:hover:text-indigo-400{% endif %}">
+                    All ({{ all_count }})
+                </a>
+            </li>
+            <li class="mr-2">
+                <a href="?filter=unread" class="inline-block p-4 rounded-t-lg {% if request.GET.filter == 'unread' %}text-indigo-600 border-b-2 border-indigo-600 dark:text-indigo-400 dark:border-indigo-400{% else %}hover:text-indigo-600 hover:border-indigo-600 dark:hover:text-indigo-400{% endif %}">
+                    Unread ({{ unread_count }})
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Notification list -->
+    {% if notifications %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg divide-y divide-gray-200 dark:divide-gray-700">
+        {% for notification in notifications %}
+        <!-- 
+         * ==========================================================================
+         * INDIVIDUAL NOTIFICATION CARD
+         * ==========================================================================
+         * - Each notification is contained in its own card with responsive layout
+         * - Unread notifications have subtle background highlight
+         * - Visual indicators use level-appropriate icons
+         * - Consistent hover effects for better user interaction
+         * - Uses indigo/violet color palette while maintaining semantic meaning
+         */
+         -->
+        <div id="notification-{{ notification.id }}" class="notification-card p-4 {% if not notification.is_read %}bg-indigo-50 dark:bg-indigo-900/20{% endif %} transition-colors duration-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+            <div class="flex items-start">
+                <!-- 
+                 * Notification Icon Badge
+                 * - Visual indicator of notification type/level
+                 * - Uses different icons for different notification levels
+                 * - Follows the indigo/violet color palette with variations based on severity
+                 * - Maintains semantic meaning through icon shape
+                 */
+                -->
+                <div class="flex-shrink-0 mr-4">
+                    {% if notification.level == 'info' %}
+                    <div class="w-10 h-10 flex items-center justify-center bg-indigo-100 dark:bg-indigo-800/60 rounded-full shadow-sm">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    {% elif notification.level == 'success' %}
+                    <div class="w-10 h-10 flex items-center justify-center bg-violet-100 dark:bg-violet-800/60 rounded-full shadow-sm">
+                        <svg class="w-6 h-6 text-violet-600 dark:text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    {% elif notification.level == 'warning' %}
+                    <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-800/40 rounded-full shadow-sm">
+                        <svg class="w-6 h-6 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    {% elif notification.level == 'danger' %}
+                    <div class="w-10 h-10 flex items-center justify-center bg-rose-100 dark:bg-rose-800/40 rounded-full shadow-sm">
+                        <svg class="w-6 h-6 text-rose-600 dark:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 
+                 * Notification Content Section
+                 * - Contains title, timestamp, and truncated message
+                 * - Responsive layout with proper text hierarchy
+                 * - Maintains readability in both light and dark modes
+                 */
+                -->
+                <div class="flex-1">
+                    <!-- 
+                     * Title and Timestamp Header
+                     * - Displays notification title with proper emphasis
+                     * - Shows relative or absolute timestamp based on recency
+                     * - Ensures proper contrast in both light and dark modes
+                     */
+                    -->
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ notification.title }}</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ notification.created_at|date:"M d, Y h:i A" }}</span>
+                    </div>
+                    
+                    <!-- 
+                     * Message Preview
+                     * - Shows truncated message content
+                     * - Ensures readable text with proper line height
+                     * - Maintains consistent styling across notification types
+                     */
+                    -->
+                    <p class="text-gray-700 dark:text-gray-300 mb-3">
+                        {{ notification.message|truncatechars:150 }}
+                    </p>
+                    
+                    <!-- 
+                     * ==========================================================================
+                     * NOTIFICATION ACTION BUTTONS
+                     * ==========================================================================
+                     * - Primary and secondary actions for each notification
+                     * - Consistent indigo/violet color scheme for primary actions
+                     * - Clear visual hierarchy between different button types
+                     * - Responsive layout with proper spacing on all screen sizes
+                     */
+                     -->
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex space-x-2">
+                            <!-- 
+                             * Primary Navigation Links
+                             * - "View Details" always available to see full notification
+                             * - Optional custom action link provided by notification
+                             * - Uses indigo/violet color scheme for consistent branding
+                             */
+                             -->
+                            <a href="{{ notification.get_absolute_url }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                View Details
+                            </a>
+                            
+                            <!-- Optional custom action link if provided -->
+                            {% if notification.link_url and notification.link_text %}
+                            <a href="{{ notification.link_url }}" class="text-violet-600 hover:text-violet-800 dark:text-violet-400 dark:hover:text-violet-300 transition-colors">
+                                {{ notification.link_text }}
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 
+                         * Management Action Buttons
+                         * - Contains mark as read and delete functionality
+                         * - Uses AJAX for smooth user experience without page reload
+                         * - Styled consistently with the rest of the interface
+                         * - Delete action has confirmation to prevent accidents
+                         */
+                         -->
+                        <div class="flex space-x-2">
+                            <!-- Mark as read button (only shown for unread notifications) -->
+                            {% if not notification.is_read %}
+                            <form action="{% url 'notifications:mark_read' notification.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                                    Mark as Read
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <!-- Delete button with confirmation dialog -->
+                            <form action="{% url 'notifications:delete' notification.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Are you sure you want to delete this notification?')" 
+                                    class="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 transition-colors">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- 
+     * ==========================================================================
+     * PAGINATION CONTROLS
+     * ==========================================================================
+     * - Allows navigation between pages of notifications
+     * - Previous/Next buttons with proper disabled states
+     * - Current page indicator
+     * - Preserves any active filters when navigating
+     * - Consistent styling with the rest of the interface
+     */
+     -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" 
+                class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors">
+                Previous
+            </a>
+            {% endif %}
+            
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" 
+                class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty state when no notifications -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 mb-4">
+            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No notifications yet</h3>
+        <p class="text-gray-500 dark:text-gray-400">You don't have any notifications at the moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- JavaScript for AJAX notification handling -->
+<script>
+    /**
+     * Initialize notification handlers when the document is loaded
+     * Sets up event listeners and AJAX functionality for the notification interface
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup mark-as-read buttons with AJAX handling
+        setupMarkAsReadButtons();
+    });
+    
+    /**
+     * Sets up mark-as-read buttons with AJAX functionality
+     * Allows marking notifications as read without page reload
+     * Updates notification counters and styling dynamically
+     * @returns {void}
+     */
+    function setupMarkAsReadButtons() {
+        // Select all mark-as-read forms and add event listeners
+        const notificationForms = document.querySelectorAll('form[action^="{% url 'notifications:mark_read' 0 %}"]');
+        
+        // Add event listeners to each form
+        if (notificationForms && notificationForms.length > 0) {
+            notificationForms.forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formAction = this.getAttribute('action');
+                    const csrfToken = this.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                
+                // Make AJAX request to mark notification as read
+                fetch(formAction, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        // Find the parent notification element
+                        const notificationEl = this.closest('.notification-card');
+                        if (notificationEl) {
+                            // Remove the unread styling with smooth transition
+                            notificationEl.classList.remove('bg-indigo-50', 'dark:bg-indigo-900/20');
+                            
+                            // Remove the mark as read button
+                            this.remove();
+                            
+                            // Update the unread count in the header if present
+                            const unreadCountEl = document.querySelector('span.bg-gradient-to-r');
+                            if (unreadCountEl && data.unread_count > 0) {
+                                unreadCountEl.textContent = data.unread_count + ' new';
+                            } else if (unreadCountEl) {
+                                // Fade out and remove the badge when no more unread notifications
+                                unreadCountEl.style.transition = 'opacity 0.5s ease-in-out';
+                                unreadCountEl.style.opacity = '0';
+                                setTimeout(() => unreadCountEl.remove(), 500);
+                            }                      }
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error marking notification as read:', error);
+                });
+            });
+        });
+    }
+    
+    // Initialize the mark-as-read buttons when the page loads
+    document.addEventListener('DOMContentLoaded', setupMarkAsReadButtons);
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+<!-- Gallery Section - Showcases beautiful travel photos from around the world -->
+<!-- 
+* This section displays destination images dynamically from the database
+* Images are fetched in the HomeView.get_context_data method in core/views.py
+* The section includes:
+*   1. Decorative background elements with animations
+*   2. Section header with title and description
+*   3. Dynamic gallery grid that adapts to screen size
+*   4. Fallback image display when no database images are available
+*   5. Link to the destinations page
+-->
+<section class="py-20 bg-white dark:bg-gray-900 relative overflow-hidden">
+    <!-- Decorative background elements with subtle gradient and animations -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-1/4 left-1/3 w-64 h-64 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-1000"></div>
+        <div class="absolute bottom-1/3 right-1/4 w-72 h-72 bg-violet-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-3000"></div>
+        <div class="absolute bottom-1/4 left-1/4 w-80 h-80 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+    </div>
+    
+    <!-- Main content container with proper z-index to appear above background elements -->
+    <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+        <!-- Section header with title, gradient underline and description -->
+        <div class="text-center mb-12">
+            <!-- Section badge with gradient background -->
+            <span class="inline-block px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-semibold tracking-wide uppercase rounded-full mb-4 shadow-lg">
+                <span class="relative z-10">Visual Inspiration</span>
+            </span>
+            
+            <!-- Section title with responsive text sizing -->
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Destination Gallery</h2>
+            
+            <!-- Decorative gradient divider -->
+            <div class="w-24 h-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 mx-auto rounded-full mb-6"></div>
+            
+            <!-- Section description with responsive width control -->
+            <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
+                Explore stunning landscapes and iconic destinations through our curated collection of travel photography.
+            </p>
+        </div>
+        
+        <!-- Gallery grid with responsive layout using CSS grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+            {% if has_gallery %}
+                <!-- Dynamic Gallery Content Section -->
+                {% for destination in gallery_destinations %}
+                    <div class="gallery-image-card group rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 transform transition-transform hover:-translate-y-2 hover:shadow-xl">
+                        <!-- Image container with fixed aspect ratio -->
+                        <div class="relative aspect-w-16 aspect-h-12 overflow-hidden">
+                            <a href="{% url 'destinations:destination_detail' destination.slug %}" class="block w-full h-full">
+                                <!-- Responsive image with performance optimizations -->
+                                {% with destination.primary_images|first as image %}
+                                {% if image %}
+                                <img 
+                                    src="{{ image.image.url }}" 
+                                    alt="{{ image.alt_text|default:destination.name }}" 
+                                    class="w-full h-full object-cover transition-transform duration-300 transform hover:scale-105"
+                                    loading="lazy">
+                                {% else %}
+                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-300 text-4xl"></i>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                                
+                                <!-- Overlay gradient for text readability -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
+                                
+                                <!-- Location and title overlay -->
+                                <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+                                    <!-- Location with icon -->
+                                    <div class="flex items-center text-xs font-medium mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                        </svg>
+                                        {{ destination.region.name|default:"Unknown" }}
+                                    </div>
+                                    
+                                    <!-- Destination title with truncation -->
+                                    <h3 class="font-bold text-sm sm:text-base truncate">
+                                        {{ destination.name }}
+                                    </h3>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Fallback Gallery Items -->
+                {% for i in "1234" %}
+                <div class="gallery-image-card group rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 transform transition-transform hover:-translate-y-2 hover:shadow-xl">
+                    <!-- Image container with fixed aspect ratio -->
+                    <div class="relative aspect-w-16 aspect-h-12 overflow-hidden">
+                        <a href="#" class="block w-full h-full">
+                            <!-- Static fallback image -->
+                            <img 
+                                src="https://source.unsplash.com/random/800x600/?travel,{{ i }}" 
+                                alt="Travel Destination {{ i }}" 
+                                class="w-full h-full object-cover transition-transform duration-300 transform hover:scale-105"
+                                loading="lazy">
+                            
+                            <!-- Overlay gradient for text readability -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
+                            
+                            <!-- Location and title overlay -->
+                            <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+                                <!-- Location with icon -->
+                                <div class="flex items-center text-xs font-medium mb-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    {% cycle 'Bali, Indonesia' 'Santorini, Greece' 'Kyoto, Japan' 'Paris, France' %}
+                                </div>
+                                
+                                <!-- Image title with truncation -->
+                                <h3 class="font-bold text-sm sm:text-base">
+                                    {% cycle 'Tropical Paradise' 'Sunset Views' 'Temple Beauty' 'City of Lights' %}
+                                </h3>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- View all button with gradient background and hover effects -->
+        <div class="mt-10 text-center">
+            <a href="{% url 'core:gallery' %}" class="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-medium shadow-lg transform transition-transform hover:-translate-y-1 hover:shadow-xl group">
+                <span>View All Gallery</span>
+                <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>

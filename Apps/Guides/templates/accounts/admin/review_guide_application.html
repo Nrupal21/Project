@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Guide Application - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+
+
+<style>
+    /**
+     * Guide Application Review Page Styles
+     * ==========================================
+     * Styling for the guide application review interface
+     * - Clean, organized layout for application details
+     * - Responsive design for all device sizes
+     * - Consistent indigo/violet color scheme
+     */
+    
+    /* Main container */
+    .review-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Application header */
+    .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .app-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .app-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-under-review {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .status-approved {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    
+    /* Application sections */
+    .app-section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Applicant info */
+    .applicant-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-weight: 500;
+        color: #1f2937;
+    }
+    
+    /* Document preview */
+    .document-preview {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .document-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .btn-approve {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-approve:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);
+    }
+    
+    .btn-reject {
+        background: white;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-reject:hover {
+        background: #fef2f2;
+    }
+    
+    /* Review notes */
+    .review-notes {
+        margin-top: 1.5rem;
+    }
+    
+    .review-notes textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .review-container {
+            margin: 1rem;
+            padding: 1.25rem;
+        }
+        
+        .applicant-info {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="review-container">
+    <!-- Application Header -->
+    <div class="app-header">
+        <h1 class="app-title">Guide Application Review</h1>
+        <span class="app-status status-{{ application.get_status_display|lower|slugify }}">
+            {{ application.get_status_display }}
+        </span>
+    </div>
+    
+    <!-- Applicant Information -->
+    <div class="app-section">
+        <h2 class="section-title">Applicant Information</h2>
+        <div class="applicant-info">
+            <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ application.user.get_full_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ application.user.email }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Application Date</div>
+                <div class="info-value">{{ application.application_date|date:"F j, Y" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">ID Type</div>
+                <div class="info-value">{{ application.id_type|title }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Experience & Expertise -->
+    <div class="app-section">
+        <h2 class="section-title">Experience & Expertise</h2>
+        <div class="mb-4">
+            <div class="info-label">Experience</div>
+            <div class="info-value">{{ application.experience|linebreaksbr }}</div>
+        </div>
+        <div class="mb-4">
+            <div class="info-label">Areas of Expertise</div>
+            <div class="info-value">{{ application.areas_of_expertise|linebreaksbr }}</div>
+        </div>
+        <div>
+            <div class="info-label">Languages Spoken</div>
+            <div class="info-value">{{ application.languages|join:", " }}</div>
+        </div>
+    </div>
+    
+    <!-- Document Verification -->
+    <div class="app-section">
+        <h2 class="section-title">Document Verification</h2>
+        <div class="document-preview">
+            <div class="info-label">Government ID</div>
+            <div class="info-value">{{ application.get_filename }}</div>
+            <div class="document-actions">
+                <a href="{{ application.government_id.url }}" 
+                   target="_blank" 
+                   class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    View Document
+                </a>
+                <a href="{{ application.government_id.url }}" 
+                   download
+                   class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    Download
+                </a>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="flex items-center">
+                <input type="checkbox" id="id_verification" class="mr-2" 
+                       {% if application.id_verification_status %}checked{% endif %}>
+                <label for="id_verification" class="text-sm font-medium text-gray-700">
+                    ID Verification Completed
+                </label>
+            </div>
+            
+            <div class="mt-2 flex items-center">
+                <input type="checkbox" id="background_check" class="mr-2"
+                       {% if application.background_check_status %}checked{% endif %}>
+                <label for="background_check" class="text-sm font-medium text-gray-700">
+                    Background Check Completed
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Review Actions -->
+    <div class="app-section">
+        <h2 class="section-title">Review Actions</h2>
+        
+        {% if application.status == 'pending' or application.status == 'under_review' %}
+        <form method="post" id="reviewForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="actionInput" value="">
+            
+            <div class="review-notes">
+                <label for="review_notes" class="block text-sm font-medium text-gray-700">
+                    Review Notes (Optional)
+                </label>
+                <textarea name="review_notes" id="review_notes" 
+                          placeholder="Add any notes or comments about this application..."></textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" 
+                        onclick="submitReview('approve')" 
+                        class="btn-approve">
+                    Approve Application
+                </button>
+                <button type="button" 
+                        onclick="submitReview('reject')" 
+                        class="btn-reject">
+                    Reject Application
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="bg-gray-50 p-4 rounded-md">
+            <div class="info-label">Review Status</div>
+            <div class="info-value">
+                This application was {{ application.get_status_display|lower }} 
+                {% if application.reviewed_by %}
+                by {{ application.reviewed_by.get_full_name }}
+                {% endif %}
+                {% if application.review_date %}
+on {{ application.review_date|date:"F j, Y" }}
+                {% endif %}
+            </div>
+            
+            {% if application.review_notes %}
+            <div class="mt-3">
+                <div class="info-label">Review Notes</div>
+                <div class="info-value bg-white p-3 rounded border">
+                    {{ application.review_notes|linebreaksbr }}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if application.status == 'rejected' and application.rejection_reason %}
+            <div class="mt-3">
+                <div class="info-label">Rejection Reason</div>
+                <div class="info-value bg-white p-3 rounded border border-red-50">
+                    {{ application.rejection_reason|linebreaksbr }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Submit the review form with the specified action
+     * 
+     * @param {string} action - The review action ('approve' or 'reject')
+     */
+    function submitReview(action) {
+        const form = document.getElementById('reviewForm');
+        const actionInput = document.getElementById('actionInput');
+        
+        // Set the action and submit the form
+        actionInput.value = action;
+        
+        // Add confirmation for reject action
+        if (action === 'reject') {
+            const notes = document.getElementById('review_notes').value.trim();
+            if (!notes) {
+                if (!confirm('Are you sure you want to reject this application without providing a reason?')) {
+                    return false;
+                }
+            } else if (!confirm('Are you sure you want to reject this application?')) {
+                return false;
+            }
+        } else if (action === 'approve') {
+            if (!confirm('Are you sure you want to approve this application?')) {
+                return false;
+            }
+        }
+        
+        form.submit();
+    }
+    
+    // Update verification status checkboxes
+    document.addEventListener('DOMContentLoaded', function() {
+        const idVerification = document.getElementById('id_verification');
+        const backgroundCheck = document.getElementById('background_check');
+        
+        if (idVerification) {
+            idVerification.addEventListener('change', function() {
+                updateVerificationStatus('id_verification', this.checked);
+            });
+        }
+        
+        if (backgroundCheck) {
+            backgroundCheck.addEventListener('change', function() {
+                updateVerificationStatus('background_check', this.checked);
+            });
+        }
+    });
+    
+    /**
+     * Update verification status via AJAX
+     * 
+     * @param {string} field - The field to update ('id_verification' or 'background_check')
+     * @param {boolean} status - The new status value
+     */
+    function updateVerificationStatus(field, status) {
+        // Fixed URL to use accounts/api path instead of api path
+        const url = `/accounts/api/guide-applications/{{ application.id }}/update-status/`;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        console.log(`Updating ${field} to ${status}`);
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                field: field,
+                status: status,
+                action: 'update_verification_status'
+            })
+        })
+        .then(response => {
+            // Check if the response is ok (status in the range 200-299)
+            if (!response.ok) {
+                console.error(`Server returned ${response.status}: ${response.statusText}`);
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('API response:', data);
+            
+            if (!data.success) {
+                // Show more specific error message if available
+                const errorMsg = data.error || 'Failed to update verification status. Please try again.';
+                alert(errorMsg);
+                
+                // Revert the checkbox if the update failed
+                document.getElementById(field).checked = !status;
+            } else {
+                // Success message (optional)
+                console.log(`Successfully updated ${field} to ${status}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`An error occurred while updating the verification status: ${error.message}`);
+            document.getElementById(field).checked = !status;
+        });
+    }
+</script>
+{% endblock %}

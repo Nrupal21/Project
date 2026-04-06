@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile - TravelGuide{% endblock %}
+
+{% block extra_css %}
+
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900">Edit Your Profile</h1>
+            <p class="mt-2 text-lg text-gray-600">Update your profile information and preferences</p>
+        </div>
+        
+        <!-- Display success or error messages -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-6 rounded-md {% if message.tags == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                    <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    {% else %}
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium {% if message.tags == 'success' %}text-green-800{% else %}text-red-800{% endif %}">
+                        {{ message }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        
+        <!-- Profile Form -->
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <!-- Personal Information Section -->
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Update your personal details.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-6 gap-6">
+                        <!-- First Name Field -->
+                        <div class="col-span-6 sm:col-span-3">
+                            {{ user_form.first_name.label_tag }}
+                            {{ user_form.first_name }}
+                            {% if user_form.first_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ user_form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name Field -->
+                        <div class="col-span-6 sm:col-span-3">
+                            {{ user_form.last_name.label_tag }}
+                            {{ user_form.last_name }}
+                            {% if user_form.last_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ user_form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="col-span-6 sm:col-span-4">
+                            {{ user_form.email.label_tag }}
+                            {{ user_form.email }}
+                            {% if user_form.email.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ user_form.email.errors.0 }}</p>
+                            {% endif %}
+                            {% if user_form.email.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ user_form.email.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone Number Field -->
+                        <div class="col-span-6 sm:col-span-4">
+                            {{ profile_form.phone_number.label_tag }}
+                            {{ profile_form.phone_number }}
+                            {% if profile_form.phone_number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ profile_form.phone_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Picture Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Picture</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Upload a photo of yourself.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-16 w-16 rounded-full overflow-hidden bg-gray-100">
+                            {% if profile.profile_picture %}
+                                <img class="h-full w-full object-cover" src="{{ profile.profile_picture.url }}" alt="Profile picture">
+                            {% else %}
+                                <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-4">
+                            <div class="flex text-sm text-gray-600">
+                                <label for="profile_picture" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                    <span>Upload a file</span>
+                                    {{ profile_form.profile_picture }}
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            {% if profile_form.profile_picture.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ profile_form.profile_picture.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">About You</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Tell us more about yourself and your travel preferences.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <!-- Bio -->
+                    <div class="mb-6">
+                        {{ profile_form.bio.label_tag }}
+                        <div class="mt-1">
+                            {{ profile_form.bio }}
+                        </div>
+                        {% if profile_form.bio.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ profile_form.bio.help_text }}</p>
+                        {% endif %}
+                        {% if profile_form.bio.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.bio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="mb-6">
+                        {{ profile_form.location.label_tag }}
+                        <div class="mt-1">
+                            {{ profile_form.location }}
+                        </div>
+                        {% if profile_form.location.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ profile_form.location.help_text }}</p>
+                        {% endif %}
+                        {% if profile_form.location.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.location.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Date of Birth -->
+                    <div class="mb-6">
+                        {{ profile_form.date_of_birth.label_tag }}
+                        <div class="mt-1">
+                            {{ profile_form.date_of_birth }}
+                        </div>
+                        {% if profile_form.date_of_birth.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ profile_form.date_of_birth.help_text }}</p>
+                        {% endif %}
+                        {% if profile_form.date_of_birth.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.date_of_birth.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Gender -->
+                    <div class="mb-6">
+                        {{ profile_form.gender.label_tag }}
+                        <div class="mt-1">
+                            {{ profile_form.gender }}
+                        </div>
+                        {% if profile_form.gender.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ profile_form.gender.help_text }}</p>
+                        {% endif %}
+                        {% if profile_form.gender.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.gender.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Picture Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Picture</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Upload a photo of yourself.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex-shrink-0">
+                            {% if user.profile.avatar %}
+                            <img class="h-24 w-24 rounded-full object-cover" src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+                            {% else %}
+                            <div class="h-24 w-24 rounded-full bg-indigo-500 flex items-center justify-center text-white text-3xl font-bold">
+                                {{ user.username|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <label for="id_avatar" class="block text-sm font-medium text-gray-700">Upload new photo</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="id_avatar" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                            <span>Upload a file</span>
+                                            <input id="id_avatar" name="avatar" type="file" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        PNG, JPG, GIF up to 5MB
+                                    </p>
+                                </div>
+                            </div>
+                            {% if profile_form.avatar.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ profile_form.avatar.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">About You</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Tell us more about yourself and your travel preferences.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <!-- Bio -->
+                    <div class="mb-6">
+                        <label for="id_bio" class="block text-sm font-medium text-gray-700">Bio</label>
+                        <div class="mt-1">
+                            <textarea id="id_bio" name="bio" rows="4" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md">{{ profile_form.bio.value|default:'' }}</textarea>
+                        </div>
+                        {% if profile_form.bio.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ profile_form.bio.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-sm text-gray-500">
+                            Write a few sentences about yourself, your travel style, and interests.
+                        </p>
+                    </div>
+                    
+                    <!-- Travel Preferences -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Travel Preferences</label>
+                        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                            {% for preference in profile_form.travel_preferences %}
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ preference.tag }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ preference.id_for_label }}" class="font-medium text-gray-700">{{ preference.choice_label }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if profile_form.travel_preferences.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ profile_form.travel_preferences.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notification Preferences -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Notification Preferences</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Choose how you'd like to receive updates and notifications.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <div class="space-y-6">
+                        <!-- Email Notifications -->
+                        <div>
+                            <label class="text-base font-medium text-gray-900">Email Notifications</label>
+                            <p class="text-sm text-gray-500">What type of email notifications would you like to receive?</p>
+                            <div class="mt-4 space-y-4">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="id_email_marketing" name="email_marketing" type="checkbox" {% if profile_form.email_marketing.value %}checked{% endif %} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="id_email_marketing" class="font-medium text-gray-700">Marketing</label>
+                                        <p class="text-gray-500">Receive emails about new destinations, tours, and travel deals.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="id_email_updates" name="email_updates" type="checkbox" {% if profile_form.email_updates.value %}checked{% endif %} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="id_email_updates" class="font-medium text-gray-700">Updates</label>
+                                        <p class="text-gray-500">Receive emails about your bookings, reviews, and account activity.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'accounts:profile' %}" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

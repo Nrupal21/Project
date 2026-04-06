@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Two-Factor Backup Codes - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h1 class="h4 mb-0">Two-Factor Authentication Enabled</h1>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-shield-check me-2"></i>
+                        Two-factor authentication has been successfully enabled for your account!
+                    </div>
+                    
+                    <h3 class="h5 mb-3">Your Backup Codes</h3>
+                    <p class="mb-4">
+                        <strong>Important:</strong> Store these backup codes in a safe place. If you lose access to your authentication device, you can use one of these single-use codes to sign in.
+                    </p>
+                    
+                    <div class="bg-light p-3 rounded mb-4">
+                        <div class="row row-cols-2">
+                            {% for code in backup_codes %}
+                                <div class="col mb-2">
+                                    <code class="user-select-all">{{ code.code }}</code>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Each backup code can only be used once. We recommend saving these somewhere secure like a password manager.
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                        <button class="btn btn-outline-primary" onclick="printBackupCodes()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="copyBackupCodes()">
+                            <i class="fas fa-copy me-2"></i>Copy All
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="downloadBackupCodes()">
+                            <i class="fas fa-file-download me-2"></i>Download
+                        </button>
+                    </div>
+                    
+                    <form method="post" action="{% url 'security:twofa_regenerate_backup' %}" class="mt-4" id="regenerateForm">
+                        {% csrf_token %}
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    You can generate new backup codes at any time, but this will invalidate all previous codes.
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-info ms-3" data-bs-toggle="modal" data-bs-target="#regenerateModal">
+                                    Regenerate
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer bg-white d-flex justify-content-between">
+                    <a href="{% url 'security:twofa_manage' %}" class="btn btn-outline-primary">Manage 2FA Settings</a>
+                    <a href="{% url 'security:dashboard' %}" class="btn btn-primary">Continue to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Regenerate Confirmation Modal -->
+<div class="modal fade" id="regenerateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Regenerate Backup Codes?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to regenerate your backup codes?</p>
+                <p class="mb-0"><strong>Warning:</strong> This will invalidate all your existing backup codes.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="document.getElementById('regenerateForm').submit();">Regenerate</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to print backup codes
+    function printBackupCodes() {
+        const printContent = document.querySelector('.bg-light').innerHTML;
+        const printWindow = window.open('', '', 'height=500,width=800');
+        
+        printWindow.document.write('<html><head>
+    <!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style><title>TravelGuide 2FA Backup Codes</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { font-size: 18px; margin-bottom: 20px; }
+            .row { display: flex; flex-wrap: wrap; }
+            .col { flex: 0 0 50%; margin-bottom: 10px; font-family: monospace; }
+        `);
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h1>TravelGuide Two-Factor Authentication Backup Codes</h1>');
+        printWindow.document.write('<p>Store these backup codes in a safe place.</p>');
+        printWindow.document.write('<div class="row">');
+        printWindow.document.write(printContent);
+        printWindow.document.write('</div>');
+        printWindow.document.write('<p>Generated on ' + new Date().toLocaleDateString() + '</p>');
+        printWindow.document.write('</body></html>');
+        
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    }
+    
+    // Function to copy all backup codes to clipboard
+    function copyBackupCodes() {
+        const codes = Array.from(document.querySelectorAll('.bg-light code')).map(el => el.textContent.trim()).join('\n');
+        
+        // Create a temporary textarea element
+        const textarea = document.createElement('textarea');
+        textarea.value = codes;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        
+        // Select and copy the text
+        textarea.select();
+        document.execCommand('copy');
+        
+        // Clean up
+        document.body.removeChild(textarea);
+        
+        // Provide feedback (could be enhanced with a proper toast notification)
+        alert('Backup codes copied to clipboard');
+    }
+    
+    // Function to download backup codes as a text file
+    function downloadBackupCodes() {
+        const codes = Array.from(document.querySelectorAll('.bg-light code')).map(el => el.textContent.trim()).join('\n');
+        const date = new Date().toISOString().slice(0, 10);
+        const filename = `travelguide-2fa-backup-codes-${date}.txt`;
+        
+        const content = `TravelGuide Two-Factor Authentication Backup Codes
+Generated on ${new Date().toLocaleString()}
+
+IMPORTANT: Store these backup codes in a safe place. Each code can only be used once.
+
+${codes}`;
+        
+        // Create a blob and download link
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 0);
+    }
+</script>
+{% endblock %}

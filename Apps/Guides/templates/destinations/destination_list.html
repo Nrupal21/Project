@@ -1,0 +1,1931 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load core_extras %}
+{% load url_utils %}
+{% load humanize %}
+
+{% block title %}{% if is_nearby_view %}Destinations Near You{% else %}Explore Destinations{% endif %}{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+
+<style type="text/css">
+    /* CSS VARIABLES DEFINITION
+     * ==========================
+     * A comprehensive set of design tokens for consistent styling across the site
+     * Using CSS custom properties for easy theming and maintenance */
+    :root {
+        /* Enhanced Color Palette - Teal & Orange Theme */
+        --primary-color: #0d9488; /* Teal 600 - More vibrant teal */
+        --primary-light: #2dd4bf; /* Teal 400 - Lighter teal for accents */
+        --primary-dark: #0f766e; /* Teal 700 - Darker teal for hover states */
+        --primary-hover: #115e59; /* Teal 800 - Deep teal for active states */
+        --primary-gradient: linear-gradient(135deg, #0d9488, #2dd4bf);
+        
+        --secondary-color: #334155; /* Slate 700 - Darker for better contrast */
+        --secondary-light: #f1f5f9; /* Slate 100 - Lighter for backgrounds */
+        --secondary-dark: #1e293b; /* Slate 800 - Darker for text */
+        
+        --accent-color: #ea580c; /* Orange 600 - More vibrant orange */
+        --accent-light: #fdba74; /* Orange 300 - Lighter orange for accents */
+        --accent-dark: #c2410c; /* Orange 700 - Darker orange for hover states */
+        
+        /* Status Colors */
+        --success-color: #10b981; /* Emerald 500 */
+        --success-light: #34d399; /* Emerald 400 */
+        --success-gradient: linear-gradient(135deg, #10b981, #34d399);
+        --warning-color: #f59e0b; /* Amber 500 */
+        --error-color: #ef4444; /* Red 500 */
+        --info-color: #3b82f6; /* Blue 500 */
+        --accent-light: #fb923c; /* Orange 400 */
+        --accent-dark: #ea580c; /* Orange 600 */
+        --accent-gradient: linear-gradient(135deg, #f97316, #fb923c);
+        
+        --danger-color: #ef4444; /* Red 500 */
+        --danger-light: #f87171; /* Red 400 */
+        --danger-gradient: linear-gradient(135deg, #ef4444, #f87171);
+        
+        /* Background Colors */
+        --bg-white: #ffffff;
+        --bg-light: #f8fafc; /* Slate 50 */
+        --bg-lighter: #f1f5f9; /* Slate 100 */
+        --bg-gray: #e2e8f0; /* Slate 200 */
+        
+        /* Text Colors */
+        --text-primary: #1e293b; /* Slate 800 */
+        --text-secondary: #475569; /* Slate 600 */
+        --text-muted: #64748b; /* Slate 500 */
+        --text-light: #94a3b8; /* Slate 400 */
+        
+        /* Border Colors */
+        --border-color: #e2e8f0; /* Slate 200 */
+        --border-light: #f1f5f9; /* Slate 100 */
+        --border-dark: #cbd5e1; /* Slate 300 */
+        
+        /* Shadow Colors */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        
+        /* Border Radius */
+        --radius-sm: 0.25rem; /* 4px */
+        --radius: 0.375rem; /* 6px */
+        --radius-md: 0.5rem; /* 8px */
+        --radius-lg: 0.75rem; /* 12px */
+        --radius-xl: 1rem; /* 16px */
+        --radius-2xl: 1.5rem; /* 24px */
+        --radius-full: 9999px; /* For full circle */
+        
+        /* Spacing */
+        --space-0: 0;
+        --space-1: 0.25rem; /* 4px */
+        --space-2: 0.5rem; /* 8px */
+        --space-3: 0.75rem; /* 12px */
+        --space-4: 1rem; /* 16px */
+        --space-5: 1.25rem; /* 20px */
+        --space-6: 1.5rem; /* 24px */
+        --space-8: 2rem; /* 32px */
+        --space-10: 2.5rem; /* 40px */
+        --space-12: 3rem; /* 48px */
+        --space-16: 4rem; /* 64px */
+        --space-20: 5rem; /* 80px */
+        --space-24: 6rem; /* 96px */
+        
+        /* Transitions */
+        --transition-fast: all 0.15s ease-in-out;
+        --transition-normal: all 0.3s ease-in-out;
+        --transition-slow: all 0.5s ease-in-out;
+    }
+    
+    /* 
+     * BASE STYLES
+     * Global styles that apply across the entire document
+     * Sets up typography, colors, and base element styles
+     */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        color: var(--text-primary);
+        line-height: 1.6;
+        background-color: var(--bg-light);
+    }
+    
+    /* 
+     * TYPOGRAPHY
+     * Consistent typography styles for headings and text elements
+     * Ensures proper hierarchy and readability
+     */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    h1 {
+        font-size: 2.25rem; /* 36px */
+        line-height: 2.5rem; /* 40px */
+    }
+    
+    h2 {
+        font-size: 1.875rem; /* 30px */
+        line-height: 2.25rem; /* 36px */
+    }
+    
+    h3 {
+        font-size: 1.5rem; /* 24px */
+        line-height: 2rem; /* 32px */
+    }
+    
+    /* 
+     * BUTTON STYLES
+     * Consistent button styles with hover and focus states
+     * Includes primary, secondary, and accent variations
+     */
+    .btn {
+        font-weight: 500;
+        padding: 0.5rem 1.25rem;
+        border-radius: var(--radius);
+        transition: var(--transition-normal);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        user-select: none;
+        border: 1px solid transparent;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-outline-primary {
+        background-color: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-accent {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: white;
+    }
+    
+    .btn-accent:hover {
+        background-color: var(--accent-dark);
+        border-color: var(--accent-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* 
+     * CARD STYLES
+     * Base card styles for consistent card components
+     * Includes hover effects and transitions
+     */
+    .card {
+        border: none;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: var(--transition-normal);
+        background-color: white;
+        box-shadow: var(--shadow);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .card-img-top {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+    
+    .card-text {
+        color: var(--text-secondary);
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+    
+    .card-footer {
+        background-color: transparent;
+        border-top: 1px solid var(--border-light);
+        padding: 1rem 1.5rem;
+    }
+    
+    /* 
+     * DESTINATION CARD STYLES
+     * Specialized styles for destination cards
+     * Includes image container, badges, and content layout
+     */
+    .destination-card {
+        position: relative;
+        border: none;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: var(--transition-normal);
+        background-color: white;
+        box-shadow: var(--shadow);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .destination-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    /* CARD IMAGE CONTAINER
+     * ==========================
+     * Holds the destination image with consistent aspect ratio
+     * Provides overlay effects and positioning for badges
+     * Uses padding-top technique to maintain aspect ratio */
+    .card.destination-card .card-img-container {
+        position: relative;
+        overflow: hidden;
+        padding-top: 66.67%; /* 3:2 aspect ratio */
+    }
+    
+    /* DESTINATION IMAGE
+     * ==========================
+     * The actual image element within the container
+     * Fills the container while maintaining aspect ratio
+     * Uses object-fit to prevent distortion */
+    .card.destination-card .destination-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    /* Image zoom effect on hover */
+    .card.destination-card:hover .destination-image {
+        transform: scale(1.05);
+    }
+    
+    /* 
+     * CUSTOM BORDER UTILITIES
+     * These extend Bootstrap's border system with our custom palette
+     * Used for consistent border styling throughout the template
+     * Provides semantic color options based on our design system
+     */
+    .border-primary-100 {
+        border-color: rgba(8, 145, 178, 0.2) !important;
+    }
+    
+    /* 
+     * CUSTOM SHAPE UTILITIES
+     * These provide additional shape options beyond Bootstrap defaults
+     * Used for consistent component styling throughout the template
+     * Particularly useful for icons, badges, and buttons
+     */
+    .rounded-full {
+        border-radius: 9999px !important;
+    }
+    
+    /* UIVERSE.IO CARD STYLES
+     * ==========================
+     * Special styling for the Uiverse.io inspired card design
+     * Features colored circles at the top and modern minimalist design
+     * Maintains consistent styling with our color palette */
+    .flex.p-2.gap-1 {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    /* COLORED CIRCLE INDICATORS
+     * ==========================
+     * Decorative elements at the top of each card
+     * Uses our color palette for consistency
+     * Provides visual interest and branding */
+    .w-3.h-3.rounded-circle {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        transition: var(--transition-fast);
+    }
+    
+    /* Purple color for the second circle */
+    .bg-purple-500 {
+        background-color: #9d4edd;
+    }
+    
+    /* Pink color for the third circle */
+    .bg-pink-500 {
+        background-color: #f72585;
+    }
+    
+    /* Circle hover effects for interactive feedback */
+    .destination-card:hover .w-3.h-3.rounded-circle {
+        transform: scale(1.2);
+    }
+    
+    /* 
+     * CARD CONTENT WRAPPER
+     * Container for all card content below the image
+     * Provides consistent padding and spacing
+     * Maintains visual hierarchy within the card
+     */
+    .card__content {
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 
+     * FILTER COMPONENT STYLES
+     * =====================
+     * Comprehensive styling for filter components
+     * Organized by component type with responsive design
+     */
+
+    /* Base Filter Container */
+    .filter-container {
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+    }
+
+    /* Collapsed State */
+    .filter-container.collapsed {
+        max-height: 0 !important;
+        opacity: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border: none !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Form Controls */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+        background-color: var(--bg-color);
+        background-clip: padding-box;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+
+    /* Checkboxes */
+    .form-checkbox {
+        border-radius: 0.25rem;
+        border-color: var(--border-color);
+        color: var(--primary-color);
+    }
+
+    .form-checkbox:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        text-align: center;
+        white-space: nowrap;
+        border-radius: 0.375rem;
+        transition: all 0.15s ease-in-out;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        color: white;
+        background-color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .btn-secondary {
+        color: var(--text-primary);
+        background-color: var(--bg-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--bg-hover);
+    }
+
+    /* Search Component */
+    .search-container {
+        position: relative;
+        grid-column: 1 / -1;
+    }
+
+    .search-input {
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .clear-search:hover {
+        color: var(--text-primary);
+    }
+
+    .search-tips {
+        margin-top: 0.25rem;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    /* Feature Filters */
+    .feature-filters {
+        padding: 1rem 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        margin: 1rem 0;
+    }
+
+    /* Filter Actions */
+    .filter-actions {
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .filter-full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Filter Count Badge */
+    .filter-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background-color: white;
+        color: var(--primary-color);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    /* Filter Form Grid Layout */
+    .filter-form {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+        .filter-form {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .filter-form {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (min-width: 1280px) {
+        .filter-form {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    /* Full-width elements */
+    .filter-full-width {
+        grid-column: 1 / -1;
+    }
+    
+    /* Form group styling */
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    /* Label styles */
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.875rem;
+    }
+    
+    /* Input and select styles */
+    .form-control {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        background-color: white;
+        color: var(--text-color);
+        font-size: 0.875rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(188, 187, 200, 0.1);
+    }
+    
+    /* Button styles */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+    }
+    
+    .btn-outline {
+        background-color: white;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+    
+    .btn-outline:hover {
+        background-color: #f9fafb;
+    }
+    
+    /* Search bar specific styles */
+    .search-container {
+        position: relative;
+        grid-column: 1 / -1;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        pointer-events: none;
+    }
+    
+    .search-input {
+        padding-left: 2.5rem;
+        width: 100%;
+    }
+    
+    .clear-search {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+    
+    .clear-search:hover {
+        color: #6b7280;
+    }
+    
+    /* Filter actions */
+    .filter-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        grid-column: 1 / -1;
+        padding-top: 0.5rem;
+    }
+    
+    /* Animation classes */
+    .filter-enter-active,
+    .filter-leave-active {
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .filter-enter-from,
+    .filter-leave-to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .filter-container {
+            --bg-color: #f5f8fb;
+            --border-color: #70747a;
+            --text-color: #2f3031;
+        }
+        
+        .form-control {
+            background-color: #f5f8fb;
+            border-color: #4b5563;
+            color: #3d4145;
+        }
+        
+        .btn-outline {
+            background-color: #f5f8fb;
+            border-color: #4b5563;
+            color: #f3f4f6;
+        }
+        
+        .btn-outline:hover {
+            background-color: #f5f8fb;
+        }
+    }
+    
+    /* Improve focus states for better accessibility */
+    .destination-filters select:focus,
+    .destination-filters input:focus,
+    .destination-filters button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Loading state for form elements */
+    .loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    /* Custom scrollbar for select elements */
+    .destination-filters select::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .destination-filters select::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .destination-filters select::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+    }
+    
+    .destination-filters select::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+    }
+
+    /* ANIMATION KEYFRAMES
+     * ===================
+     * Reusable animation keyframes for consistent motion design */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInRight {
+        from { transform: translateX(20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(-5px); }
+        50% { transform: translateY(0); }
+    }
+    
+    /* Animation delay classes for destination cards */
+    .animation-delay-1 {
+        animation-delay: 0.1s;
+    }
+    .animation-delay-2 {
+        animation-delay: 0.2s;
+    }
+    .animation-delay-3 {
+        animation-delay: 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- Blank div for top spacing -->
+<div class="h-24"></div>
+
+<!-- Page Header -->
+<div class="row mb-5">
+    <div class="col-12 text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            {% if is_nearby_view %}
+                Destinations Near You
+            {% else %}
+                Explore Our Destinations
+            {% endif %}
+        </h1>
+        <p class="lead text-muted">
+            {% if is_nearby_view %}
+                Discover amazing places to visit in your area
+            {% else %}
+                Find your next adventure with our curated selection of destinations
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Destination Filters Section -->
+<!-- 
+    FILTERS COMPONENT
+    =================
+    A comprehensive filtering system for destinations with multiple filter options
+    - Region filter: Dropdown to filter by geographical region
+    - Rating filter: Select minimum star rating for results
+    - Price range: Min and max price inputs with validation
+    - Features filter: Checkboxes for specific destination attributes
+    - Sort options: Different ways to order the results
+    - Mobile responsive design with collapsible sections
+-->
+<!-- 
+    DESTINATION FILTERS CONTAINER
+    ==========================
+    Main container for the destination filters
+    - Uses Alpine.js for reactive filtering
+    - Responsive design with mobile-first approach
+    - Smooth transitions and animations
+    - Accessible UI with proper ARIA attributes
+-->
+<div class="container px-4 mx-auto mb-8" x-data="filterComponent">
+    <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg">
+        <!-- Filter Header with Toggle Button -->
+        <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <i class="fas fa-filter text-indigo-600 text-lg"></i>
+                    <template x-if="activeFilters > 0">
+                        <span class="absolute -top-2 -right-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold" 
+                              x-text="activeFilters"
+                              x-transition:enter="transition ease-out duration-300"
+                              x-transition:enter-start="opacity-0 scale-75"
+                              x-transition:enter-end="opacity-100 scale-100">
+                        </span>
+                    </template>
+                </div>
+                <button 
+                    type="button" 
+                    class="group relative flex items-center text-gray-700 font-medium focus:outline-none transition-colors duration-200 hover:text-indigo-700"
+                    :aria-expanded="filterOpen" 
+                    aria-controls="filterOptions"
+                    @click="toggleFilters()"
+                    x-data="{ isHovered: false }"
+                    @mouseenter="isHovered = true"
+                    @mouseleave="isHovered = false">
+                    <span class="mr-1.5" x-text="activeFilters > 0 ? `Filters (${activeFilters})` : 'Filters'"></span>
+                    <i class="fas fa-chevron-down text-xs transition-transform duration-300" 
+                       :class="{'rotate-180': !filterOpen, 'transform translate-y-px': isHovered}"></i>
+                </button>
+                <button 
+                    x-show="activeFilters > 0"
+                    @click="resetFilters()"
+                    class="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200 flex items-center ml-2"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-x-2"
+                    x-transition:enter-end="opacity-100 translate-x-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-x-0"
+                    x-transition:leave-end="opacity-0 -translate-x-2">
+                    <i class="fas fa-times-circle mr-1"></i>
+                    <span>Clear all</span>
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-600 font-medium">
+                    <span x-text="totalResults || {{ destinations.paginator.count }}"></span>
+                    <span class="text-gray-500 ml-1">destinations</span>
+                    <span x-show="activeFilters > 0" class="text-indigo-600 font-semibold">
+                        matching your search
+                    </span>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Filter Options Panel -->
+        <div id="filterOptions" class="filter-container" 
+             x-show="filterOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 max-h-0"
+             x-transition:enter-end="opacity-100 max-h-[1000px]"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 max-h-[1000px]"
+             x-transition:leave-end="opacity-0 max-h-0">
+            <!-- 
+                FILTER FORM
+                ===========
+                Main form for filtering destinations
+                - Uses GET method for bookmarkable/shareable URLs
+                - Alpine.js prevents default form submission
+                - ID matches the one used in the Alpine.js component
+                - All filter inputs are bound to Alpine.js state
+            -->
+            <form method="get" action="." class="filter-form" id="filterForm" @submit.prevent="submitForm()">
+                <!-- 
+                    SEARCH COMPONENT
+                    ===============
+                    Full-width search input with icon and clear button
+                    - Includes search icon for visual clarity
+                    - Clear button to easily reset search
+                    - Alpine.js reactive search handling
+                    - Mobile-friendly with proper sizing and padding
+                -->
+                <div class="form-group">
+                    <label for="search" class="form-label">
+                        <i class="fas fa-search text-indigo-500 mr-1"></i> Search
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <!-- 
+                            Search Input Field
+                            - Uses x-model for two-way data binding with Alpine.js state
+                            - Debounced input handling to prevent excessive form submissions
+                            - Auto-submits on Enter key press
+                            - Updates filter count reactively as user types
+                            - Styled with consistent indigo/violet color focus states
+                        -->
+                        <input 
+                            type="text" 
+                            id="search" 
+                            name="search" 
+                            x-model="search" 
+                            placeholder="Search destinations..." 
+                            class="form-input pl-10 pr-10" 
+                            @input="updateFilterCount()"
+                            @input.debounce.500ms="submitForm()"
+                            @keyup.enter="submitForm()"
+                            aria-label="Search for destinations by name, features, or activities"
+                        >
+                        <!-- 
+                            Clear Search Button
+                            - Only appears when search input has text
+                            - Uses Alpine.js clearSearch() method
+                            - Smooth fade-in/scale animation when appearing
+                            - Accessible with proper ARIA label
+                            - Consistent styling with indigo/violet color palette
+                        -->
+                        <button 
+                            type="button" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 rounded-full p-1 transition-colors duration-200" 
+                            aria-label="Clear search text" 
+                            @click="clearSearch()"
+                            x-show="search.length > 0"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-90"
+                            x-transition:enter-end="opacity-100 scale-100"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="search-tips" id="search-tips" hidden>
+                    <small class="text-muted">Search tips: Try activities, landmarks, or features</small>
+                </div>
+                <!-- 
+                    REGION FILTER
+                    =============
+                    Dropdown to filter destinations by geographic region
+                    - Shows all available regions from the database
+                    - Includes "All Regions" option to clear filter
+                    - Alpine.js reactive region selection
+                    - Styled consistently with other form elements
+                -->
+                <div class="form-group">
+                    <label for="region" class="form-label">
+                        <i class="fas fa-map-marker-alt text-indigo-500 mr-1"></i> Region
+                    </label>
+                    <select 
+                        name="region" 
+                        id="region" 
+                        class="form-select" 
+                        x-model="region"
+                        @change="updateFilterCount(); $nextTick(() => submitForm())">
+                        <option value="">All Regions</option>
+                        {% for region_choice in region_choices %}
+                            <option value="{{ region_choice.0 }}">
+                                {{ region_choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- 
+                    RATING FILTER
+                    =============
+                    Dropdown to filter destinations by minimum rating
+                    - Options from 1-5 stars
+                    - Includes "Any Rating" option to clear filter
+                    - Alpine.js reactive rating selection
+                    - Styled consistently with other form elements
+                -->
+                <div class="form-group">
+                    <label for="rating" class="form-label">
+                        <i class="fas fa-star text-indigo-500 mr-1"></i> Rating
+                    </label>
+                    <select 
+                        name="rating" 
+                        id="rating" 
+                        class="form-select"
+                        x-model="rating"
+                        @change="updateFilterCount(); $nextTick(() => submitForm())">
+                        <option value="">Any Rating</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3">3+ Stars</option>
+                        <option value="2">2+ Stars</option>
+                        <option value="1">1+ Star</option>
+                    </select>
+                </div>
+                
+                <!-- Price Range Filter Removed as requested -->
+                <!-- Filter has been removed in this version -->
+                
+                <!-- 
+                    SORT OPTIONS
+                    ===========
+                -->
+                <div class="form-group">
+                    <label for="sort" class="form-label">
+                        <i class="fas fa-sort text-indigo-500 mr-1"></i> Sort By
+                    </label>
+                    <select 
+                        name="sort" 
+                        id="sort" 
+                        class="form-select"
+                        x-model="sort"
+                        @change="$nextTick(() => submitForm())"
+                    >
+                        <option value="">Recommended</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="-name">Name (Z-A)</option>
+                        <option value="price_low">Price (Low to High)</option>
+                        <option value="price_high">Price (High to Low)</option>
+                    </select>
+                </div>
+                
+                <!-- 
+                    FEATURE FILTERS
+                    ==============
+                    Checkbox filters for additional features
+                    - Uses custom styled checkboxes for better UX
+                    - Clear labels with descriptions
+                    - Responsive grid layout
+                -->
+                <div class="feature-filters filter-full-width">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Featured Only -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <!-- 
+                                    Featured checkbox input
+                                    - Uses value="1" to ensure proper form submission
+                                    - Maintains checked state based on URL parameters
+                                    - Uses accessible focus styles
+                                -->
+                                <input 
+                                    id="featured" 
+                                    name="featured" 
+                                    type="checkbox" 
+                                    value="1"
+                                    class="form-checkbox h-4 w-4 text-primary focus:ring-primary/30"
+                                    {% if request.GET.featured %}checked{% endif %}
+                                >
+                            </div>
+                            <label for="featured" class="ml-3 text-sm">
+                                <span class="font-medium text-gray-900">Featured Only</span>
+                                <p class="text-gray-500 text-xs">Show only highlighted destinations</p>
+                            </label>
+                        </div>
+                        
+                        <!-- Family Friendly -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input 
+                                    type="checkbox" 
+                                    id="family_friendly" 
+                                    name="family_friendly" 
+                                    value="1"
+                                    class="form-checkbox text-indigo-600 focus:ring-indigo-500" 
+                                    x-model="family_friendly"
+                                    @change="updateFilterCount(); $nextTick(() => submitForm())"
+                                >
+                            </div>
+                            <label for="family_friendly" class="ml-2 text-sm text-gray-700 cursor-pointer">
+                                <span class="font-medium">Family Friendly</span>
+                                <span class="block text-xs text-gray-500">Great for kids and families</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Wheelchair Accessible -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input 
+                                    type="checkbox" 
+                                    id="wheelchair_accessible" 
+                                    name="wheelchair_accessible" 
+                                    value="1"
+                                    class="form-checkbox text-indigo-600 focus:ring-indigo-500" 
+                                    x-model="wheelchair_accessible"
+                                    @change="updateFilterCount(); $nextTick(() => submitForm())"
+                                >
+                            </div>
+                            <label for="wheelchair_accessible" class="ml-2 text-sm text-gray-700 cursor-pointer">
+                                <span class="font-medium">Wheelchair Accessible</span>
+                                <span class="block text-xs text-gray-500">Accessible facilities available</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Actions -->
+                <!-- 
+                    FILTER ACTIONS
+                    =============
+                    Form submission and reset buttons
+                    - Primary action for applying filters
+                    - Secondary action for resetting all filters
+                    - Responsive layout with proper spacing
+                -->
+                <!-- 
+                -->
+                <div class="filter-actions filter-full-width">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <!-- Reset Button -->
+                        <!-- 
+                            RESET FILTERS BUTTON
+                            ===================
+                            - Resets all filter inputs to default values
+                            - Uses Alpine.js resetFilters() method
+                            - Accessible with proper ARIA attributes
+                            - Consistent styling with other form elements
+                        -->
+                        <button 
+                            type="button" 
+                            class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all flex items-center"
+                            @click="resetFilters()"
+                            aria-label="Reset all filters to default values"
+                        >
+                            <i class="fas fa-undo mr-2"></i> Reset All
+                        </button>
+                        
+                        <!-- 
+                            APPLY FILTERS BUTTON
+                            ===================
+                            - Submits the filter form with current values
+                            - Uses Alpine.js submitForm() method
+                            - Shows active filter count badge
+                            - Consistent indigo/violet color palette
+                            - Accessible with proper ARIA attributes
+                        -->
+                        <button 
+                            type="button" 
+                            class="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:from-indigo-600 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all flex items-center shadow-sm"
+                            @click="submitForm()"
+                            aria-label="Apply current filter selections"
+                        >
+                            <i class="fas fa-filter mr-2"></i> Apply Filters
+                            <span 
+                                class="ml-2 bg-white text-indigo-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium" 
+                                x-show="activeFilters > 0"
+                                x-text="activeFilters"
+                                aria-hidden="true"
+                            ></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Destinations Grid - 4 cards per row on large screens -->
+<div class="container px-4 mx-auto py-8">
+    <!-- Active Filters Display -->
+    {% if request.GET %}
+    <div class="mb-6 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-filter text-indigo-500"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-indigo-700">
+                    Showing results for: 
+                    {% if request.GET.search %}
+                        <span class="font-medium">"{{ request.GET.search }}"</span>
+                    {% endif %}
+                    {% if request.GET.region %}
+                        in <span class="font-medium">{{ request.GET.region }}</span>
+                    {% endif %}
+                    {% if request.GET.rating %}
+                        with <span class="font-medium">{{ request.GET.rating }}+ rating</span>
+                    {% endif %}
+                    {% if request.GET.featured %}
+                        <span class="font-medium">Featured</span>
+                    {% endif %}
+                    {% if request.GET.family_friendly %}
+                        <span class="font-medium">Family Friendly</span>
+                    {% endif %}
+                    {% if request.GET.wheelchair_accessible %}
+                        <span class="font-medium">Wheelchair Accessible</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for destination in destinations %}
+            {% if forloop.counter0|divisibleby:6 and forloop.counter0 > 0 %}
+            <!-- Google AdSense Ad Slot -->
+            <div class="h-full flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 shadow-lg">
+                <!-- AdSense Container -->
+                <div class="relative w-full h-full min-h-[300px] flex items-center justify-center bg-gray-50">
+                    <!-- Google AdSense Ad Unit -->
+                    <div class="text-center p-4 w-full">
+                        <div class="mb-2">
+                            <span class="text-xs text-gray-400">Advertisement</span>
+                        </div>
+                        <ins class="adsbygoogle"
+                             style="display:block"
+                             data-ad-format="fluid"
+                             data-ad-layout-key="-73+ef+2h-1o-5b"
+                             data-ad-client="ca-pub-3458812139504498"
+                             data-ad-slot="8627604441"></ins>
+                        <script>
+                             (adsbygoogle = window.adsbygoogle || []).push({});
+                        </script>
+                    </div>
+                </div>
+                <!-- Ad Label -->
+                <div class="p-2 border-t border-gray-100 bg-white text-center">
+                    <span class="text-xs text-gray-400">Ad</span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="destination-col {% cycle 'animation-delay-1' 'animation-delay-2' 'animation-delay-3' %} h-full">
+            <div class="h-full flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg transition-all duration-500 hover:shadow-2xl hover:shadow-primary/60 hover:-translate-y-1 hover:border-primary/30 transform hover:scale-[1.02] group">
+                <!-- Card Header with Colored Circles and Image -->
+                <div class="relative">
+                    <!-- Colored circles - Moved to top right -->
+                    <div class="absolute top-1 z-10 flex gap-1.5 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    </div>
+                    
+                    <!-- Destination Image with Hover Overlay -->
+                    <div class="relative h-56 w-full overflow-hidden mt-8">
+                        {% with destination.images.all|first as first_image %}
+                            {% if first_image %}
+                                <img src="{{ first_image.image.url }}" 
+                                     alt="{{ destination.name }}" 
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                     loading="lazy">
+                            {% else %}
+                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-300 text-4xl"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <!-- Gradient Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <!-- Region Badge -->
+                        <div class="absolute bottom-0 left-0 p-4 w-full">
+                            <span class="inline-block px-3 py-1 text-xs font-semibold text-white bg-primary/90 rounded-full backdrop-blur-sm">
+                                {{ destination.region.name|default:"World" }}
+                            </span>
+                        </div>
+                        
+                        <!-- Featured Badge -->
+                        {% if destination.is_featured %}
+                            <div class="absolute top-3 left-3">
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-500 to-white-50 text-black shadow-md border border-yellow-400/50">
+                                    <i class="fas fa-star mr-1.5 text-yellow-200"></i>
+                                    Featured
+                                </span>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Distance Badge (only for nearby view) -->
+                        {% if is_nearby_view and destination.distance %}
+                            <div class="absolute top-3 right-3">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/90 text-white shadow-md backdrop-blur-sm">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    {{ destination.distance|floatformat:1 }} km
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                    
+                <!-- Card Content -->
+                <div class="p-5 flex-1 flex flex-col">
+                    <!-- Destination Name and Location -->
+                    <div class="mb-3 space-y-1.5">
+                        <h3 class="text-lg font-bold text-gray-900 line-clamp-1 transition-colors group-hover:text-primary">
+                            {{ destination.name }}
+                        </h3>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-1.5 text-primary/80 text-xs"></i>
+                            <span class="line-clamp-1">{{ destination.region.name|default:"Location not specified" }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Description (truncated) -->
+                    <div class="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow">
+                        {{ destination.description|truncatewords:20|safe }}
+                    </div>
+                    
+                    <!-- Rating and Price -->
+                    <div class="mt-auto pt-3 border-t border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex items-center text-amber-500 mr-2">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= destination.rating %}
+                                            <i class="fas fa-star text-xs"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-xs text-gray-300"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if destination.rating == 0 %}
+                                        <span class="text-xs text-gray-400 ml-1">No reviews</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-xs text-gray-400">
+                                    ({{ destination.review_count|default:0 }} reviews)
+                                </span>
+                            </div>
+                            
+                          
+                        </div>
+                    </div>
+                        <!-- Explore Button -->
+                        <div class="mt-4">
+                            <a href="{% url 'destinations:destination_detail' destination.slug %}" 
+                               class="block w-full text-center px-4 py-2.5 text-sm font-medium text-black bg-gradient-to-r from-blue-500 to-white-50 rounded-lg border border-primary/20 hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/30">
+                                <span class="relative z-10">
+                                    Explore Now
+                                    <i class="fas fa-arrow-right ml-1.5 text-xs transform transition-transform group-hover:translate-x-1"></i>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <!-- Empty state when no destinations match the filters -->
+            <div class="col-span-full text-center py-12 px-4">
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-8">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/5 flex items-center justify-center">
+                        <i class="fas fa-compass text-3xl text-primary/60"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">
+                        {% if request.GET %}
+                            No Destinations Found
+                        {% else %}
+                            No Destinations Available
+                        {% endif %}
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        {% if request.GET %}
+                            We couldn't find any destinations matching your criteria. Try adjusting your filters.
+                        {% else %}
+                            There are currently no destinations available. Please check back later.
+                        {% endif %}
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        {% if request.GET %}
+                            <button @click="resetFilters()" class="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                                <i class="fas fa-undo mr-2"></i> Reset All Filters
+                            </button>
+                            <button @click="toggleFilters(true)" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                                <i class="fas fa-sliders-h mr-2"></i> Adjust Filters
+                            </button>
+                        {% else %}
+                            <a href="{% url 'destinations:destination_list' %}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                                <i class="fas fa-sync mr-2"></i> Refresh Page
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% if not destinations %}
+            <!-- Empty state when no destinations exist at all -->
+            <div class="col-span-full text-center py-12 px-4">
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-8">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/5 flex items-center justify-center">
+                        <i class="fas fa-compass text-3xl text-primary/60"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Destinations Available</h3>
+                    <p class="text-gray-600 mb-6">
+                        There are currently no destinations to display. Please check back later.
+                    </p>
+                    <a href="{% url 'destinations:destination_list' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-home mr-2"></i> Return Home
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- 
+        EMPTY STATE FILTER ACTIONS
+        =========================
+                    - Uses indigo/violet color palette for consistency
+                    - Responsive design for all screen sizes
+                -->
+                    <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
+                        <!-- Reset All Filters Button -->
+                        <button 
+                            type="button" 
+                            class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all flex items-center justify-center w-full sm:w-auto"
+                            @click="resetFilters()"
+                            aria-label="Reset all filters and show all destinations"
+                        >
+                            <i class="fas fa-undo mr-2"></i>
+                            <span>Reset All Filters</span>
+                        </button>
+                        
+                        <!-- Toggle Filters Button - Opens filter panel -->
+                        <button 
+                            type="button" 
+                            class="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:from-indigo-600 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all flex items-center justify-center shadow-sm w-full sm:w-auto"
+                            @click="toggleFilters(true)"
+                            aria-label="Open filter panel to adjust filters"
+                        >
+                            <i class="fas fa-sliders-h mr-2"></i>
+                            <span>Adjust Filters</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <!-- 
+        PAGINATION SECTION
+        ==================
+        Navigation controls for paginated results
+        - Preserves all filter parameters when navigating between pages
+        - Shows current page with distinctive styling
+        - Provides first, previous, next, and last page controls
+        - Accessible navigation with proper ARIA labels
+        - Responsive design with consistent spacing
+        - Smooth scroll to top behavior on page change
+    -->
+    {% if is_paginated %}
+        <div class="mt-12">
+            <nav class="flex items-center justify-center space-x-2" aria-label="Destination pagination">
+                {% if page_obj.has_previous %}
+                    <!-- First Page Link -->                    
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" 
+                       class="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all" 
+                       aria-label="First page"
+                       data-pagination-link>
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                    
+                    <!-- Previous Page Link -->                    
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all" 
+                       aria-label="Previous page"
+                       data-pagination-link>
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                {% endif %}
+
+                <!-- 
+                    Page Number Links
+                    - Current page has distinctive gradient styling
+                    - Only shows nearby pages to avoid clutter
+                    - Preserves all filter parameters when navigating
+                    - Consistent styling with indigo/violet color palette
+                    - Smooth scroll behavior via data-pagination-link
+                -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <!-- Current Page Indicator -->
+                        <span class="px-3 py-1 rounded-md bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" aria-current="page">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <!-- Other Page Links -->
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+                           class="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+                           data-pagination-link>
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <!-- Next Page Link -->
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all" 
+                       aria-label="Next page"
+                       data-pagination-link>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                    
+                    <!-- Last Page Link -->
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}" 
+                       class="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all" 
+                       aria-label="Last page"
+                       data-pagination-link>
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- 
+        ALPINE.JS SCRIPT
+        ==============
+        Alpine.js library for reactive UI components
+        - Lightweight JavaScript framework for component-based interactivity
+        - Used for filter form reactivity and state management
+        - Loaded from CDN for better performance and caching
+        - Version 3.x provides declarative reactivity with minimal footprint
+        - Enables progressive enhancement of the filter UI
+        - Maintains accessibility with proper ARIA attributes
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- 
+        ALPINE.JS FILTER COMPONENT
+        ========================
+        Reactive filter component for destination list
+        - Manages filter state and UI interactions
+        - Handles form submission with clean URL parameters
+        - Provides methods for filter actions (toggle, reset, submit)
+        - Maintains filter count and visibility states
+        - Initializes from URL parameters for persistence
+        - Responsive design with mobile-first approach
+        - Accessibility features with proper ARIA attributes
+        - Smooth transitions and animations for better UX
+        - Consistent indigo/violet color palette styling
+    -->
+    <script>
+        // Helper function to safely get URL parameters
+        const getUrlParam = (param, defaultValue = '') => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param) || defaultValue;
+            } catch (e) {
+                console.error('Error getting URL parameter:', e);
+                return defaultValue;
+            }
+        };
+
+        // Helper function to get boolean parameters from URL
+        const getBooleanParam = (param) => {
+            const value = getUrlParam(param, '');
+            return value === 'true' || value === '1';
+        };
+
+        // Register the filter component with Alpine.js
+        document.addEventListener('alpine:init', () => {
+            // Define the component data
+            const filterData = {
+                // Component state
+                filterOpen: window.innerWidth >= 768, // Default open on larger screens, closed on mobile
+                activeFilters: 0, // Counter for active filter badge
+                totalResults: parseInt('{{ destinations.paginator.count|default:0 }}' || '0'),
+                isLoading: false,
+                lastSearch: '',
+                debounceTimer: null,
+                
+                // Filter values with defaults
+                search: getUrlParam('search', ''),
+                region: getUrlParam('region', ''),
+                rating: getUrlParam('rating', ''),
+                sort: getUrlParam('sort', ''),
+                
+                // Checkbox filters with proper boolean values
+                featured: getBooleanParam('featured'),
+                family_friendly: getBooleanParam('family_friendly'),
+                wheelchair_accessible: getBooleanParam('wheelchair_accessible'),
+                
+                /**
+                 * Initialize the component
+                 * Sets up event listeners and initial state
+                 * Called automatically by Alpine.js when the component is mounted
+                 * Handles responsive behavior, filter count updates, and pagination enhancements
+                 */
+                init() {
+                    // Initialize from URL parameters
+                    const urlParams = new URLSearchParams(window.location.search);
+                    
+                    // Helper to safely get URL parameters
+                    const getUrlParam = (param, defaultValue = '') => {
+                        return urlParams.get(param) || defaultValue;
+                    };
+                    
+                    // Update filter values from URL if they exist
+                    const searchParam = getUrlParam('search');
+                    const regionParam = getUrlParam('region');
+                    const ratingParam = getUrlParam('rating');
+                    const sortParam = getUrlParam('sort');
+                    
+                    if (searchParam) this.search = searchParam;
+                    if (regionParam) this.region = regionParam;
+                    if (ratingParam) this.rating = ratingParam;
+                    if (sortParam) this.sort = sortParam;
+                    
+                    // Update checkbox states if they exist in URL
+                    if (urlParams.has('featured')) this.featured = true;
+                    if (urlParams.has('family_friendly')) this.family_friendly = true;
+                    if (urlParams.has('wheelchair_accessible')) this.wheelchair_accessible = true;
+                    
+                    // Calculate and update the active filter count badge
+                    this.updateFilterCount();
+                    
+                    // Handle responsive behavior
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth >= 768 && !this.filterOpen) {
+                            this.filterOpen = true;
+                        }
+                    });
+                    
+                    // Initialize pagination and tooltips
+                    this.initPaginationLinks();
+                    this.initTooltips();
+                },
+                    
+                    /**
+                     * Initialize pagination links with smooth scrolling
+                     * Enhances pagination UX by smoothly scrolling to top before loading the next page
+                     * Preserves standard browser behavior for middle-clicks and modified clicks
+                     * Uses data-pagination-link attribute to identify pagination links
+                     * 
+                     * This improves user experience by providing visual feedback during page transitions
+                     * and helps users maintain context when navigating between paginated results
+                     */
+                    initPaginationLinks() {
+                        // Find all pagination links by their data attribute
+                        const paginationLinks = document.querySelectorAll('[data-pagination-link]');
+                        
+                        // Add click event handler to each pagination link
+                        paginationLinks.forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                // Don't interfere with middle-clicks or modified clicks (new tab/window)
+                                // This preserves standard browser behavior for opening in new tabs
+                                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+                                
+                                // Prevent default link behavior to handle navigation manually
+                                e.preventDefault();
+                                const url = link.getAttribute('href');
+                                
+                                // Smooth scroll to top before loading new page
+                                // This provides visual feedback that the page is changing
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'
+                                });
+                                
+                                // Navigate to the new page after scroll animation completes
+                                // Short delay ensures the scroll animation is visible to the user
+                                setTimeout(() => {
+                                    window.location.href = url;
+                                }, 300); // 300ms delay matches typical scroll animation duration
+                            });
+                        });
+                    },
+                    
+                    /**
+                     * Toggle the filter panel visibility
+                     * Controls the expansion/collapse state of the filter options panel
+                     * Used by filter toggle buttons and empty state actions
+                     * Maintains accessibility by updating ARIA attributes via x-bind
+                     * 
+                     * @param {boolean} [show] - Optional parameter to force a specific state
+                     *                          - true: force open the filter panel
+                     *                          - false: force close the filter panel
+                     *                          - undefined: toggle current state
+                     */
+                    toggleFilters(show) {
+                        // If a specific state is requested, set it directly
+                        if (show !== undefined) {
+                            this.filterOpen = show;
+                        } 
+                        // Otherwise toggle the current state
+                        else {
+                            this.filterOpen = !this.filterOpen;
+                        }
+                        
+                        // Note: Alpine.js automatically updates UI based on this.filterOpen
+                        // - Panel height/visibility changes via x-bind:style and x-bind:class
+                        // - ARIA expanded state updates via x-bind:aria-expanded
+                        // - Chevron rotation animates via x-bind:class
+                    },
+                    
+                    /**
+                     * Clear the search input and submit the form
+                     * Resets the search field to empty string and triggers form submission
+                     * Used by the clear search button that appears when search has content
+                     * 
+                     * This method provides a quick way for users to remove their search query
+                     * while maintaining all other filter selections
+                     */
+                    clearSearch() {
+                        // Reset search field to empty string
+                        this.search = '';
+                        
+                        // Use Alpine's $nextTick to ensure DOM is updated before proceeding
+                        this.$nextTick(() => {
+                            // Update the active filter count badge
+                            this.updateFilterCount();
+                            
+                            // Submit the form with updated parameters
+                            // This will refresh the destination list without the search term
+                            this.submitForm();
+                        });
+                    },
+                    
+                    /**
+                     * Reset all filters to default values
+                     * Clears all filter inputs and triggers form submission
+                     * Used by the Reset All button and empty state actions
+                     * 
+                     * This provides a quick way for users to clear all filters at once
+                     * and return to the unfiltered destination list view
+                     * 
+                     * Default values:
+                     * - Text inputs: empty string
+                     * - Dropdowns: empty string (no selection)
+                     * - Checkboxes: 0 (unchecked)
+                     */
+                    /**
+                     * Reset all filters to default values
+                     * Clears all filter inputs and updates the URL
+                     */
+                    resetFilters() {
+                        // Reset all filter values
+                        this.search = '';
+                        this.region = '';
+                        this.rating = '';
+                        this.sort = '';
+                        this.featured = false;
+                        this.family_friendly = false;
+                        this.wheelchair_accessible = false;
+                        
+                        // Clear any existing URL parameters and reload
+                        window.location.href = window.location.pathname;
+                    },
+                    
+                    
+                    // Initialize Bootstrap tooltips
+                    initTooltips() {
+                        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+                    },
+                    
+                /**
+                 * Toggle the filter panel visibility
+                 * @param {boolean} [forceState] - Optional parameter to force a specific state
+                 */
+                toggleFilters(forceState = null) {
+                    if (forceState !== null) {
+                        this.filterOpen = forceState;
+                    } else {
+                        this.filterOpen = !this.filterOpen;
+                    }
+                    
+                    if (this.filterOpen) {
+                        // Focus first input when opening
+                        this.$nextTick(() => {
+                            const firstInput = this.$el.querySelector('input, select, textarea');
+                            if (firstInput) firstInput.focus();
+                        });
+                    }
+                },
+                    
+                    // Update filter count and UI state
+                    updateFilterCount() {
+                        let count = 0;
+                        const params = new URLSearchParams(window.location.search);
+                        
+                        // Count active filters from URL parameters
+                        for (const [key, value] of params.entries()) {
+                            // Skip pagination and other non-filter parameters
+                            if (key === 'page') continue;
+                            if (value && value !== '') {
+                                count++;
+                            }
+                        }
+                        
+                        this.activeFilters = count;
+                        return count;
+                    },
+                    
+                    // Initialize pagination links with smooth scrolling
+                    initPaginationLinks() {
+                        const paginationLinks = document.querySelectorAll('a[href*="page="]');
+                        paginationLinks.forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                // Only handle left-clicks without modifier keys
+                                if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                                    e.preventDefault();
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: 'smooth'
+                                    });
+                                    // Small delay to allow scroll to complete
+                                    setTimeout(() => {
+                                        window.location.href = link.href;
+                                    }, 300);
+                                }
+                            });
+                        });
+                    },
+                    
+                    /**
+                     * Submit form with filters
+                     * Handles form submission, updates URL parameters, and refreshes the page
+                     * with the new filter parameters
+                     */
+                    /**
+                     * Submit form with current filter values
+                     * Updates the URL with filter parameters and reloads the page
+                     */
+                    submitForm() {
+                        if (this.isLoading) return;
+                        
+                        this.isLoading = true;
+                        
+                        try {
+                            const params = new URLSearchParams();
+                            
+                            // Add text and select inputs
+                            if (this.search) params.set('search', this.search);
+                            if (this.region) params.set('region', this.region);
+                            if (this.rating) params.set('rating', this.rating);
+                            if (this.sort) params.set('sort', this.sort);
+                            
+                            // Add checkbox values
+                            if (this.featured) params.set('featured', 'true');
+                            if (this.family_friendly) params.set('family_friendly', 'true');
+                            if (this.wheelchair_accessible) params.set('wheelchair_accessible', 'true');
+                            
+                            // Build the new URL
+                            const queryString = params.toString();
+                            const newUrl = queryString 
+                                ? `${window.location.pathname}?${queryString}`
+                                : window.location.pathname;
+                            
+                            // Navigate to the new URL
+                            window.location.href = newUrl;
+                            
+                        } catch (error) {
+                            console.error('Error applying filters:', error);
+                            // Fallback to form submission if there's an error
+                            const form = this.$el.querySelector('form');
+                            if (form) form.submit();
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    }
+                };
+                
+                // Register the component with Alpine.js
+                Alpine.data('filterComponent', () => filterData);
+            });
+        </script>
+{% endblock %}

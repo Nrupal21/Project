@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!--
+Manager Destination Upload Template
+
+This template provides a form for managers to directly upload destinations
+to the main destinations table without going through the approval workflow.
+-->
+
+{% block title %}Upload New Destination - Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page header -->
+    <div class="md:flex md:items-center md:justify-between mb-8">
+        <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">
+                Upload New Destination
+            </h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Add a new destination directly to the main destinations table.
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <a href="{% url 'destinations:admin_manager_dashboard' %}" 
+               class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Form section -->
+    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Basic Information
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Enter the basic details of the destination.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <!-- Name -->
+                        <div class="sm:col-span-4">
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Destination Name *
+                            </label>
+                            <div class="mt-1">
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <p class="mt-2 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Region -->
+                        <div class="sm:col-span-3">
+                            <label for="region" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Region *
+                            </label>
+                            <div class="mt-1">
+                                {{ form.region }}
+                                {% if form.region.errors %}
+                                    <p class="mt-2 text-sm text-red-600">{{ form.region.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="sm:col-span-3">
+                            <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                City *
+                            </label>
+                            <div class="mt-1">
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <p class="mt-2 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Country *
+                            </label>
+                            <div class="mt-1">
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <p class="mt-2 text-sm text-red-600">{{ form.country.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Description
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Provide a detailed description of the destination.
+                        </p>
+                    </div>
+
+                    <div class="mt-6">
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Images
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Upload at least one image for the destination. The first image will be set as the primary image.
+                        </p>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600 dark:text-gray-300">
+                                    <label for="images" class="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <span>Upload files</span>
+                                        <input id="images" name="images" type="file" class="sr-only" multiple>
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    PNG, JPG, GIF up to 10MB
+                                </p>
+                            </div>
+                        </div>
+                        {% if form.images.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.images.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Additional Information
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Provide any additional details about the destination.
+                        </p>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <!-- Price -->
+                        <div class="sm:col-span-2">
+                            <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Average Price (USD)
+                            </label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 dark:text-gray-400 sm:text-sm">$</span>
+                                </div>
+                                {{ form.price }}
+                            </div>
+                            {% if form.price.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.price.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Is Featured -->
+                        <div class="sm:col-span-4 flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.is_featured }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="is_featured" class="font-medium text-gray-700 dark:text-gray-300">
+                                    Feature this destination
+                                </label>
+                                <p class="text-gray-500 dark:text-gray-400">
+                                    This will display the destination in featured sections.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form actions -->
+                <div class="pt-5 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-end">
+                        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" 
+                           class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create Destination
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Display selected file names
+    document.getElementById('images').addEventListener('change', function(e) {
+        const fileList = e.target.files;
+        const fileNames = Array.from(fileList).map(file => file.name);
+        
+        // Remove any existing file name display
+        const existingDisplay = document.getElementById('file-names');
+        if (existingDisplay) {
+            existingDisplay.remove();
+        }
+        
+        if (fileNames.length > 0) {
+            const display = document.createElement('div');
+            display.id = 'file-names';
+            display.className = 'mt-2 text-sm text-gray-600 dark:text-gray-300';
+            display.innerHTML = `<strong>Selected files:</strong> ${fileNames.join(', ')}`;
+            
+            const uploadArea = document.querySelector('.relative');
+            uploadArea.parentNode.insertBefore(display, uploadArea.nextSibling);
+        }
+    });
+</script>
+{% endblock %}

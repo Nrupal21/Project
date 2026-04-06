@@ -1,0 +1,47 @@
+{% load static %}
+{% load humanize %}
+
+<!-- Nearby Destinations Section -->
+<div class="max-w-screen-2xl w-full mx-auto px-4 py-12" data-aos="fade-up">
+    <div class="text-center mb-12">
+        <h2 class="text-4xl md:text-5xl font-bold mb-6 text-center" data-aos="fade-down">Ready for Your Next Adventure?</h2>
+        <p class="text-xl text-center mb-12 max-w-4xl w-full mx-auto" data-aos="fade-up" data-aos-delay="200">Join thousands of travelers who have discovered their perfect getaway with our expert guides and personalized tours.</p>
+    </div>
+    
+    <!-- Nearby Destinations Container -->
+    <div id="nearby-destinations" class="mb-12">
+        <!-- Loading State -->
+        <div id="nearby-loading" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-2"></div>
+            <p class="text-gray-600">Finding destinations near you...</p>
+        </div>
+        
+        <!-- Error State -->
+        <div id="nearby-error" class="hidden text-center py-8">
+            <p class="text-gray-600">Unable to access your location. Please enable location services to see nearby destinations.</p>
+        </div>
+        
+        <!-- Not Supported State -->
+        <div id="nearby-not-supported" class="hidden text-center py-8">
+            <p class="text-gray-600">Your browser doesn't support geolocation. Try using a different browser.</p>
+        </div>
+        
+        <!-- Content State -->
+        <div id="nearby-content" class="hidden">
+            <h3 class="text-2xl font-bold mb-4 relative section-title">Destinations Within 15km</h3>
+            <div id="nearby-destinations-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Destinations will be loaded here via JavaScript -->
+            </div>
+            
+            <!-- View All Button -->
+            <div class="text-center mt-8">
+                <button onclick="showAllNearbyDestinations()" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300">
+                    View All Nearby Destinations
+                    <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

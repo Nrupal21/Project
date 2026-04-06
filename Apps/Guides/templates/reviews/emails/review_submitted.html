@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Thank You for Your Review on TravelGuide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #4f46e5;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4f46e5;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        .review-details {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Thank You for Your Review!</h1>
+    </div>
+    
+    <div class="content">
+        <p>Hello {{ user.first_name|default:"there" }},</p>
+        
+        <p>Thank you for taking the time to write a review on TravelGuide! We appreciate your feedback and have received your review for "<strong>{{ content_object.name }}</strong>".</p>
+        
+        <div class="review-details">
+            <h3>Your Review Details:</h3>
+            <p><strong>Rating:</strong> 
+                {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+                ({{ review.rating }}/5)
+            </p>
+            <p><strong>Title:</strong> {{ review.title }}</p>
+            <p><strong>Your Review:</strong></p>
+            <p>{{ review.content|linebreaksbr }}</p>
+        </div>
+        
+        {% if review.status == 'pending' %}
+        <p>Your review is currently <strong>pending approval</strong> and will be visible to others once it has been moderated by our team. This process usually takes 24-48 hours.</p>
+        {% else %}
+        <p>Your review has been approved and is now visible to other travelers.</p>
+        {% endif %}
+        
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="{{ site_url }}{% url 'reviews:my_reviews' %}" class="button">View Your Reviews</a>
+        </div>
+        
+        <p>If you have any questions about your review or need further assistance, please don't hesitate to contact our support team.</p>
+        
+        <p>Thanks again for being a valued member of the TravelGuide community!</p>
+        
+        <p>Best regards,<br>The TravelGuide Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message. Please do not reply to this email.</p>
+        <p>© {% now "Y" %} TravelGuide. All rights reserved.</p>
+    </div>
+</body>
+</html>

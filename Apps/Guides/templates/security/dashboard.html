@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Security Dashboard - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Security Dashboard</h1>
+            
+            <!-- Security Status Card -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Account Security Status</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    {% if twofa_enabled %}
+                                        <i class="fas fa-shield-check text-success fa-2x"></i>
+                                    {% else %}
+                                        <i class="fas fa-shield-exclamation text-danger fa-2x"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h3 class="h6 mb-0">Two-Factor Authentication</h3>
+                                    <p class="small text-muted mb-0">
+                                        {% if twofa_enabled %}
+                                            Enabled - Using {{ twofa_method }}
+                                        {% else %}
+                                            Not enabled
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="ms-auto">
+                                    {% if twofa_enabled %}
+                                        <a href="{% url 'security:twofa_manage' %}" class="btn btn-sm btn-outline-primary">Manage</a>
+                                    {% else %}
+                                        <a href="{% url 'security:twofa_setup' %}" class="btn btn-sm btn-primary">Enable Now</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-clock-rotate-left text-primary fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h6 mb-0">Login Activity</h3>
+                                    <p class="small text-muted mb-0">
+                                        {{ recent_events.count }} recent events
+                                    </p>
+                                </div>
+                                <div class="ms-auto">
+                                    <a href="{% url 'security:logs' %}" class="btn btn-sm btn-outline-primary">View Logs</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Recommendations -->
+            {% if recommendations %}
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="h5 mb-0">Security Recommendations</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for rec in recommendations %}
+                            <li class="list-group-item px-0 d-flex align-items-center">
+                                {% if rec.severity == 'high' %}
+                                    <span class="badge rounded-pill bg-danger me-3">High Priority</span>
+                                {% elif rec.severity == 'medium' %}
+                                    <span class="badge rounded-pill bg-warning text-dark me-3">Medium</span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-info text-dark me-3">Low</span>
+                                {% endif %}
+                                
+                                <span class="me-auto">{{ rec.text }}</span>
+                                
+                                {% if rec.url %}
+                                    <a href="{{ rec.url }}" class="btn btn-sm btn-primary">Fix Now</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Recent Activity -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">Recent Security Events</h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Event</th>
+                                    <th>IP Address</th>
+                                    <th>Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in recent_events %}
+                                <tr>
+                                    <td>{{ event.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {{ event.get_event_type_display }}
+                                        <div class="small text-muted">{{ event.description }}</div>
+                                    </td>
+                                    <td>{{ event.ip_address }}</td>
+                                    <td>
+                                        {% if event.level == 'info' %}
+                                            <span class="badge bg-info text-dark">Info</span>
+                                        {% elif event.level == 'success' %}
+                                            <span class="badge bg-success">Success</span>
+                                        {% elif event.level == 'warning' %}
+                                            <span class="badge bg-warning text-dark">Warning</span>
+                                        {% elif event.level == 'danger' %}
+                                            <span class="badge bg-danger">Danger</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-3">No recent security events</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'security:logs' %}" class="btn btn-sm btn-outline-primary">View All Logs</a>
+                </div>
+            </div>
+            
+            <!-- Failed Logins -->
+            {% if recent_failed_logins %}
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h5 mb-0">Recent Failed Login Attempts</h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>IP Address</th>
+                                    <th>User Agent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for login in recent_failed_logins %}
+                                <tr>
+                                    <td>{{ login.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>{{ login.ip_address }}</td>
+                                    <td>
+                                        <small class="text-muted">{{ login.user_agent|truncatechars:80 }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'security:account' %}" class="btn btn-sm btn-outline-primary">View Account Security</a>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

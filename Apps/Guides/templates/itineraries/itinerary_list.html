@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Itineraries" %}{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container my-4">
+    <!-- Page header with title and description -->
+    <header class="mb-5">
+        <h1 class="display-4">{% trans "Explore Travel Itineraries" %}</h1>
+        <p class="lead text-secondary">
+            {% trans "Discover curated travel itineraries created by travelers around the world." %}
+        </p>
+    </header>
+
+    <!-- Filtering and sorting options -->
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <!-- Sorting options -->
+                <div class="col-md-6">
+                    <label for="sort" class="form-label">{% trans "Sort by:" %}</label>
+                    <select name="sort" id="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="start_date" {% if sort_by == "start_date" %}selected{% endif %}>
+                            {% trans "Start Date" %}
+                        </option>
+                        <option value="created" {% if sort_by == "created" %}selected{% endif %}>
+                            {% trans "Recently Created" %}
+                        </option>
+                        <option value="title" {% if sort_by == "title" %}selected{% endif %}>
+                            {% trans "Title" %}
+                        </option>
+                    </select>
+                </div>
+                <!-- Create button for authenticated users -->
+                {% if user.is_authenticated %}
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'itineraries:itinerary_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>{% trans "Create New Itinerary" %}
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Display itineraries or a message if none found -->
+    {% if itineraries %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for itinerary in itineraries %}
+                <div class="col">
+                    <!-- Itinerary card with details and link to view -->
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        <!-- Card header with dates -->
+                        <div class="card-header bg-light text-muted d-flex justify-content-between">
+                            <small>{{ itinerary.start_date|date:"M j, Y" }} - {{ itinerary.end_date|date:"M j, Y" }}</small>
+                            {% if itinerary.user == user %}
+                                <span class="badge bg-primary">{% trans "Mine" %}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Card body with title and description -->
+                        <div class="card-body">
+                            <h5 class="card-title">{{ itinerary.title }}</h5>
+                            <p class="card-text text-truncate">{{ itinerary.description }}</p>
+                        </div>
+                        
+                        <!-- Card footer with view button and details -->
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">{% trans "By" %} {{ itinerary.user.username }}</small>
+                            </div>
+                            <a href="{% url 'itineraries:itinerary_detail' itinerary.pk %}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination controls -->
+        {% if is_paginated %}
+            <nav aria-label="Pagination" class="my-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&sort={{ sort_by }}">{% trans "First" %}</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort_by }}">
+                                {% trans "Previous" %}
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort_by }}">
+                                {% trans "Next" %}
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&sort={{ sort_by }}">
+                                {% trans "Last" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <!-- No itineraries found message -->
+        <div class="alert alert-info">
+            {% trans "No itineraries found." %}
+            {% if user.is_authenticated %}
+                <a href="{% url 'itineraries:itinerary_create' %}">{% trans "Create your first itinerary!" %}</a>
+            {% else %}
+                <a href="{% url 'account_login' %}">{% trans "Log in" %}</a> {% trans "to create your own." %}
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

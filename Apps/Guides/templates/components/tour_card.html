@@ -1,0 +1,498 @@
+{% comment %}
+Enhanced Tour Card Component
+
+This reusable component displays tour package information in a consistent card format
+across the TravelGuide application. It uses Tailwind CSS for styling and includes
+comprehensive functionality for displaying tour details, pricing, and booking actions.
+
+Features:
+- Responsive design with mobile-first approach
+- Tailwind CSS styling with indigo/violet color scheme
+- Image carousel for multiple tour images
+- Dynamic pricing with discount calculations
+- Duration and group size information
+- Destination highlights and itinerary preview
+- Booking availability and action buttons
+- Accessibility features and semantic HTML
+- Smooth hover effects and transitions
+
+Usage:
+{% include 'components/tour_card.html' with tour=tour show_destinations=True %}
+
+Parameters:
+- tour: Tour object with all related data
+- show_destinations: Boolean to show/hide destination information (optional)
+- card_size: 'small', 'medium', or 'large' for different card sizes (optional)
+- show_booking: Boolean to show/hide booking buttons (optional)
+{% endcomment %}
+
+{% load static %}
+{% load core_extras %}
+
+{% comment %}
+Set default values for optional parameters to ensure component works
+even when not all parameters are provided by the including template
+{% endcomment %}
+{% if not card_size %}
+    {% with card_size='medium' %}
+{% endif %}
+
+{% if show_booking is None %}
+    {% with show_booking=True %}
+{% endif %}
+
+{% if show_destinations is None %}
+    {% with show_destinations=True %}
+{% endif %}
+
+{% comment %}
+Main tour card container with responsive classes and hover effects.
+Uses Tailwind's card styling with enhanced shadow and transition effects.
+{% endcomment %}
+<div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group
+            {% if card_size == 'small' %}max-w-sm{% elif card_size == 'large' %}max-w-4xl{% else %}max-w-lg{% endif %}">
+    
+    {% comment %}
+    Image section with carousel functionality for multiple tour images.
+    Includes fallback handling for tours without images and overlay information.
+    {% endcomment %}
+    <div class="relative overflow-hidden
+                {% if card_size == 'small' %}h-48{% elif card_size == 'large' %}h-80{% else %}h-64{% endif %}">
+        
+        {% if tour.images.all %}
+            {% comment %}
+            Image carousel container with navigation controls.
+            Primary image is displayed by default with smooth transitions.
+            {% endcomment %}
+            <div class="tour-image-carousel relative w-full h-full" data-tour-id="{{ tour.id }}">
+                {% for image in tour.images.all %}
+                    <img src="{{ image.image.url }}" 
+                         alt="{{ image.caption|default:tour.name }}"
+                         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500
+                                {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}"
+                         data-image-index="{{ forloop.counter0 }}"
+                         loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                {% endfor %}
+                
+                {% comment %}
+                Carousel navigation controls for multiple images.
+                Only displayed when tour has more than one image.
+                {% endcomment %}
+                {% if tour.images.count > 1 %}
+                    <div class="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button type="button" 
+                                class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all duration-200"
+                                onclick="previousImage({{ tour.id }})"
+                                aria-label="Previous image">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" 
+                                class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all duration-200"
+                                onclick="nextImage({{ tour.id }})"
+                                aria-label="Next image">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    {% comment %}
+                    Image indicators showing current position in carousel.
+                    Positioned at bottom center with interactive functionality.
+                    {% endcomment %}
+                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                        {% for image in tour.images.all %}
+                            <button type="button" 
+                                    class="w-2 h-2 rounded-full transition-all duration-200
+                                           {% if forloop.first %}bg-white{% else %}bg-white bg-opacity-50{% endif %}"
+                                    onclick="showImage({{ tour.id }}, {{ forloop.counter0 }})"
+                                    data-indicator="{{ forloop.counter0 }}"
+                                    aria-label="Show image {{ forloop.counter }}"></button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            {% comment %}
+            Fallback placeholder when no images are available.
+            Uses gradient background with tour category and name overlay.
+            {% endcomment %}
+            <div class="w-full h-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                <div class="text-white text-center p-6">
+                    <i class="fas fa-route text-4xl mb-3 opacity-80"></i>
+                    <h4 class="text-lg font-semibold mb-1">{{ tour.name }}</h4>
+                    {% if tour.category %}
+                        <p class="text-sm opacity-90">{{ tour.category.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        Tour category badge overlay with attractive styling.
+        Positioned in top-left corner with category-specific colors.
+        {% endcomment %}
+        {% if tour.category %}
+            <div class="absolute top-3 left-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                {{ tour.category.name }}
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        Featured badge overlay for tours marked as featured.
+        Positioned in top-right corner with golden styling.
+        {% endcomment %}
+        {% if tour.is_featured %}
+            <div class="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                <i class="fas fa-star mr-1"></i>Featured
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        Duration badge overlay showing tour length information.
+        Positioned in bottom-right corner with semi-transparent background.
+        {% endcomment %}
+        <div class="absolute bottom-3 right-3 bg-black bg-opacity-70 text-white text-sm font-medium px-3 py-1 rounded-full">
+            <i class="fas fa-calendar-alt mr-1"></i>{{ tour.duration_days }} day{{ tour.duration_days|pluralize }}
+        </div>
+    </div>
+    
+    {% comment %}
+    Card content section with tour information, pricing, and booking details.
+    Uses responsive padding and typography scaling for different screen sizes.
+    {% endcomment %}
+    <div class="p-4 {% if card_size == 'large' %}p-6{% endif %}">
+        
+        {% comment %}
+        Tour header with name, destinations, and key information.
+        Includes responsive text sizing and proper content hierarchy.
+        {% endcomment %}
+        <div class="mb-4">
+            <h3 class="font-bold text-gray-900 mb-2 line-clamp-2
+                       {% if card_size == 'small' %}text-lg{% elif card_size == 'large' %}text-2xl{% else %}text-xl{% endif %}">
+                {{ tour.name }}
+            </h3>
+            
+            {% comment %}
+            Destination highlights showing key locations included in the tour.
+            Only displayed when show_destinations is True and destinations exist.
+            {% endcomment %}
+            {% if show_destinations and tour.destinations.all %}
+                <div class="flex items-center text-gray-600 text-sm mb-2">
+                    <i class="fas fa-map-marker-alt mr-2 text-indigo-500"></i>
+                    <span class="line-clamp-1">
+                        {% for destination in tour.destinations.all|slice:":3" %}
+                            {{ destination.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if tour.destinations.count > 3 %}
+                            <span class="text-indigo-600 font-medium">+{{ tour.destinations.count|add:"-3" }} more</span>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+            
+            {% comment %}
+            Tour details including group size, difficulty, and language information.
+            Uses icon-based layout for visual appeal and space efficiency.
+            {% endcomment %}
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                {% if tour.group_size_max %}
+                    <div class="flex items-center">
+                        <i class="fas fa-users mr-1 text-violet-500"></i>
+                        <span>{{ tour.group_size_min }}-{{ tour.group_size_max }} people</span>
+                    </div>
+                {% endif %}
+                
+                {% if tour.difficulty_level %}
+                    <div class="flex items-center">
+                        <i class="fas fa-mountain mr-1 text-green-500"></i>
+                        <span>{{ tour.difficulty_level|title }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if tour.languages %}
+                    <div class="flex items-center">
+                        <i class="fas fa-language mr-1 text-blue-500"></i>
+                        <span>{{ tour.languages }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% comment %}
+        Tour description with proper truncation and responsive text sizing.
+        Uses line clamping for consistent card heights and clean appearance.
+        {% endcomment %}
+        {% if tour.short_description %}
+            <p class="text-gray-700 mb-4 line-clamp-3
+                      {% if card_size == 'small' %}text-sm{% else %}text-base{% endif %}">
+                {{ tour.short_description }}
+            </p>
+        {% elif tour.description %}
+            <p class="text-gray-700 mb-4 line-clamp-3
+                      {% if card_size == 'small' %}text-sm{% else %}text-base{% endif %}">
+                {{ tour.description|truncate_text:150 }}
+            </p>
+        {% endif %}
+        
+        {% comment %}
+        Pricing section with discount calculations and availability information.
+        Includes responsive layout and attractive pricing display.
+        {% endcomment %}
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col">
+                {% comment %}
+                Price display with discount handling and proper formatting.
+                Shows original price with strikethrough when discount is available.
+                {% endcomment %}
+                {% if tour.discount_price %}
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-500 line-through text-sm">{{ tour.price|format_price }}</span>
+                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">
+                            SAVE {{ tour.price|floatformat:0|sub:tour.discount_price|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="text-indigo-600 font-bold
+                                {% if card_size == 'small' %}text-xl{% else %}text-2xl{% endif %}">
+                        {{ tour.discount_price|format_price }}
+                    </div>
+                {% else %}
+                    <div class="text-indigo-600 font-bold
+                                {% if card_size == 'small' %}text-xl{% else %}text-2xl{% endif %}">
+                        {{ tour.price|format_price }}
+                    </div>
+                {% endif %}
+                <p class="text-gray-600 text-xs">per person</p>
+            </div>
+            
+            {% comment %}
+            Tour availability and booking status information.
+            Shows next available date and booking urgency indicators.
+            {% endcomment %}
+            <div class="text-right">
+                {% if tour.dates.all %}
+                    {% with next_date=tour.dates.all.0 %}
+                        <p class="text-gray-600 text-xs mb-1">Next departure</p>
+                        <p class="text-gray-900 font-semibold text-sm">{{ next_date.start_date|date:"M d, Y" }}</p>
+                        {% if next_date.current_participants and next_date.max_participants %}
+                            {% with spots_left=next_date.max_participants|sub:next_date.current_participants %}
+                                {% if spots_left <= 3 %}
+                                    <p class="text-red-600 text-xs font-medium">Only {{ spots_left }} spot{{ spots_left|pluralize }} left!</p>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <p class="text-gray-500 text-sm">No dates available</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% comment %}
+        Action buttons section with booking and information options.
+        Includes responsive layout and consistent styling with hover effects.
+        {% endcomment %}
+        {% if show_booking %}
+            <div class="flex items-center space-x-3">
+                {% comment %}
+                Primary booking button with availability-based styling.
+                Disabled state when no dates are available for booking.
+                {% endcomment %}
+                {% if tour.dates.all %}
+                    <a href="{% url 'tours:detail' tour.slug %}" 
+                       class="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 
+                              text-white font-medium py-3 px-4 rounded-lg text-center transition-all duration-200 
+                              focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                       aria-label="Book {{ tour.name }} tour">
+                        <i class="fas fa-calendar-check mr-2"></i>Book Now
+                    </a>
+                {% else %}
+                    <button type="button" 
+                            class="flex-1 bg-gray-400 text-white font-medium py-3 px-4 rounded-lg text-center cursor-not-allowed"
+                            disabled
+                            aria-label="No dates available for {{ tour.name }}">
+                        <i class="fas fa-calendar-times mr-2"></i>No Dates Available
+                    </button>
+                {% endif %}
+                
+                {% comment %}
+                Secondary action buttons for wishlist and detailed information.
+                Uses outline styling to complement the primary booking button.
+                {% endcomment %}
+                <div class="flex space-x-2">
+                    {% comment %}
+                    Wishlist toggle button with dynamic state management.
+                    Includes proper ARIA labels for accessibility compliance.
+                    {% endcomment %}
+                    <button type="button" 
+                            class="p-3 border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white 
+                                   rounded-lg transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            onclick="toggleTourWishlist({{ tour.id }})"
+                            aria-label="Add {{ tour.name }} to wishlist">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    
+                    {% comment %}
+                    Information button linking to detailed tour page.
+                    Provides alternative access to tour details and itinerary.
+                    {% endcomment %}
+                    <a href="{% url 'tours:detail' tour.slug %}" 
+                       class="p-3 border-2 border-violet-600 text-violet-600 hover:bg-violet-600 hover:text-white 
+                              rounded-lg transition-all duration-200 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+                       aria-label="View details for {{ tour.name }}">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% comment %}
+JavaScript functionality for interactive features including image carousel,
+wishlist management, and booking interactions with proper error handling.
+{% endcomment %}
+<script>
+/**
+ * Image carousel functionality for tour cards
+ * 
+ * These functions handle the image carousel navigation, indicators,
+ * and automatic slideshow functionality with smooth transitions.
+ */
+
+// Store current image index for each tour
+const tourImageIndexes = {};
+
+/**
+ * Show specific image in tour carousel
+ * 
+ * @param {number} tourId - ID of the tour
+ * @param {number} imageIndex - Index of image to show
+ */
+function showImage(tourId, imageIndex) {
+    const carousel = document.querySelector(`[data-tour-id="${tourId}"]`);
+    if (!carousel) return;
+    
+    const images = carousel.querySelectorAll('img[data-image-index]');
+    const indicators = carousel.querySelectorAll('button[data-indicator]');
+    
+    // Hide all images
+    images.forEach(img => img.classList.remove('opacity-100'));
+    images.forEach(img => img.classList.add('opacity-0'));
+    
+    // Show selected image
+    const targetImage = carousel.querySelector(`img[data-image-index="${imageIndex}"]`);
+    if (targetImage) {
+        targetImage.classList.remove('opacity-0');
+        targetImage.classList.add('opacity-100');
+    }
+    
+    // Update indicators
+    indicators.forEach(indicator => {
+        indicator.classList.remove('bg-white');
+        indicator.classList.add('bg-white', 'bg-opacity-50');
+    });
+    
+    const targetIndicator = carousel.querySelector(`button[data-indicator="${imageIndex}"]`);
+    if (targetIndicator) {
+        targetIndicator.classList.remove('bg-opacity-50');
+        targetIndicator.classList.add('bg-white');
+    }
+    
+    // Update stored index
+    tourImageIndexes[tourId] = imageIndex;
+}
+
+/**
+ * Show next image in tour carousel
+ * 
+ * @param {number} tourId - ID of the tour
+ */
+function nextImage(tourId) {
+    const carousel = document.querySelector(`[data-tour-id="${tourId}"]`);
+    if (!carousel) return;
+    
+    const images = carousel.querySelectorAll('img[data-image-index]');
+    const currentIndex = tourImageIndexes[tourId] || 0;
+    const nextIndex = (currentIndex + 1) % images.length;
+    
+    showImage(tourId, nextIndex);
+}
+
+/**
+ * Show previous image in tour carousel
+ * 
+ * @param {number} tourId - ID of the tour
+ */
+function previousImage(tourId) {
+    const carousel = document.querySelector(`[data-tour-id="${tourId}"]`);
+    if (!carousel) return;
+    
+    const images = carousel.querySelectorAll('img[data-image-index]');
+    const currentIndex = tourImageIndexes[tourId] || 0;
+    const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    
+    showImage(tourId, prevIndex);
+}
+
+/**
+ * Toggle wishlist status for a tour
+ * 
+ * This function handles adding/removing tours from the user's wishlist
+ * with proper API integration and visual feedback mechanisms.
+ * 
+ * @param {number} tourId - ID of the tour to toggle
+ */
+function toggleTourWishlist(tourId) {
+    // Check if user is authenticated
+    {% if not user.is_authenticated %}
+        // Redirect to login if user is not authenticated
+        window.location.href = "{% url 'accounts:login' %}?next=" + encodeURIComponent(window.location.pathname);
+        return;
+    {% endif %}
+    
+    // Make API call to toggle wishlist status
+    fetch(`/api/v1/tours/${tourId}/toggle-wishlist/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button appearance based on wishlist status
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            
+            if (data.in_wishlist) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.classList.add('bg-indigo-600', 'text-white');
+                button.classList.remove('text-indigo-600');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.classList.remove('bg-indigo-600', 'text-white');
+                button.classList.add('text-indigo-600');
+            }
+            
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message || 'Error updating wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating wishlist', 'error');
+    });
+}
+
+// Initialize tour image indexes on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-tour-id]').forEach(carousel => {
+        const tourId = carousel.dataset.tourId;
+        tourImageIndexes[tourId] = 0;
+    });
+});
+</script>

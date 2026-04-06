@@ -1,0 +1,30 @@
+-c base.txt
+
+# Production-specific packages
+gunicorn>=20.1.0
+whitenoise>=6.4.0
+newrelic>=8.6.0
+sentry-sdk[django]>=1.19.1
+
+# Security
+django-secure>=2.2.1
+django-csp>=3.7
+
+# Performance
+django-compressor>=4.3.1
+broccoli>=0.0.1
+
+# Monitoring
+django-prometheus>=2.3.1
+
+# Caching
+django-redis>=5.2.0
+redis>=4.5.1
+
+# Database
+psycopg2-binary>=2.9.6
+django-db-geventpool>=5.0.0
+
+# Storage
+django-storages[boto3]>=1.13.2
+boto3>=1.26.0

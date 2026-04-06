@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# Page title for browser tab #}
+{% block title %}{{ title }} - TravelGuide{% endblock %}
+
+{# Main content block #}
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        {# TravelGuide Logo #}
+        <div class="flex justify-center">
+            <img class="h-16 w-auto" src="{% static 'images/logo.png' %}" alt="TravelGuide Logo">
+        </div>
+        
+        {# Page heading #}
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {{ title }}
+        </h2>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            {# Success and error messages display #}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-4 {% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {# Main content with result #}
+            <div class="text-center">
+                {% if verification_success %}
+                    {# Success icon #}
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Email Verified Successfully</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Thank you! Your email address has been verified. You now have full access to all TravelGuide features.
+                    </p>
+                    
+                    {# Continue button #}
+                    <div class="mt-6">
+                        <a href="{% url 'accounts:profile' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Continue to Your Profile
+                        </a>
+                    </div>
+                {% else %}
+                    {# Error icon #}
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Verification Failed</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        {{ message }}
+                    </p>
+                    
+                    {# Try again options #}
+                    <div class="mt-6">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'accounts:verification_required' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Request a New Verification Email
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Log In to Request New Verification
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {# Return to home link #}
+            <div class="mt-6 text-center">
+                <a href="{% url 'core:home' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    Return to Home Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

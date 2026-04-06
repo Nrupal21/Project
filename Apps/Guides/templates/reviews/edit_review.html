@@ -1,0 +1,315 @@
+{% extends 'reviews/base_reviews.html' %}
+{% load static %}
+
+{# 
+  Edit Review Template
+  Provides a form for users to modify their existing reviews.
+  Pre-populates all fields with the current review data and handles image management.
+  Similar to create_review.html but with edit-specific functionality.
+#}
+
+{% block reviews_title %}Edit Review{% endblock %}
+
+{% block reviews_breadcrumb %}
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <a href="{% url 'reviews:review_detail' review_id=review.id %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-indigo-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+        {{ review.title }}
+      </a>
+    </div>
+  </li>
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Edit Review</span>
+    </div>
+  </li>
+{% endblock %}
+
+{% block reviews_header %}Edit Review{% endblock %}
+
+{% block reviews_subheader %}
+  <p class="text-gray-600 dark:text-gray-400">
+    Update your review for {{ review.content_object }}. Your edits will be submitted for moderation.
+  </p>
+{% endblock %}
+
+{% block reviews_content %}
+<div class="max-w-3xl mx-auto">
+  {# Review form card #}
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    {# Display any form validation errors #}
+    {% if form.errors %}
+      <div class="mb-6 bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+              There {% if form.errors|length == 1 %}is an error{% else %}are {{ form.errors|length }} errors{% endif %} with your submission
+            </h3>
+            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+              <ul class="list-disc pl-5 space-y-1">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    
+    {# Review edit form #}
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      
+      {# Rating field #}
+      <div>
+        <label for="{{ form.rating.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Rating *
+        </label>
+        <div class="rating-input">
+          {% for value, text in form.rating.field.choices reversed %}
+            <input type="radio" name="{{ form.rating.name }}" value="{{ value }}" id="{{ form.rating.id_for_label }}_{{ value }}" 
+                   {% if form.rating.value|stringformat:"s" == value|stringformat:"s" %}checked{% endif %} required>
+            <label for="{{ form.rating.id_for_label }}_{{ value }}" title="{{ text }}">★</label>
+          {% endfor %}
+        </div>
+        {% if form.rating.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.rating.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select a star rating from 1 to 5</p>
+        {% endif %}
+      </div>
+      
+      {# Title field #}
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Title *
+        </label>
+        <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" 
+               value="{{ form.title.value|default:'' }}"
+               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
+               placeholder="Summarize your experience" 
+               required>
+        {% if form.title.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">A brief headline for your review (maximum 100 characters)</p>
+        {% endif %}
+      </div>
+      
+      {# Content field #}
+      <div>
+        <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Review *
+        </label>
+        <textarea name="{{ form.content.name }}" id="{{ form.content.id_for_label }}" rows="6"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
+                  placeholder="Share details of your experience..." 
+                  required>{{ form.content.value|default:'' }}</textarea>
+        {% if form.content.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.content.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Describe your experience in detail (minimum 20 characters)</p>
+        {% endif %}
+      </div>
+      
+      {# Existing Images #}
+      {% if review.images.exists %}
+        <div>
+          <h3 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Existing Images</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {% for image in review.images.all %}
+              <div class="relative border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden h-32 group">
+                <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Review image' }}" class="h-full w-full object-cover">
+                
+                {# Caption overlay on hover #}
+                {% if image.caption %}
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-end justify-center p-2 transition-all duration-200">
+                    <p class="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {{ image.caption }}
+                    </p>
+                  </div>
+                {% endif %}
+                
+                {# Delete image checkbox #}
+                <div class="absolute top-2 right-2">
+                  <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="delete_images" value="{{ image.id }}" 
+                           class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                    <span class="text-xs bg-red-500 text-white px-1 py-0.5 rounded">Delete</span>
+                  </label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Check the box to remove images</p>
+        </div>
+      {% endif %}
+      
+      {# New Image upload field #}
+      <div>
+        <label for="{{ form.images.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Add New Photos (Optional)
+        </label>
+        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed dark:border-gray-600 rounded-md">
+          <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" 
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="flex text-sm text-gray-600 dark:text-gray-400">
+              <label for="id_images" class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <span>Upload photos</span>
+                <input id="id_images" name="new_images" type="file" class="sr-only" multiple accept="image/*">
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              PNG, JPG, GIF up to 5MB each (maximum 5 photos total)
+            </p>
+          </div>
+        </div>
+        {% if form.images.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.images.errors|join:", " }}</p>
+        {% endif %}
+        
+        {# Image preview container for new uploads #}
+        <div id="image-preview-container" class="mt-4"></div>
+      </div>
+      
+      {# Submit and Cancel buttons #}
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        {# Cancel button #}
+        <a href="{% url 'reviews:review_detail' review_id=review.id %}" 
+           class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+          Cancel
+        </a>
+        
+        {# Submit button #}
+        <button type="submit" 
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+          Update Review
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  {# Review edit note #}
+  <div class="mt-8 bg-yellow-50 dark:bg-yellow-900 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-yellow-900 dark:text-yellow-200 flex items-center mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+      </svg>
+      Important Note
+    </h3>
+    <div class="text-sm text-yellow-800 dark:text-yellow-300 space-y-2">
+      <p>
+        When you update your review, it will be re-submitted for moderation and temporarily marked as pending until approved.
+      </p>
+      <p>
+        Your original review will remain visible until the updated version is approved.
+      </p>
+    </div>
+  </div>
+</div>
+
+{# Custom JavaScript for image preview #}
+<script>
+  /**
+   * Image Preview Functionality
+   * Shows previews of uploaded images before form submission
+   * Also manages the existing image deletion UI
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize preview functionality for new images
+    const imageInput = document.getElementById('id_images');
+    const previewContainer = document.getElementById('image-preview-container');
+    
+    if (imageInput && previewContainer) {
+      imageInput.addEventListener('change', function() {
+        // Clear previous previews
+        previewContainer.innerHTML = '';
+        
+        // Check if files are selected
+        if (this.files.length > 0) {
+          // Count existing images (that aren't marked for deletion)
+          let existingImagesCount = 0;
+          document.querySelectorAll('input[name="delete_images"]:not(:checked)').forEach(() => {
+            existingImagesCount++;
+          });
+          
+          // Create grid container for previews
+          const previewGrid = document.createElement('div');
+          previewGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4';
+          
+          // Maximum allowed total images (5)
+          const maxTotalImages = 5;
+          const remainingSlots = maxTotalImages - existingImagesCount;
+          const filesToPreview = Array.from(this.files).slice(0, remainingSlots);
+          
+          // Show warning if too many files selected
+          if (this.files.length > remainingSlots) {
+            const warning = document.createElement('p');
+            warning.className = 'text-sm text-yellow-600 dark:text-yellow-400 mb-2';
+            warning.textContent = `Only the first ${remainingSlots} new images will be uploaded. Maximum total is 5 images.`;
+            previewContainer.appendChild(warning);
+          }
+          
+          // Create preview for each image
+          filesToPreview.forEach((file, index) => {
+            if (!file.type.startsWith('image/')) return;
+            
+            // Create preview item container
+            const previewItem = document.createElement('div');
+            previewItem.className = 'relative border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden h-32';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'h-full w-full object-cover';
+            img.onload = function() {
+              URL.revokeObjectURL(this.src);
+            };
+            
+            // Add image to preview container
+            previewItem.appendChild(img);
+            previewGrid.appendChild(previewItem);
+          });
+          
+          // Add preview grid to the container
+          previewContainer.appendChild(previewGrid);
+        }
+      });
+    }
+    
+    // Toggle display of images marked for deletion
+    const deleteCheckboxes = document.querySelectorAll('input[name="delete_images"]');
+    deleteCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const imageContainer = this.closest('.relative');
+        if (this.checked) {
+          imageContainer.classList.add('opacity-50');
+        } else {
+          imageContainer.classList.remove('opacity-50');
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

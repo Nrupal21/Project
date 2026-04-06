@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Permissions - {{ user_obj.username }}{% endblock %}
+
+{% block extra_css %}
+<!-- JSON pretty print styling -->
+<style>
+    /* Syntax highlighting for JSON display */
+    .json-key { color: #a6e22e; }
+    .json-value { color: #333; }
+    .json-string { color: #e6db74; }
+    .json-boolean { color: #ae81ff; }
+    
+    /* Permission card styling */
+    .permission-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .permission-header {
+        background-color: #f3f4f6;
+        padding: 0.75rem;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        font-weight: 600;
+    }
+    .permission-content {
+        padding: 0.75rem;
+    }
+    
+    /* Check/X mark styling */
+    .permission-allowed {
+        color: #10b981;
+    }
+    .permission-denied {
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header with breadcrumbs -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'accounts:admin_user_roles' %}" class="ml-1 text-gray-700 hover:text-blue-600 md:ml-2">User Roles</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-1 text-gray-500 md:ml-2">User Permissions</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">
+            User Permissions: {{ user_obj.username }} ({{ user_obj.get_full_name|default:"No Name" }})
+        </h1>
+        <a href="{% url 'accounts:admin_user_role_update' user_obj.id %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+            Edit Role & Permissions
+        </a>
+    </div>
+    
+    <!-- User role summary card -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <h2 class="text-lg font-medium mb-4">User Information</h2>
+                <dl class="grid grid-cols-2 gap-2">
+                    <dt class="text-gray-500">Username:</dt>
+                    <dd class="text-gray-900">{{ user_obj.username }}</dd>
+                    
+                    <dt class="text-gray-500">Email:</dt>
+                    <dd class="text-gray-900">{{ user_obj.email }}</dd>
+                    
+                    <dt class="text-gray-500">Full Name:</dt>
+                    <dd class="text-gray-900">{{ user_obj.get_full_name|default:"Not provided" }}</dd>
+                </dl>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-medium mb-4">Role Information</h2>
+                <dl class="grid grid-cols-2 gap-2">
+                    <dt class="text-gray-500">Current Role:</dt>
+                    <dd>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if user_obj.role == 'ADMIN' %}bg-purple-100 text-purple-800
+                            {% elif user_obj.role == 'MANAGER' %}bg-blue-100 text-blue-800
+                            {% elif user_obj.role == 'LOCAL_GUIDE' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ role_display }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="text-gray-500">Role Assigned:</dt>
+                    <dd class="text-gray-900">{{ user_obj.role_assigned_at|date:"M d, Y"|default:"Not recorded" }}</dd>
+                    
+                    <dt class="text-gray-500">Assigned By:</dt>
+                    <dd class="text-gray-900">
+                        {% if user_obj.role_assigned_by %}
+                            {{ user_obj.role_assigned_by.get_full_name|default:user_obj.role_assigned_by.username }}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-medium mb-4">Account Status</h2>
+                <dl class="grid grid-cols-2 gap-2">
+                    <dt class="text-gray-500">Status:</dt>
+                    <dd>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if user_obj.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ user_obj.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="text-gray-500">Staff Status:</dt>
+                    <dd>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if user_obj.is_staff %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ user_obj.is_staff|yesno:"Staff,Not Staff" }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="text-gray-500">Superuser:</dt>
+                    <dd>
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if user_obj.is_superuser %}bg-purple-100 text-purple-800{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ user_obj.is_superuser|yesno:"Yes,No" }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Permission details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Module permissions section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-medium mb-4">Module Permissions</h2>
+                
+                {% if formatted_permissions.module_permissions %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for module, permissions in formatted_permissions.module_permissions.items %}
+                    <div class="permission-card">
+                        <div class="permission-header">{{ module|title }} Module</div>
+                        <div class="permission-content">
+                            <table class="min-w-full">
+                                <tbody>
+                                    {% for action in 'create,read,update,delete'.split %}
+                                    <tr>
+                                        <td class="py-1 pr-2">Can {{ action|title }}:</td>
+                                        <td class="py-1">
+                                            {% if action in permissions %}
+                                            <span class="permission-allowed">✓</span>
+                                            {% else %}
+                                            <span class="permission-denied">✗</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 italic">No module permissions defined for this user.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Object permissions section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-medium mb-4">Object Permissions</h2>
+                
+                {% if formatted_permissions.object_permissions %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for permission, allowed in formatted_permissions.object_permissions.items %}
+                    <div class="permission-card">
+                        <div class="permission-content flex items-center justify-between">
+                            <span>{{ permission|title|replace:'_',' ' }}</span>
+                            <span class="{% if allowed %}permission-allowed{% else %}permission-denied{% endif %}">
+                                {% if allowed %}✓{% else %}✗{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 italic">No object permissions defined for this user.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right sidebar with raw JSON and role history -->
+        <div>
+            <!-- Raw JSON view -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-medium mb-4">Raw Permissions</h2>
+                <pre id="permissions-json" class="bg-gray-50 p-4 rounded-lg text-sm overflow-auto max-h-80">{{ formatted_permissions|pprint }}</pre>
+            </div>
+            
+            <!-- Role change history -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-medium mb-4">Role Change History</h2>
+                
+                {% if role_changes %}
+                <div class="space-y-4">
+                    {% for log in role_changes %}
+                    <div class="border-l-4 border-blue-500 pl-4 py-1">
+                        <div class="text-xs text-gray-500">{{ log.timestamp|date:"M d, Y H:i" }}</div>
+                        <div class="text-sm">{{ log.description }}</div>
+                        {% if log.extra_data.change_reason %}
+                        <div class="text-xs text-gray-600 mt-1">
+                            "{{ log.extra_data.change_reason }}"
+                        </div>
+                        {% endif %}
+                        <div class="text-xs text-gray-500 mt-1">
+                            By: {% if log.extra_data.changed_by %}{{ log.extra_data.changed_by }}{% else %}Unknown{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 italic">No role change history available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Login history section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h2 class="text-lg font-medium mb-4">Recent Login History</h2>
+        
+        {% if login_history %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Timestamp
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Event
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            IP Address
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            User Agent
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for log in login_history %}
+                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ log.timestamp|date:"M d, Y H:i:s" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if log.event_type == 'login_success' %}bg-green-100 text-green-800
+                                {% elif log.event_type == 'login_failed' %}bg-red-100 text-red-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ log.event_type|title|replace:'_',' ' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ log.ip_address }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">
+                            {{ log.user_agent|truncatechars:60 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 italic">No login history available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add JSON syntax highlighting -->
+<script>
+    // Pretty print the JSON data
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the permissions JSON element
+        const jsonElement = document.getElementById('permissions-json');
+        
+        if (jsonElement && jsonElement.textContent) {
+            try {
+                // Parse the JSON data
+                const jsonObj = JSON.parse(jsonElement.textContent.replace(/'/g, '"'));
+                
+                // Format the JSON with indentation
+                const formattedJson = JSON.stringify(jsonObj, null, 2);
+                
+                // Apply syntax highlighting
+                jsonElement.innerHTML = syntaxHighlight(formattedJson);
+            } catch (e) {
+                console.error('Error formatting JSON:', e);
+            }
+        }
+        
+        // Function to apply syntax highlighting to JSON
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-value';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% comment %}
+This template provides Google AdSense ad placement components.
+It contains reusable ad display blocks that can be included in any template.
+The template checks if AdSense is enabled before displaying ads.
+
+Usage:
+- For header ad: {% include 'includes/adsense.html' with ad_position='header' %}
+- For sidebar ad: {% include 'includes/adsense.html' with ad_position='sidebar' %}
+- For footer ad: {% include 'includes/adsense.html' with ad_position='footer' %}
+- For in-article ad: {% include 'includes/adsense.html' with ad_position='in_article' %}
+
+Parameters:
+- ad_position: The position of the ad (header, sidebar, footer, in_article)
+- ad_format: Optional format specification (responsive, display, etc.)
+- ad_class: Optional CSS classes to apply to the ad container
+{% endcomment %}
+
+{% if ADSENSE_ENABLED and GOOGLE_ADSENSE_PUBLISHER_ID %}
+    <!-- Google AdSense {{ ad_position|title }} Ad -->
+    <div class="adsense-container {{ ad_position }}-ad {{ ad_class|default:'' }}">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ GOOGLE_ADSENSE_PUBLISHER_ID }}"
+            crossorigin="anonymous"></script>
+        <!-- {{ ad_position|title }} Ad Unit -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="{{ GOOGLE_ADSENSE_PUBLISHER_ID }}"
+             {% if ad_position == 'header' %}
+                 data-ad-slot="{{ GOOGLE_ADSENSE_SLOTS.header }}"
+             {% elif ad_position == 'sidebar' %}
+                 data-ad-slot="{{ GOOGLE_ADSENSE_SLOTS.sidebar }}"
+             {% elif ad_position == 'footer' %}
+                 data-ad-slot="{{ GOOGLE_ADSENSE_SLOTS.footer }}"
+             {% elif ad_position == 'in_article' %}
+                 data-ad-slot="{{ GOOGLE_ADSENSE_SLOTS.in_article }}"
+             {% endif %}
+             data-ad-format="{{ ad_format|default:'auto' }}"
+             data-full-width-responsive="true"></ins>
+        <script>
+            /* Display the ad after it's been created */
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+{% endif %}

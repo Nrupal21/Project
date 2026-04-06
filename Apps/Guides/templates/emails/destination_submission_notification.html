@@ -1,0 +1,63 @@
+{% extends "emails/base_email.html" %}
+
+{% comment %}
+/**
+ * Destination Submission Notification Email Template
+ * 
+ * This template is used to notify managers and admins when a local guide
+ * submits a new destination for approval. It extends the base email template
+ * to maintain consistent styling and layout.
+ * 
+ * Context variables:
+ * - destination: The pending destination object that was submitted
+ * - submitter: The user who submitted the destination
+ * - review_url: URL to review the pending destination in the admin panel
+ * - dashboard_url: URL to the pending destinations dashboard
+ */
+{% endcomment %}
+
+{% block title %}New Destination Submission: {{ destination.name }}{% endblock %}
+
+{% block email_title %}New Destination Submission{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <p>Hello Admin/Manager,</p>
+    
+    <p>A new destination has been submitted for review by a local guide:</p>
+    
+    <div style="background-color: #f9fafb; border-left: 4px solid #4f46e5; padding: 15px; margin: 20px 0;">
+        <h2 style="color: #4338ca; margin-top: 0; margin-bottom: 10px;">{{ destination.name }}</h2>
+        
+        <p><strong>Submitted by:</strong> {{ submitter.get_full_name|default:submitter.username }} ({{ submitter.email }})</p>
+        
+        <p><strong>Location:</strong> {{ destination.city }}, {{ destination.country }}</p>
+        
+        {% if destination.region %}
+        <p><strong>Region:</strong> {{ destination.region.name }}</p>
+        {% endif %}
+        
+        <p><strong>Submission Date:</strong> {{ destination.submission_date|date:"F j, Y, g:i a" }}</p>
+        
+        {% if destination.description %}
+        <div style="margin-top: 15px;">
+            <strong>Description:</strong>
+            <p style="margin-top: 5px;">{{ destination.description|truncatewords:50 }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <p>Please review this submission at your earliest convenience to either approve or reject it.</p>
+    
+    <div style="margin: 30px 0; text-align: center;">
+        <a href="{{ review_url }}" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: 600; display: inline-block;">Review This Submission</a>
+    </div>
+    
+    <p>You can also access the <a href="{{ dashboard_url }}" style="color: #4f46e5; text-decoration: underline;">pending destinations dashboard</a> to see all submissions awaiting review.</p>
+    
+    <p>Thank you for your attention to this matter.</p>
+    
+    <p>Best regards,<br>
+    The TravelGuide Team</p>
+</div>
+{% endblock %}

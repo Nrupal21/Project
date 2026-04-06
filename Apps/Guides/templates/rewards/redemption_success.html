@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Redemption Successful | TravelGuide Rewards{% endblock %}
+{% block meta_description %}Your TravelGuide reward points have been successfully redeemed. View your redemption details and next steps.{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<style>
+    /**
+     * Redemption Success Styles
+     * - Custom styling for the redemption success page
+     * - Uses indigo/violet color scheme for consistency with site design
+     * - Includes responsive design elements for all screen sizes
+     * - Animation for success message to enhance user experience
+     */
+    .success-icon {
+        animation: success-pulse 2s infinite;
+    }
+    
+    @keyframes success-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .redemption-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .redemption-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .copy-code-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .copy-code-btn:hover {
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+    
+    /* Responsive adjustments for mobile landscape orientation */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .success-container {
+            padding: 1rem 0;
+        }
+        
+        .success-icon svg {
+            height: 3rem;
+            width: 3rem;
+        }
+        
+        .redemption-card {
+            margin: 0.5rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+ * Redemption Success Page
+ * - Shows confirmation of successful point redemption
+ * - Displays details about the redemption and next steps
+ * - Provides links to view all redemptions or return to dashboard
+ * - Uses animation to draw attention to success message
+ */
+-->
+<div class="bg-gray-50 dark:bg-gray-900 py-8 md:py-12 success-container">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <!-- Success Message with Animation -->
+        <div class="text-center mb-8">
+            <div class="success-icon inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Redemption Successful!</h1>
+            <p class="text-gray-600 dark:text-gray-300 max-w-lg mx-auto">Your points have been successfully redeemed. Details about your redemption are provided below.</p>
+        </div>
+        
+        <!-- Redemption Details Card -->
+        <div class="max-w-3xl w-full mx-auto">
+            <div class="redemption-card bg-white dark:bg-gray-800 shadow-lg">
+                <!-- Card Header with Gradient -->
+                <div class="bg-gradient-to-r from-indigo-500 to-violet-600 p-6 text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold">{{ redemption.get_redemption_type_display }}</h2>
+                            <p>{{ redemption.created_at|date:"F j, Y, g:i a" }}</p>
+                        </div>
+                        <span class="text-2xl font-bold">{{ redemption.points_used|intcomma }} pts</span>
+                    </div>
+                </div>
+                
+                <!-- Card Body with Details -->
+                <div class="p-6">
+                    <!-- 
+                     * Redemption Details Section
+                     * - Shows all relevant information about the redemption
+                     * - Includes redemption value, status, and code if applicable
+                     * - Provides copy functionality for redemption codes
+                     */
+                    -->
+                    <div class="space-y-1">
+                        <div class="detail-row">
+                            <span class="text-gray-600 dark:text-gray-400">Redemption ID:</span>
+                            <span class="text-gray-800 dark:text-white font-medium">{{ redemption.id|truncatechars:10 }}</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+                                  {% if redemption.status == 'PENDING' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300
+                                  {% elif redemption.status == 'PROCESSING' %}bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300
+                                  {% elif redemption.status == 'COMPLETED' %}bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300
+                                  {% else %}bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300{% endif %}">
+                                {{ redemption.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="text-gray-600 dark:text-gray-400">Value:</span>
+                            <span class="text-gray-800 dark:text-white font-medium">
+                                {% if redemption.redemption_type == 'COUPON' %}
+                                    {{ redemption.redemption_value }}% Off
+                                {% else %}
+                                    ${{ redemption.redemption_value }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if redemption.expiry_date %}
+                            <div class="detail-row">
+                                <span class="text-gray-600 dark:text-gray-400">Valid Until:</span>
+                                <span class="text-gray-800 dark:text-white font-medium">{{ redemption.expiry_date|date:"F j, Y" }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        {% if redemption.redemption_code %}
+                            <div class="detail-row">
+                                <span class="text-gray-600 dark:text-gray-400">Redemption Code:</span>
+                                <div class="flex items-center">
+                                    <span id="redemptionCode" class="text-gray-800 dark:text-white font-mono font-medium mr-2">{{ redemption.redemption_code }}</span>
+                                    <button type="button" onclick="copyRedemptionCode()" class="copy-code-btn inline-flex items-center p-1.5 rounded-full text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 focus:outline-none">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span id="copyText" class="sr-only">Copy code</span>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="detail-row">
+                            <span class="text-gray-600 dark:text-gray-400">Points Balance:</span>
+                            <span class="text-gray-800 dark:text-white font-medium">{{ points_balance|intcomma }} points</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Redemption Instructions -->
+                    <div class="mt-6 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                        <h3 class="text-lg font-medium text-indigo-700 dark:text-indigo-300 mb-2">Next Steps</h3>
+                        <div class="text-gray-600 dark:text-gray-300 text-sm">
+                            {% if redemption.redemption_type == 'COUPON' %}
+                                <p>Your discount coupon has been generated. Use the code above when booking your next tour to receive your discount.</p>
+                            {% elif redemption.redemption_type == 'TRAVEL_CREDIT' %}
+                                <p>Your travel credit will be added to your account within 24 hours. You'll be able to use it on your next booking.</p>
+                            {% elif redemption.redemption_type == 'CASH_TRANSFER' %}
+                                <p>Your cash transfer request is being processed. Please allow 3-5 business days for the amount to be credited to your linked account.</p>
+                            {% elif redemption.redemption_type == 'GIFT_CARD' %}
+                                <p>Your gift card will be sent to your registered email address within 24 hours.</p>
+                            {% elif redemption.redemption_type == 'CHARITY_DONATION' %}
+                                <p>Thank you for your generosity! Your donation will be processed at the end of the month, and you'll receive a confirmation email.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Footer with Actions -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex flex-wrap gap-3 justify-between">
+                    <a href="{% url 'rewards:redemption_detail' redemption.id %}" class="inline-flex items-center px-4 py-2 rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 dark:text-indigo-300 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        View Details
+                    </a>
+                    
+                    <div>
+                        <a href="{% url 'rewards:redemption_history' %}" class="inline-flex items-center px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 mr-2">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            All Redemptions
+                        </a>
+                        <a href="{% url 'rewards:dashboard' %}" class="inline-flex items-center px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 
+ * Copy Functionality Script
+ * - Provides functionality to copy redemption code to clipboard
+ * - Shows visual feedback when code is copied
+ * - Uses clipboard API with fallback for older browsers
+ */
+-->
+<script>
+    /**
+     * Copy the redemption code to clipboard
+     * Shows visual feedback after copying
+     */
+    function copyRedemptionCode() {
+        const codeElement = document.getElementById('redemptionCode');
+        const copyText = document.getElementById('copyText');
+        const code = codeElement.innerText;
+        
+        // Try to use the clipboard API
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(() => {
+                // Show success feedback
+                copyText.textContent = 'Copied!';
+                copyText.classList.remove('sr-only');
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    copyText.textContent = 'Copy code';
+                    copyText.classList.add('sr-only');
+                }, 2000);
+            });
+        } else {
+            // Fallback for browsers that don't support clipboard API
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Show success feedback
+            copyText.textContent = 'Copied!';
+            copyText.classList.remove('sr-only');
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                copyText.textContent = 'Copy code';
+                copyText.classList.add('sr-only');
+            }, 2000);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'travel_gallery/base.html' %}
+{% load static %}
+
+{% block head_title %}Travel Photo Gallery - Breathtaking Destinations{% endblock %}
+
+{% block breadcrumbs %}
+<!-- Breadcrumb Navigation -->
+<nav class="flex mb-6">
+    <ol class="flex items-center space-x-2">
+        <li><a href="{% url 'home' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Home</a></li>
+        <li class="text-gray-500">›</li>
+        <li class="text-gray-500">Travel Gallery</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block gallery_content %}
+<!-- Filtering and Sorting Options -->
+<div class="mb-8">
+    <!-- Location Filter and Sort Controls -->
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Location Filter Dropdown -->
+        <div class="relative">
+            <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Location</label>
+            <select name="location" id="location" 
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md">
+                <option value="">All Locations</option>
+                {% for location in locations %}
+                    <option value="{{ location }}" {% if location == current_location %}selected{% endif %}>{{ location }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Sort Options -->
+        <div class="flex flex-col">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
+            <div class="flex space-x-2">
+                <button type="submit" name="sort" value="featured" 
+                       class="flex-1 px-3 py-2 text-sm font-medium rounded-md {% if current_sort == 'featured' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    Featured
+                </button>
+                <button type="submit" name="sort" value="newest" 
+                       class="flex-1 px-3 py-2 text-sm font-medium rounded-md {% if current_sort == 'newest' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    Newest
+                </button>
+                <button type="submit" name="sort" value="oldest" 
+                       class="flex-1 px-3 py-2 text-sm font-medium rounded-md {% if current_sort == 'oldest' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    Oldest
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Gallery Images Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+    {% for image in images %}
+    <!-- Individual Gallery Image Card -->
+    <div class="gallery-image group rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800">
+        <!-- Image Container with Hover Effect -->
+        <div class="relative h-64 overflow-hidden">
+            <a href="{% url 'travel_gallery:detail' image.pk %}" class="block w-full h-full">
+                <img src="{{ image.image_url }}" 
+                     alt="{{ image.title }}" 
+                     class="w-full h-full object-cover gallery-image-transition transform group-hover:scale-105"
+                     loading="lazy">
+                     
+                <!-- Location Label -->
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                    <span class="text-white text-sm font-medium">{{ image.location }}</span>
+                </div>
+                
+                {% if image.is_featured %}
+                <!-- Featured Badge -->
+                <div class="absolute top-3 right-3">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        Featured
+                    </span>
+                </div>
+                {% endif %}
+            </a>
+        </div>
+        
+        <!-- Image Info -->
+        <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate">
+                <a href="{% url 'travel_gallery:detail' image.pk %}" class="hover:text-indigo-600 dark:hover:text-indigo-400">
+                    {{ image.title }}
+                </a>
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                {{ image.description|truncatechars:100 }}
+            </p>
+        </div>
+    </div>
+    {% empty %}
+    <!-- No Images Message -->
+    <div class="col-span-full text-center py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-gray-100">No images found</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">
+            {% if current_location %}
+                No images found for location "{{ current_location }}".
+                <a href="{% url 'travel_gallery:list' %}" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                    View all locations
+                </a>
+            {% else %}
+                No gallery images have been added yet.
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="flex justify-center">
+    <ul class="flex items-center space-x-1">
+        {% if page_obj.has_previous %}
+        <li>
+            <a href="?page=1{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}" 
+               class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                &laquo; First
+            </a>
+        </li>
+        <li>
+            <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}" 
+               class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                &lsaquo; Previous
+            </a>
+        </li>
+        {% endif %}
+        
+        <li class="px-3 py-1 rounded bg-indigo-600 text-white">
+            {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </li>
+        
+        {% if page_obj.has_next %}
+        <li>
+            <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}" 
+               class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                Next &rsaquo;
+            </a>
+        </li>
+        <li>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}" 
+               class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                Last &raquo;
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

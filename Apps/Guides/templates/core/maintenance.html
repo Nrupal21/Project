@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title|default:"Maintenance" }}{% endblock %}
+
+{% block meta_description %}{{ message|default:"We're performing scheduled maintenance. Please check back soon." }}{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<section class="py-20 bg-gray-100 dark:bg-gray-900">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <div class="max-w-3xl w-full mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+            <!-- Maintenance icon -->
+            <div class="flex justify-center mb-6">
+                <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Maintenance message -->
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ title|default:"Maintenance in Progress" }}</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">{{ message|default:"We're performing scheduled maintenance on this section of the website. Please check back soon!" }}</p>
+            
+            <!-- Animation -->
+            <div class="mb-8 flex justify-center">
+                <div class="relative w-64 h-12">
+                    <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                    <div class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-500 to-teal-400 rounded-full animate-progress-bar" style="width: 60%"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-sm font-medium text-white">Working on it...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Return button -->
+            <div class="flex justify-center">
+                <a href="{% url 'home' %}" class="bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 shadow-md hover:shadow-lg">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @keyframes progress {
+        0% { width: 5%; }
+        50% { width: 60%; }
+        70% { width: 70%; }
+        90% { width: 80%; }
+        100% { width: 60%; }
+    }
+    
+    .animate-progress-bar {
+        animation: progress 3s ease-in-out infinite;
+    }
+</style>
+{% endblock %}

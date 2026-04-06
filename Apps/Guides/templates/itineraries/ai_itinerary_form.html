@@ -1,0 +1,1269 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "AI Itinerary Generator" %} | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /**
+     * Custom styles for the interest chips and animations
+     * 
+     * These styles enhance the visual feedback for interest selection
+     * and provide animations for error states
+     */
+    .interest-chip label {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    /* Shake animation for validation errors */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .animate-shake {
+        animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    
+    /* Subtle pulse animation for selected chips */
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    
+    .interest-chip input:checked + label {
+        animation: pulse 1.5s ease-in-out;
+    }
+    
+    /* 
+     * Custom styling for the interest chips
+     * These styles create interactive toggle chips for interest selection
+     * with proper states for hover, checked, and dark mode
+     */
+    
+    /* Base chip container styling */
+    .interest-chip {
+        display: inline-block;
+        margin: 0.25rem;
+    }
+    
+    /* Hide the actual checkbox but keep it accessible */
+    .interest-chip input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    /* Style for the visible label that acts as the chip */
+    .interest-chip label {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #d1d5db; /* gray-300 */
+        background-color: #ffffff; /* white */
+        color: #374151; /* gray-700 */
+    }
+    
+    /* Dark mode styles for the label */
+    .dark .interest-chip label {
+        border-color: #4b5563; /* gray-600 */
+        background-color: #374151; /* gray-700 */
+        color: #f3f4f6; /* gray-200 */
+    }
+    
+    /* Checked state styling - light mode */
+    .interest-chip input[type="checkbox"]:checked + label {
+        background-color: #e0e7ff; /* indigo-100 */
+        border-color: #6366f1; /* indigo-500 */
+        color: #4338ca; /* indigo-700 */
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5);
+    }
+    
+    /* Checked state styling - dark mode */
+    .dark .interest-chip input[type="checkbox"]:checked + label {
+        background-color: rgba(79, 70, 229, 0.3); /* indigo-600 with 30% opacity */
+        border-color: #818cf8; /* indigo-400 */
+        color: #c7d2fe; /* indigo-200 */
+        box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.5);
+    }
+    
+    /* Hover state styling - light mode */
+    .interest-chip label:hover {
+        background-color: #f9fafb; /* gray-50 */
+        transform: translateY(-1px);
+    }
+    
+    /* Hover state styling - dark mode */
+    .dark .interest-chip label:hover {
+        background-color: #4b5563; /* gray-600 */
+        transform: translateY(-1px);
+    }
+    
+    /* Focus state for accessibility */
+    .interest-chip input[type="checkbox"]:focus + label {
+        outline: 2px solid transparent;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Main container with responsive padding and maximum width #}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    {# Page header section with title and description #}
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-indigo-600 dark:text-indigo-400 transition-colors">
+            {% trans "AI Itinerary Generator" %}
+            <span class="text-sm ml-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full font-normal align-middle">{{ provider|title }}</span>
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            {% trans "Let artificial intelligence plan your perfect trip! Our AI will generate a comprehensive day-by-day itinerary based on your preferences." %}
+        </p>
+        
+        {# API key warning message for administrators #}
+        {% if not api_configured %}
+        <div class="mt-6 flex justify-center">
+            <!-- API Key Warning (only shown when API is not configured) -->
+            {% if not api_configured %}
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-500 rounded-r-lg p-4 mb-6 max-w-4xl mx-auto" role="alert">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                            {{ provider|upper }} API Key Not Configured
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                            <p>AI itinerary generation will not work until you add your API key to the environment variables.</p>
+                            <div class="mt-3 bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-md">
+                                <p class="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-1">To fix this, add the following to your <code class="font-mono">.env</code> file:</p>
+                                <div class="relative">
+                                    <pre class="bg-gray-800 text-green-300 p-3 rounded-md text-xs overflow-x-auto">
+                                        <code>{{ provider|upper }}_API_KEY=your_api_key_here</code>
+                                    </pre>
+                                    <button 
+                                        type="button" 
+                                        data-copy-api-key="{{ provider|upper }}_API_KEY=your_api_key_here"
+                                        class="absolute top-2 right-2 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+                                        title="Copy to clipboard"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# AI Itinerary Generator Form with card styling #}
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-gray-100 dark:border-gray-700">
+        {# Provider selection and preference section #}
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+            {# Current provider display with icon #}
+            <div class="flex items-center">
+                <div class="mr-3 p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
+                    {% if provider == 'openai' %}
+                    <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.5-2.6067-1.4997Z"></path>
+                    </svg>
+                    {% else %}
+                    <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 22.5C6.201 22.5 1.5 17.799 1.5 12S6.201 1.5 12 1.5 22.5 6.201 22.5 12 17.799 22.5 12 22.5zM8.03 7.47a.75.75 0 00-1.06 0 .75.75 0 000 1.06L9.94 11.5H4.75a.75.75 0 000 1.5h5.19l-2.97 2.97a.75.75 0 000 1.06.75.75 0 001.06 0l4.25-4.25a.75.75 0 000-1.06L8.03 7.47zm7.94 0a.75.75 0 00-1.06 0l-4.25 4.25a.75.75 0 000 1.06l4.25 4.25a.75.75 0 001.06 0 .75.75 0 000-1.06L13 13.5h5.19a.75.75 0 000-1.5H13l2.97-2.97a.75.75 0 000-1.06z"></path>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ provider|title }} AI</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Currently selected provider" %}</p>
+                </div>
+            </div>
+            
+            {# Save preference option #}
+            <div class="flex items-center">
+                <form method="post" action="{% url 'itineraries:save_ai_preference' %}" class="flex items-center">
+                    {% csrf_token %}
+                    <input type="hidden" name="preferred_provider" value="{{ provider }}">
+                    <label for="save_preference" class="text-sm text-gray-600 dark:text-gray-300 mr-2">{% trans "Set as default" %}</label>
+                    <button type="submit" class="px-3 py-1 text-sm bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md transition-colors duration-200 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% trans "Save Preference" %}
+                    </button>
+                </form>
+                <a href="{% url 'itineraries:select_ai_provider' %}" class="ml-2 px-3 py-1 text-sm bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors duration-200 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m-8 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    {% trans "Switch Provider" %}
+                </a>
+            </div>
+        </div>
+        
+        {# Form header with provider-specific styling #}
+        <div class="mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                {% if provider == 'openai' %}
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.5-2.6067-1.4997z"></path>
+                        </svg>
+                        {% trans "Create with OpenAI GPT-4" %}
+                    </div>
+                {% elif provider == 'gemini' %}
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-violet-600 dark:text-violet-400" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8.95 8.6a6.554 6.554 0 0 1 6.55 6.55c0 1.81-.73 3.45-1.92 4.64l-4.63-4.63v-6.56m0-5.5v3.5l-5.27 5.25-.42.42a6.555 6.555 0 0 1 5.69-9.17m6.55 15.75a6.555 6.555 0 0 1-6.55-6.55c0-1.81.73-3.45 1.92-4.64l4.63 4.63v6.56m0 5.5v-3.5l5.69-5.67a6.555 6.555 0 0 1-5.69 9.17"/>
+                        </svg>
+                        {% trans "Create with Google Gemini" %}
+                    </div>
+                {% else %}
+                    {% trans "Create AI-Generated Itinerary" %}
+                {% endif %}
+            </h2>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+                {% trans "Fill out the form below to generate a personalized travel itinerary" %}
+            </p>
+        </div>
+        
+        {# Main form with POST method #}
+        <form method="post" action="{% url 'itineraries:ai_generate_itinerary' provider=provider %}" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="provider" value="{{ provider }}">
+
+            {# Error and success messages display with appropriate styling #}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="flex items-center p-4 mb-3 rounded border
+                            {% if message.tags == 'error' %}
+                                bg-red-50 border-red-300 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-500
+                            {% elif message.tags == 'success' %}
+                                bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:text-green-300 dark:border-green-500
+                            {% else %}
+                                bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500
+                            {% endif %}">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                {% if message.tags == 'error' %}
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                {% elif message.tags == 'success' %}
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                {% else %}
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 01-1-1v-4a1 1 0 112 0v4a1 1 0 01-1 1z" clip-rule="evenodd"></path>
+                                {% endif %}
+                            </svg>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Form sections with grid layout for larger screens -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Basic Information section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                        {% trans "Basic Information" %}
+                    </h3>
+                    
+                    {# City/Destination Input with HTMX-powered search #}
+                    <div class="mb-4">
+                        <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "City or Destination" %} <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            {# Location icon for visual indication #}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            
+                            {# Input field with HTMX integration for real-time search #}
+                            <input type="text" id="city" name="city" required
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors"
+                                placeholder="{% trans 'e.g., Paris, France' %}"
+                                hx-get="{% url 'destinations:search' %}"
+                                hx-trigger="keyup changed delay:300ms"
+                                hx-target="#destination-suggestions"
+                                hx-swap="innerHTML"
+                                aria-describedby="city-description">
+                                
+                            {# Loading indicator for HTMX requests #}
+                            <div class="htmx-indicator absolute right-3 top-2">
+                                <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        {# Container for HTMX search results #}
+                        <div id="destination-suggestions" class="mt-2 space-y-1 max-h-60 overflow-y-auto rounded-md shadow-sm"></div>
+                        
+                        {# Hidden field to store the selected destination ID #}
+                        <input type="hidden" id="destination_id" name="destination_id">
+                        
+                        {# Helper text for destination selection #}
+                        <p id="city-description" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {% trans "Start typing to search for destinations in our database" %}
+                        </p>
+                    </div>
+                    
+                    {# Title field with required validation #}
+                    <div class="mb-4">
+                        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "Itinerary Title" %} <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            {# Document icon for visual indication #}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="title" name="title" placeholder="{% trans 'My Dream Paris Trip' %}" required
+                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors"
+                                aria-describedby="title-description">
+                        </div>
+                        {# Helper text for title field #}
+                        <p id="title-description" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {% trans "Give your itinerary a memorable name" %}
+                        </p>
+                    </div>
+                    
+                    {# Description field for additional context #}
+                    <div class="mb-4">
+                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "Description" %}
+                        </label>
+                        <div class="relative">
+                            {# Text icon for visual indication #}
+                            <div class="absolute top-3 left-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                                </svg>
+                            </div>
+                            <textarea id="description" name="description" rows="3" placeholder="{% trans 'Brief description of your trip' %}"
+                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors"
+                                aria-describedby="description-help"></textarea>
+                        </div>
+                        {# Helper text for description field #}
+                        <p id="description-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {% trans "Optional: Add any specific details about your trip that will help the AI" %}
+                        </p>
+                    </div>
+                    
+                    {# Date range selection with start and end dates #}
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {% trans "Start Date" %} <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                {# Calendar icon for visual indication #}
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <input type="date" id="start_date" name="start_date" required
+                                    class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
+                                    min="{{ today_date|date:'Y-m-d' }}"
+                                    onchange="validateDateRange()">
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {% trans "First day of your trip" %}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="end_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {% trans "End Date" %} <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                {# Calendar icon for visual indication #}
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <input type="date" id="end_date" name="end_date" required
+                                    class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
+                                    min="{{ today_date|date:'Y-m-d' }}"
+                                    onchange="validateDateRange()">
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {% trans "Last day of your trip" %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {# Date validation error message container #}
+                    <div id="date-error" class="hidden mb-4 p-2 text-sm text-red-700 bg-red-100 dark:bg-red-900/20 dark:text-red-300 rounded-md">
+                        {% trans "End date must be after start date" %}
+                    </div>
+                    
+                    {# Public/Private toggle switch with enhanced styling #}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{% trans "Visibility Setting" %}</h4>
+                        <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700">
+                            {# Custom toggle switch with indigo/violet styling #}
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="is_public" name="is_public" 
+                                       class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white dark:bg-gray-600 border-4 border-gray-300 dark:border-gray-700 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"
+                                       aria-describedby="visibility-description">
+                                <label for="is_public" 
+                                       class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-700 cursor-pointer"></label>
+                            </div>
+                            <div class="ml-2">
+                                <label for="is_public" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    {% trans "Make this itinerary public" %}
+                                </label>
+                                <p id="visibility-description" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {% trans "Public itineraries can be viewed by other users" %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {# Custom styling for the toggle switch #}
+                        <style>
+                            /* Toggle switch styling with indigo/violet color scheme */
+                            .toggle-checkbox:checked {
+                                transform: translateX(100%);
+                                border-color: #6366f1; /* indigo-500 */
+                            }
+                            .toggle-checkbox:checked + .toggle-label {
+                                background-color: #6366f1; /* indigo-500 */
+                            }
+                            .dark .toggle-checkbox:checked {
+                                border-color: #818cf8; /* indigo-400 */
+                            }
+                            .dark .toggle-checkbox:checked + .toggle-label {
+                                background-color: #4f46e5; /* indigo-600 */
+                            }
+                            /* Focus state for accessibility */
+                            .toggle-checkbox:focus {
+                                outline: 2px solid transparent;
+                                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+                            }
+                        </style>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            {% trans "Public itineraries can be viewed by other users" %}
+                        </p>
+                    </div>
+                </div>
+                
+                {# Traveler Preferences section #}
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        {% trans "Traveler Preferences" %}
+                    </h3>
+                    
+                    {# Interests selection with custom toggle chips #}
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "Interests" %} <span class="text-red-500">*</span>
+                            <span class="text-sm font-normal text-gray-500 dark:text-gray-400"> 
+                                ({% trans "select at least one" %})
+                            </span>
+                        </label>
+                        
+                        {# Helper text explaining the interest selection #}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            {% trans "These interests will help the AI create a personalized itinerary tailored to your preferences" %}
+                        </p>
+                        
+                        {# Container for interest chips with custom styling #}
+                        <!-- Interest Chips Container -->
+                        <div class="interests-section">
+                            <div class="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700" id="interests-container">
+                                {% for interest in interests %}
+                                <!-- Interest chip with improved clickability -->
+                                <div class="interest-chip inline-block mb-2 mr-2">
+                                    <!-- Checkbox input with improved accessibility -->
+                                    <input type="checkbox" 
+                                           id="interest_{{ forloop.counter }}" 
+                                           name="interests" 
+                                           value="{{ interest }}" 
+                                           class="hidden"
+                                           {% if forloop.first %}required{% endif %}>
+                                    
+                                    <!-- Visual label that responds to checkbox state -->
+                                    <label for="interest_{{ forloop.counter }}" 
+                                           class="block select-none cursor-pointer px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 ease-in-out
+                                                  border-gray-300 dark:border-gray-600 
+                                                  text-gray-700 dark:text-gray-300 
+                                                  bg-white dark:bg-gray-700
+                                                  hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        {{ interest }}
+                                    </label>
+                                </div>
+                            {% empty %}
+                                {# Fallback message if no interests are available #}
+                                <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                    {% trans "No interests available. Please contact an administrator." %}
+                                </p>
+                            {% endfor %}
+                        </div>
+                        
+                        {# Error message for interest validation #}
+                        <div id="interests-error" class="hidden mt-2 text-sm text-red-600 dark:text-red-400">
+                            {% trans "Please select at least one interest" %}
+                        </div>
+                    </div>
+                    
+                    {# Budget level selection with custom styling #}
+                    <div class="mb-4">
+                        <label for="budget_level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "Budget Level" %} <span class="text-red-500">*</span>
+                        </label>
+                        
+                        {# Helper text explaining budget selection impact #}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            {% trans "This will influence the types of accommodations, restaurants, and activities suggested" %}
+                        </p>
+                        
+                        <div class="relative">
+                            {# Currency icon for visual indication #}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            
+                            {# Select dropdown with custom styling #}
+                            <select id="budget_level" name="budget_level" required
+                                class="mt-1 block w-full pl-10 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors appearance-none"
+                                aria-describedby="budget-description">
+                                <option value="budget">{% trans "Budget" %} (💰)</option>
+                                <option value="mid_range" selected>{% trans "Mid-range" %} (💰💰)</option>
+                                <option value="luxury">{% trans "Luxury" %} (💰💰💰)</option>
+                            </select>
+                            
+                            {# Custom dropdown arrow #}
+                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        {# Budget level descriptions #}
+                        <div id="budget-description" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <ul class="space-y-1 list-disc list-inside pl-1">
+                                <li><strong>{% trans "Budget" %}:</strong> {% trans "Hostels, public transport, affordable dining" %}</li>
+                                <li><strong>{% trans "Mid-range" %}:</strong> {% trans "3-star hotels, mix of transport options, casual restaurants" %}</li>
+                                <li><strong>{% trans "Luxury" %}:</strong> {% trans "4-5 star hotels, private transfers, fine dining" %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {# Travel pace selection with custom styling #}
+                    <div class="mb-4">
+                        <label for="travel_pace" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {% trans "Travel Pace" %} <span class="text-red-500">*</span>
+                        </label>
+                        
+                        {# Helper text explaining travel pace impact #}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            {% trans "This determines how many activities will be scheduled each day" %}
+                        </p>
+                        
+                        <div class="relative">
+                            {# Clock/pace icon for visual indication #}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            
+                            {# Select dropdown with custom styling #}
+                            <select id="travel_pace" name="travel_pace" required
+                                class="mt-1 block w-full pl-10 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors appearance-none"
+                                aria-describedby="pace-description">
+                                <option value="relaxed">{% trans "Relaxed" %} (🐢)</option>
+                                <option value="moderate" selected>{% trans "Moderate" %} (🚶)</option>
+                                <option value="busy">{% trans "Busy" %} (🏃)</option>
+                            </select>
+                            
+                            {# Custom dropdown arrow #}
+                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        {# Travel pace descriptions #}
+                        <div id="pace-description" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <ul class="space-y-1 list-disc list-inside pl-1">
+                                <li><strong>{% trans "Relaxed" %}:</strong> {% trans "Fewer activities, more downtime, leisurely meals" %}</li>
+                                <li><strong>{% trans "Moderate" %}:</strong> {% trans "Balanced schedule with time to enjoy each activity" %}</li>
+                                <li><strong>{% trans "Busy" %}:</strong> {% trans "Packed schedule to maximize sightseeing opportunities" %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {# Accessibility needs section with enhanced styling and ARIA attributes #}
+                    <div class="mb-4">
+                        <div class="flex items-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {% trans "Accessibility Needs" %}
+                            </h4>
+                        </div>
+                        
+                        {# Helper text explaining accessibility options #}
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            {% trans "Select any accessibility requirements to ensure your itinerary includes suitable accommodations and activities" %}
+                        </p>
+                        
+                        {# Accessibility options with custom styling #}
+                        <div class="space-y-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700">
+                            {# Wheelchair accessible option #}
+                            <div class="flex items-center">
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input type="checkbox" id="wheelchair" name="accessibility_needs" value="wheelchair" 
+                                            class="h-5 w-5 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 transition-colors"
+                                            aria-describedby="wheelchair-description">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="wheelchair" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            {% trans "Wheelchair accessible" %}
+                                        </label>
+                                        <p id="wheelchair-description" class="text-gray-500 dark:text-gray-400">
+                                            {% trans "Venues with ramps, elevators, and accessible facilities" %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Limited mobility option #}
+                            <div class="flex items-center">
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input type="checkbox" id="mobility" name="accessibility_needs" value="mobility" 
+                                            class="h-5 w-5 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 transition-colors"
+                                            aria-describedby="mobility-description">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="mobility" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            {% trans "Limited mobility" %}
+                                        </label>
+                                        <p id="mobility-description" class="text-gray-500 dark:text-gray-400">
+                                            {% trans "Minimal walking, frequent rest stops, accessible transportation" %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Visual impairment option #}
+                            <div class="flex items-center">
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input type="checkbox" id="visual" name="accessibility_needs" value="visual" 
+                                            class="h-5 w-5 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 transition-colors"
+                                            aria-describedby="visual-description">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="visual" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            {% trans "Visual impairment" %}
+                                        </label>
+                                        <p id="visual-description" class="text-gray-500 dark:text-gray-400">
+                                            {% trans "Audio guides, tactile experiences, guide-friendly venues" %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Hearing impairment option #}
+                            <div class="flex items-center">
+                                <div class="relative flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input type="checkbox" id="hearing" name="accessibility_needs" value="hearing" 
+                                            class="h-5 w-5 text-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 transition-colors"
+                                            aria-describedby="hearing-description">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="hearing" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            {% trans "Hearing impairment" %}
+                                        </label>
+                                        <p id="hearing-description" class="text-gray-500 dark:text-gray-400">
+                                            {% trans "Visual information, captioned tours, sign language friendly venues" %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {# Generate button section with enhanced styling and dynamic provider-specific attributes #}
+            <div class="mt-8 text-center">
+                {# Form submission button with dynamic provider-specific attributes #}
+                <button type="submit" id="generate-button"
+                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+                    {% if not api_configured %}disabled 
+                        title="{% if provider == 'openai' %}{% trans 'OpenAI API key is not configured' %}{% else %}{% trans 'Google Gemini API key is not configured' %}{% endif %}"
+                    {% endif %}>
+                    {# Lightning bolt icon for visual indication of AI generation #}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    
+                    {# Button text with translation support #}
+                    <span>{% trans "Generate Itinerary" %}</span>
+                    
+                    {# Animated gradient background effect on hover #}
+                    <span class="absolute inset-0 h-full w-full scale-0 rounded-md opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-30 bg-gradient-to-r from-indigo-400 to-violet-400"></span>
+                </button>
+                
+                {# Processing indicator that appears when form is submitted #}
+                <div id="processing-indicator" class="hidden mt-4 flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 dark:border-indigo-400"></div>
+                    <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {% trans "Generating your personalized itinerary..." %}
+                    </span>
+                </div>
+                
+                {# Informational text about processing time #}
+                <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                    {% trans "This may take up to 30 seconds as our AI crafts your perfect itinerary." %}
+                </p>
+                
+                {# Provider-specific note about the AI model being used #}
+                <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    {% if provider == 'openai' %}
+                        {% trans "Powered by OpenAI GPT-4" %}
+                    {% else %}
+                        {% trans "Powered by Google Gemini Pro" %}
+                    {% endif %}
+                </p>
+            </div>
+        </form>
+    </div>
+    
+    {# How it works section with enhanced styling and visual elements #}
+    <div class="bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 rounded-xl p-6 md:p-8 shadow-sm border border-indigo-100 dark:border-indigo-800/30">
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-400 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {% trans "How It Works" %}
+        </h2>
+        
+        {# Process steps in responsive grid layout #}
+        <div class="grid md:grid-cols-3 gap-6">
+            {# Step 1: Share Your Preferences #}
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-600 dark:to-violet-600 rounded-full flex items-center justify-center mb-4 shadow-md">
+                    <span class="text-white text-xl font-bold">1</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    {% trans "Share Your Preferences" %}
+                </h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {% trans "Tell us about your travel style, interests, and any special requirements. The more details you provide, the better your itinerary will be tailored to your needs." %}
+                </p>
+            </div>
+            
+            {# Step 2: AI Creates Your Itinerary #}
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-600 dark:to-violet-600 rounded-full flex items-center justify-center mb-4 shadow-md">
+                    <span class="text-white text-xl font-bold">2</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    {% trans "AI Creates Your Itinerary" %}
+                </h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {% trans "Our advanced AI analyzes your preferences and destination to craft a personalized day-by-day travel plan with attractions, activities, and dining recommendations." %}
+                </p>
+            </div>
+            
+            {# Step 3: Explore and Customize #}
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-700 transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-600 dark:to-violet-600 rounded-full flex items-center justify-center mb-4 shadow-md">
+                    <span class="text-white text-xl font-bold">3</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    {% trans "Explore and Customize" %}
+                </h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {% trans "Review your AI-generated itinerary and make any adjustments to perfect your trip. Save it to your account, share with friends, or export it for your journey." %}
+                </p>
+            </div>
+        </div>
+        
+        {# Provider-specific feature highlight #}
+        <div class="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg border border-indigo-100 dark:border-indigo-800/30 shadow-sm">
+            <p class="text-center text-sm text-gray-600 dark:text-gray-300">
+                {% if provider == 'openai' %}
+                    {% trans "Using OpenAI's advanced language model to create detailed, contextually aware travel plans tailored to your preferences." %}
+                {% else %}
+                    {% trans "Powered by Google Gemini Pro, delivering intelligent itineraries with deep understanding of global destinations and attractions." %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- JavaScript for handling interest chip interactions -->
+<script>
+/**
+ * Interest Chip Selection System
+ * 
+ * This script handles the interactive selection of interest chips in the AI itinerary form.
+ * It provides visual feedback, keyboard accessibility, and form validation to ensure
+ * users select at least one interest before submitting the form.
+ * 
+ * Features:
+ * - Click anywhere on the chip to toggle selection
+ * - Keyboard navigation support (Enter/Space)
+ * - Visual feedback with color changes
+ * - Form validation with error messaging
+ * - Smooth scrolling to error messages
+ * 
+ * @author TravelGuide Development Team
+ * @version 2.0
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all interest chips from the DOM
+    const interestChips = document.querySelectorAll('.interest-chip');
+    
+    /**
+     * Apply event listeners to each interest chip
+     * This enables click, keyboard, and change events for accessibility
+     */
+    interestChips.forEach(chipContainer => {
+        const checkbox = chipContainer.querySelector('input[type="checkbox"]');
+        const label = chipContainer.querySelector('label');
+        
+        // Skip if required elements are missing
+        if (!checkbox || !label) return;
+        
+        /**
+         * Handle clicks on the chip container
+         * Allows users to click anywhere on the chip to toggle selection
+         * @param {Event} e - The click event object
+         */
+        chipContainer.addEventListener('click', (e) => {
+            // Only toggle if the click wasn't directly on the checkbox
+            // This prevents double-toggling when clicking the checkbox itself
+            if (e.target !== checkbox) {
+                e.preventDefault();
+                checkbox.checked = !checkbox.checked;
+                
+                // Dispatch a change event to ensure any other listeners are notified
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        
+        /**
+         * Update visual styling when checkbox state changes
+         * This provides immediate visual feedback to the user
+         */
+        checkbox.addEventListener('change', () => {
+            updateChipStyle(checkbox);
+        });
+        
+        /**
+         * Handle keyboard navigation for accessibility
+         * Allows users to toggle chips using Enter or Space keys
+         * @param {KeyboardEvent} e - The keyboard event object
+         */
+        label.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        
+        // Initialize chip style on page load
+        updateChipStyle(checkbox);
+    });
+    
+    /**
+     * Update the visual style of an interest chip based on its checked state
+     * Applies appropriate Tailwind CSS classes for selected/unselected states
+     * 
+     * @param {HTMLInputElement} checkbox - The checkbox input element to style
+     */
+    function updateChipStyle(checkbox) {
+        // Find the associated label element
+        const chipContainer = checkbox.closest('.interest-chip');
+        const label = chipContainer.querySelector('label');
+        
+        if (!label) return;
+        
+        // Apply appropriate classes based on checked state
+        if (checkbox.checked) {
+            // Selected state styling - using indigo/violet color palette per user preference
+            label.classList.add('bg-indigo-100', 'border-indigo-500', 'text-indigo-800');
+            label.classList.add('dark:bg-indigo-900/30', 'dark:border-indigo-400', 'dark:text-indigo-200');
+            label.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+            label.classList.remove('dark:bg-gray-700', 'dark:border-gray-600', 'dark:text-gray-300');
+            
+            // Add a visual indicator for selected state (checkmark icon)
+            if (!label.querySelector('.check-icon')) {
+                const checkIcon = document.createElement('span');
+                checkIcon.className = 'check-icon ml-1 inline-flex items-center';
+                checkIcon.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                label.appendChild(checkIcon);
+            }
+            
+            // Add a subtle shadow effect for better visual hierarchy
+            label.classList.add('shadow-sm');
+        } else {
+            // Unselected state styling
+            label.classList.remove('bg-indigo-100', 'border-indigo-500', 'text-indigo-800', 'shadow-sm');
+            label.classList.remove('dark:bg-indigo-900/30', 'dark:border-indigo-400', 'dark:text-indigo-200');
+            label.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+            label.classList.add('dark:bg-gray-700', 'dark:border-gray-600', 'dark:text-gray-300');
+            
+            // Remove the check icon if it exists
+            const checkIcon = label.querySelector('.check-icon');
+            if (checkIcon) {
+                label.removeChild(checkIcon);
+            }
+        }
+        
+        // Update aria attributes for accessibility
+        label.setAttribute('aria-checked', checkbox.checked);
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        'use strict';
+        
+        /**
+         * Form validation to ensure at least one interest is selected
+         * Prevents form submission and displays an error message if no interests are selected
+         * @param {Event} e - The form submission event
+         * @returns {boolean} - Returns false if validation fails
+         */
+        function validateForm(e) {
+            const selectedInterests = document.querySelectorAll('input[name="interests"]:checked');
+            const errorElement = document.getElementById('interests-error');
+            const container = document.getElementById('interests-container');
+            
+            if (selectedInterests.length === 0) {
+                e.preventDefault();
+                
+                // Show error message if not already visible
+                if (errorElement && container) {
+                    errorElement.classList.remove('hidden');
+                    
+                    // Add shake animation to interests container
+                    container.classList.add('animate-shake');
+                    
+                    // Remove animation class after it completes
+                    setTimeout(() => {
+                        container.classList.remove('animate-shake');
+                    }, 1000);
+                    
+                    // Scroll to error message with smooth behavior
+                    errorElement.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center'
+                    });
+                }
+                return false;
+            } else if (errorElement) {
+                // Hide error message if it was previously shown
+                errorElement.classList.add('hidden');
+            }
+            return true;
+        }
+        
+        /**
+         * Handles keyboard navigation for interest chips
+         * @param {KeyboardEvent} e - The keyboard event
+         */
+        function handleKeyboardNavigation(e) {
+            // Only handle space and enter keys
+            if (e.key !== ' ' && e.key !== 'Enter') return;
+            
+            // Get the checkbox associated with the label
+            const target = e.target;
+            if (target.tagName === 'LABEL') {
+                e.preventDefault();
+                const checkbox = document.getElementById(target.getAttribute('for'));
+                if (checkbox) {
+                    // Toggle the checkbox state
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Trigger change event to update UI
+                    const event = new Event('change');
+                    checkbox.dispatchEvent(event);
+                }
+            }
+        }
+        
+        /**
+         * Updates the visual state of interest chips when their state changes
+         */
+        function handleInterestChange() {
+            const label = document.querySelector(`label[for="${this.id}"]`);
+            if (label) {
+                if (this.checked) {
+                    label.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-500');
+                } else {
+                    label.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-500');
+                }
+            }
+            
+            // Update error state if needed
+            if (this.required) {
+                const errorElement = document.getElementById('interests-error');
+                if (errorElement) {
+                    const anyChecked = document.querySelector('input[name="interests"]:checked');
+                    errorElement.classList.toggle('hidden', !!anyChecked);
+                }
+            }
+        }
+        
+        /**
+         * Copies API key to clipboard and shows feedback
+         * @param {Event} e - The click event
+         */
+        function copyApiKey() {
+            const apiKey = this.getAttribute('data-copy-api-key');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(apiKey).then(() => {
+                    // Show copied feedback
+                    const originalText = this.innerHTML;
+                    this.innerHTML = 'Copied!';
+                    this.classList.add('text-green-600', 'dark:text-green-400');
+                    
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('text-green-600', 'dark:text-green-400');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy API key:', err);
+                });
+            }
+        }
+        
+        // Initialize form validation
+        const form = document.getElementById('ai-itinerary-form');
+        if (form) {
+            form.addEventListener('submit', validateForm);
+        }
+        
+        // Initialize keyboard navigation for interest chips
+        const interestsContainer = document.getElementById('interests-container');
+        if (interestsContainer) {
+            interestsContainer.addEventListener('keydown', handleKeyboardNavigation);
+        }
+        
+        /**
+         * Initialize interest chips with enhanced event listeners for better clickability
+         * This is the main function that sets up all event handlers for interest chips
+         */
+        function initializeInterestChips() {
+            // Get all interest chips
+            const interestChips = document.querySelectorAll('.interest-chip');
+            
+            interestChips.forEach(chip => {
+                const checkbox = chip.querySelector('input[type="checkbox"]');
+                const label = chip.querySelector('label');
+                
+                if (!checkbox || !label) return;
+                
+                // Add click event to label (already has for attribute)
+                label.addEventListener('click', (e) => {
+                    // The label's 'for' attribute will handle the checkbox toggle
+                    // We just need to dispatch a change event for our custom styling
+                    setTimeout(() => {
+                        updateChipStyle(checkbox);
+                    }, 0);
+                });
+                
+                // Handle keyboard accessibility
+                label.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+                
+                // Add tabindex for keyboard navigation
+                label.setAttribute('tabindex', '0');
+                
+                // Handle change events
+                checkbox.addEventListener('change', () => {
+                    updateChipStyle(checkbox);
+                });
+                
+                // Initialize style
+                updateChipStyle(checkbox);
+            });
+        }
+        
+        // Call the initialization function
+        initializeInterestChips();
+        
+        // Initialize interest chips state management
+        document.querySelectorAll('input[name="interests"]').forEach(checkbox => {
+            // Set initial state
+            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+            if (label) {
+                if (checkbox.checked) {
+                    label.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-500');
+                } else {
+                    label.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-500');
+                }
+                
+                // Add change event listener
+                checkbox.addEventListener('change', handleInterestChange);
+            }
+        });
+        
+        // Initialize copy API key buttons
+        document.querySelectorAll('[data-copy-api-key]').forEach(button => {
+            button.addEventListener('click', copyApiKey);
+        });
+    });
+});
+</script>
+
+<!-- Include the external JavaScript file for form interactions -->
+<script src="{% static 'js/itinerary_form.js' %}"></script>
+
+{# Main form interaction script with comprehensive comments #}
+<script>
+/**
+ * Initialize all form interactions when the DOM is fully loaded
+ * This ensures all elements are available for manipulation
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    /**
+     * Handle destination selection from search results
+     * This event delegation pattern listens for clicks on dynamically created suggestion items
+     * @param {Event} e - The click event object
+     */
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element is a destination suggestion item
+        if (e.target && e.target.matches('.suggestion-item')) {
+            e.preventDefault(); // Prevent default link behavior
+            
+            // Extract destination data from the clicked suggestion
+            const destinationId = e.target.dataset.id;
+            const destinationName = e.target.textContent.trim();
+            
+            // Update the city input field with the selected destination name
+            const cityInput = document.getElementById('city');
+            if (cityInput) cityInput.value = destinationName;
+            
+            // Update the hidden destination ID field for form submission
+            const destinationIdInput = document.getElementById('destination_id');
+            if (destinationIdInput) destinationIdInput.value = destinationId;
+            
+            // Clear the suggestions container after selection
+            const suggestionsContainer = document.getElementById('destination-suggestions');
+            if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+        }
+    });
+    
+    /**
+     * Handle form submission and show processing indicator
+     * @param {Event} e - The submit event object
+     */
+    const aiForm = document.getElementById('ai-itinerary-form');
+    if (aiForm) {
+        aiForm.addEventListener('submit', function(e) {
+            // Show the processing indicator when form is submitted
+            const processingIndicator = document.getElementById('processing-indicator');
+            if (processingIndicator) {
+                processingIndicator.classList.remove('hidden');
+            }
+            
+            // Disable the submit button to prevent multiple submissions
+            const submitButton = document.getElementById('generate-button');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+    
+    /**
+     * Validate date range when either start or end date changes
+     * Ensures end date is not before start date
+     */
+    function validateDateRange() {
+        const startDate = document.getElementById('start_date');
+        const endDate = document.getElementById('end_date');
+        const errorContainer = document.getElementById('date-error-container');
+        
+        if (startDate && endDate && errorContainer) {
+            const start = new Date(startDate.value);
+            const end = new Date(endDate.value);
+            
+            if (startDate.value && endDate.value && end < start) {
+                // Show error if end date is before start date
+                errorContainer.textContent = gettext('End date cannot be before start date');
+                errorContainer.classList.remove('hidden');
+                return false;
+            } else {
+                // Clear error message if dates are valid
+                errorContainer.textContent = '';
+                errorContainer.classList.add('hidden');
+                return true;
+            }
+        }
+        return true;
+    }
+    
+    // Attach date validation to date input fields
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    if (startDateInput) {
+        startDateInput.addEventListener('change', validateDateRange);
+    }
+    
+    if (endDateInput) {
+        endDateInput.addEventListener('change', validateDateRange);
+    }
+});
+</script>
+{% endblock %}

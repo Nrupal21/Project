@@ -1,0 +1,94 @@
+{
+  "tech_stack": [
+    "Python",
+    "Django",
+    "PostgreSQL",
+    "Django REST Framework",
+    "Redis",
+    "Celery",
+    "Docker",
+    "Nginx",
+    "Gunicorn"
+  ],
+  "features": [
+    {
+      "name": "User Authentication API",
+      "description": "Handles user registration, login, social authentication, and profile management.",
+      "files": [
+        "accounts/views.py",
+        "accounts/urls.py",
+        "accounts/serializers.py"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "User Authentication API",
+          "version": "1.0.0",
+          "description": "APIs for user authentication and profile management"
+        },
+        "paths": {
+          "/api/v1/auth/register/": {
+            "post": {
+              "summary": "Register a new user",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "username": {"type": "string"},
+                        "email": {"type": "string", "format": "email"},
+                        "password": {"type": "string", "format": "password"}
+                      },
+                      "required": ["username", "email", "password"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "User created successfully"},
+                "400": {"description": "Invalid input"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Destination Management API",
+      "description": "Manages travel destinations with CRUD operations and approval workflow.",
+      "files": [
+        "destinations/views.py",
+        "destinations/urls.py",
+        "destinations/serializers.py"
+      ]
+    },
+    {
+      "name": "Tour Booking API",
+      "description": "Handles tour package management and booking operations.",
+      "files": [
+        "tours/views.py",
+        "tours/urls.py",
+        "bookings/views.py"
+      ]
+    },
+    {
+      "name": "Review System API",
+      "description": "Manages user reviews and ratings for destinations and tours.",
+      "files": [
+        "reviews/views.py",
+        "reviews/urls.py",
+        "reviews/serializers.py"
+      ]
+    },
+    {
+      "name": "Emergency Information API",
+      "description": "Provides emergency contact information and safety guidelines.",
+      "files": [
+        "emergency/views.py",
+        "emergency/urls.py"
+      ]
+    }
+  ]
+}

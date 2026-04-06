@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pending Destinations{% endblock %}
+
+{% block extra_css %}
+<!-- 
+ * ==========================================================================
+ * PENDING DESTINATIONS ADMIN PAGE CUSTOM STYLING
+ * ==========================================================================
+ * Custom styles for the pending destinations admin interface
+ * Includes card styling, status badges, and responsive design elements
+ */
+-->
+<style>
+    /* 
+     * Page header styling with indigo/violet gradient background 
+     * Provides visual consistency with other admin pages
+     */
+    .page-header {
+        background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* indigo-500 to violet-500 */
+        color: white;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* 
+     * Status badge styling for different destination states 
+     * Uses color coding to quickly identify status
+     */
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+    }
+    
+    /* 
+     * Status badge for pending destinations 
+     * Uses yellow colors to indicate waiting state
+     */
+    .status-pending {
+        background-color: #fef3c7; /* yellow-100 */
+        color: #d97706; /* amber-600 */
+        border: 1px solid #f59e0b; /* amber-500 */
+    }
+    
+    /* 
+     * Destination card hover effect
+     * Subtle elevation effect with indigo border highlight
+     */
+    .destination-card {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .destination-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-color: #6366f1; /* indigo-500 */
+    }
+    
+    /* 
+     * Review button styling with indigo to violet gradient
+     * Consistent with our application color scheme
+     */
+    .review-btn {
+        background-image: linear-gradient(to right, #6366f1, #8b5cf6); /* indigo-500 to violet-500 */
+        transition: all 0.3s ease;
+    }
+    
+    .review-btn:hover {
+        background-image: linear-gradient(to right, #4f46e5, #7c3aed); /* indigo-600 to violet-600 */
+        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 
+ * ==========================================================================
+ * PENDING DESTINATIONS LIST TEMPLATE
+ * ==========================================================================
+ * This template displays destinations awaiting admin review and approval.
+ * Used by the PendingDestinationListView to present staff members with
+ * a list of user-submitted destinations that need review.
+ * 
+ * FEATURES:
+ * - Lists all destinations with PENDING status
+ * - Shows key destination information (name, location, submission date)
+ * - Provides quick links to detailed review pages
+ * - Displays creator information
+ * - Includes pagination for large numbers of pending destinations
+ * - Status badges to quickly identify destination state
+ * 
+ * This template is part of the destination approval workflow and integrates
+ * with the notification system to alert users when their destinations
+ * are approved or rejected.
+ */
+-->
+
+<div class="max-w-screen-2xl w-full mx-auto px-4 py-8">
+    <!-- Page Header with Title and Description -->
+    <div class="page-header p-6 mb-8 text-center">
+        <h1 class="text-2xl font-bold mb-2">Pending Destinations</h1>
+        <p class="text-white text-opacity-90">
+            Review and approve user-submitted destinations
+        </p>
+    </div>
+
+    <!-- Status Filter Buttons -->
+    <div class="mb-8 flex flex-wrap gap-2 justify-center">
+        <a href="{% url 'destinations:admin_pending_destinations' %}" 
+           class="px-4 py-2 rounded-full bg-indigo-500 text-white font-medium hover:bg-indigo-600 transition duration-200">
+            Pending
+            <span class="ml-2 px-2 py-0.5 bg-white text-indigo-700 rounded-full text-xs font-bold">
+                {{ paginator.count }}
+            </span>
+        </a>
+        <!-- Note: The following URLs need to be implemented in urls.py -->
+        <a href="#" 
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition duration-200">
+            Approved
+        </a>
+        <a href="#" 
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition duration-200">
+            Rejected
+        </a>
+    </div>
+
+    <!-- Destinations Grid -->
+    {% if destinations %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for destination in destinations %}
+                <!-- 
+                 * Individual Destination Card
+                 * Each card shows essential information and a link to the detailed review page
+                 -->
+                <div class="destination-card bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow">
+                    <!-- Destination Image (if available) -->
+                    <div class="relative h-48 bg-gray-300 dark:bg-gray-700">
+                        {% if destination.main_image %}
+                            <img src="{{ destination.main_image.url }}" 
+                                 alt="{{ destination.name }}" 
+                                 class="w-full h-full object-cover">
+                        {% else %}
+                            <!-- Placeholder if no image -->
+                            <div class="flex items-center justify-center w-full h-full bg-gray-200 dark:bg-gray-700">
+                                <svg class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Status Badge Overlay -->
+                        <div class="absolute top-3 right-3">
+                            <span class="status-badge status-pending">
+                                Pending Review
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Destination Details -->
+                    <div class="p-5">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 truncate">
+                            {{ destination.name }}
+                        </h2>
+                        
+                        <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                            <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="truncate">{{ destination.city }}, {{ destination.country }}</span>
+                        </div>
+                        
+                        <!-- Submission Info -->
+                        <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <div>
+                                <span>Submitted: {{ destination.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div>
+                                <span>By: {{ destination.creator.username }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Review Button -->
+                        <a href="{% url 'destinations:admin_review_destination' destination.pk %}" 
+                           class="review-btn w-full text-white py-3 px-4 rounded-md flex justify-center items-center font-medium">
+                            <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Review Destination
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- 
+         * Pagination controls
+         * Provides navigation between pages of pending destinations
+         -->
+        {% if is_paginated %}
+            <div class="flex justify-center mt-8">
+                <nav class="inline-flex rounded-md shadow">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" 
+                           class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" 
+                           class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- No Pending Destinations Message -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+            <svg class="mx-auto h-16 w-16 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="mt-4 text-xl font-medium text-gray-900 dark:text-white">No Pending Destinations</h3>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">All destination submissions have been reviewed!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load and initialize notifications first to ensure badges are updated -->
+<script src="{% static 'js/notifications.js' %}"></script>
+<script>
+    /**
+     * Initialize destination-specific notifications
+     * - Ensures notification badges are properly displayed
+     * - Updates the pending count indicator with visual feedback
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize notification system
+        if (typeof initNotifications === 'function') {
+            initNotifications();
+        }
+    });
+</script>
+<script>
+/**
+ * Pending Destinations Page JavaScript
+ * ==========================================================================
+ * Handles functionality specific to the pending destinations admin page
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    /**
+     * Initialize destination cards with hover effects and animations
+     * Adds subtle entrance animations when the page loads
+     */
+    const destinationCards = document.querySelectorAll('.destination-card');
+    
+    // Add staggered entrance animation to cards
+    destinationCards.forEach((card, index) => {
+        // Add initial opacity and transform for animation
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        // Trigger animation after a delay based on index
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}

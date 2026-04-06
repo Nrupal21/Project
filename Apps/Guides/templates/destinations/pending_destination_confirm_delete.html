@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+<!--
+This template provides a confirmation page for deleting/withdrawing a pending destination.
+It shows the destination details and requires the user to confirm deletion to prevent accidental removals.
+The page is styled with Tailwind CSS for a clean and responsive interface.
+-->
+
+{% block title %}Delete {{ destination.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Header section with title -->
+    <div class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-red-600 mb-2">Delete Submission</h1>
+        <p class="text-gray-600">
+            You are about to delete your destination submission. This action cannot be undone.
+        </p>
+    </div>
+    
+    <!-- Confirmation card -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200 bg-red-50">
+            <div class="flex items-center">
+                <!-- Warning icon -->
+                <div class="flex-shrink-0">
+                    <svg class="h-10 w-10 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                
+                <!-- Warning message -->
+                <div class="ml-4">
+                    <h2 class="text-xl font-semibold text-red-700">
+                        Are you sure you want to delete this submission?
+                    </h2>
+                    <p class="text-red-600 mt-1">
+                        All data and images associated with this destination will be permanently removed.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Destination details -->
+        <div class="p-6">
+            <h3 class="font-medium text-lg text-gray-900 mb-4">Destination Details</h3>
+            
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                    <dd class="mt-1 text-gray-900">{{ destination.name }}</dd>
+                </div>
+                
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Region</dt>
+                    <dd class="mt-1 text-gray-900">{{ destination.region.name }}</dd>
+                </div>
+                
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Location</dt>
+                    <dd class="mt-1 text-gray-900">{{ destination.city }}, {{ destination.country }}</dd>
+                </div>
+                
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1">
+                        {% if destination.approval_status == 'PENDING' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pending Review
+                        </span>
+                        {% elif destination.approval_status == 'APPROVED' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Approved
+                        </span>
+                        {% elif destination.approval_status == 'REJECTED' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Needs Revision
+                        </span>
+                        {% endif %}
+                    </dd>
+                </div>
+                
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Submitted On</dt>
+                    <dd class="mt-1 text-gray-900">{{ destination.created_at|date:"F j, Y" }}</dd>
+                </div>
+                
+                <div class="col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Images</dt>
+                    <dd class="mt-1 text-gray-900">{{ destination.images.all|length }}</dd>
+                </div>
+                
+                {% if destination.approval_status == 'REJECTED' and destination.rejection_reason %}
+                <div class="col-span-1 md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">Rejection Reason</dt>
+                    <dd class="mt-1 text-red-600">{{ destination.rejection_reason }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+        
+        <!-- Confirmation form -->
+        <div class="px-6 py-4 bg-gray-50 text-right">
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex justify-between">
+                    <a href="{% url 'destinations:guide_pending_destinations' %}" 
+                       class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Destination
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Additional help text -->
+    <div class="mt-8 bg-blue-50 p-5 rounded-lg border border-blue-100">
+        <h3 class="text-blue-800 font-medium mb-2">About Deletion</h3>
+        <ul class="list-disc pl-5 text-blue-700 space-y-2">
+            <li>Deleting a pending submission will permanently remove it from your submissions list.</li>
+            <li>If your submission was rejected, you can delete it and create a new submission instead of editing.</li>
+            <li>All images associated with this destination will also be deleted.</li>
+            <li>You can submit a new destination immediately after deleting this one.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

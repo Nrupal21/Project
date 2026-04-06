@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "project": "Guides Travel Booking and Itinerary Management System",
+    "date": "2025-08-31",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "Guides is a comprehensive Django-based web application that provides an end-to-end platform for travel planning, booking, and itinerary management. It offers rich destination data, tour management, personalized itineraries, bookings, reviews, rewards, emergency services, and transportation management, all accessible via a responsive web interface and a robust REST API.",
+  "core_goals": [
+    "Enable seamless travel planning and booking for users by integrating destinations, tours, accommodations, and transportation services.",
+    "Provide detailed and searchable travel destination information with approval workflows to ensure accuracy and quality.",
+    "Offer personalized itinerary planning with day-by-day schedules, activity optimization, and social sharing options.",
+    "Support user authentication with role-based access, including social authentication for ease of access.",
+    "Implement a secure, flexible booking system with multi-payment options and real-time availability checks.",
+    "Allow users to provide reviews and ratings with moderation and verification to maintain quality and trust.",
+    "Incorporate a rewards system to encourage user engagement and loyalty.",
+    "Provide comprehensive emergency and safety information with offline access and real-time alerts.",
+    "Deliver a developer-friendly REST API with versioning and authentication for integration and third-party use.",
+    "Ensure responsive and accessible UI/UX with modern design standards and theme toggle support."
+  ],
+  "key_features": [
+    "User Authentication and Profile Management with social media integration and role-based access control.",
+    "Destination Management supporting hierarchical categorization, detailed descriptions, photo galleries, geographic search, and approval workflows.",
+    "Tour Management including detailed itineraries, availability, guide info, and booking capabilities.",
+    "Personalized Itinerary Planning with schedule optimization, resource allocation, budgeting, public/private sharing, and social media integration.",
+    "Comprehensive Booking System for tours, accommodations, transportation with multiple payment gateway integrations and group booking support.",
+    "User Review and Rating System with multi-criteria evaluation, media uploads, moderation, and response handling.",
+    "Rewards Program managing user points and loyalty benefits.",
+    "Emergency Services providing local contacts, interactive maps, safety guidelines, real-time alerts, and SOS functionalities.",
+    "Transportation Management featuring schedule info, booking, route planning, price comparison, and environmental impact awareness.",
+    "Versioned REST API offering secure token-based access to all major features including destinations, tours, itineraries, and reviews.",
+    "Mobile-first Responsive Design with Tailwind CSS, supporting landscape orientation special handling and dark mode toggling."
+  ],
+  "user_flow_summary": [
+    "User registers or logs in via standard forms or social authentication and manages personal profile and settings.",
+    "User browses and searches destinations by region, category, or keyword; views detailed information and photo galleries.",
+    "User explores and books tours, checking availability and receiving booking confirmations and tickets.",
+    "User creates and customizes personal itineraries, adding activities, accommodations, and notes, then shares publicly or privately.",
+    "User leaves reviews and ratings on destinations, tours, or services, including media uploads and voting on helpfulness.",
+    "User monitors rewards points earned from activities and redemptions via a dedicated dashboard.",
+    "User accesses emergency information relevant to their travel destinations including contacts, maps, and SOS feature.",
+    "Third-party clients access the API with token authentication to retrieve or manage data programmatically.",
+    "Admin users approve new destination entries, moderate reviews, manage tours, and oversee booking and user management through the admin interface."
+  ],
+  "validation_criteria": [
+    "Successful user authentication and profile management, including social login and role-based access.",
+    "Correct functioning of destination CRUD operations with proper approval workflows.",
+    "Accurate tour scheduling, booking processes, and payment gateway integrations.",
+    "Complete itinerary creation with scheduling conflict warnings, budgeting accuracy, and sharing capabilities.",
+    "Robust review submission, media upload, moderation, and user reputation tracking.",
+    "Accurate points calculation and redemption in rewards system.",
+    "Emergency information is accurate, accessible offline, and real-time alerts are delivered.",
+    "Transportation data is current with booking and routing features working correctly.",
+    "REST API endpoints return correct data with proper authentication and authorization.",
+    "Responsive UI behaves as expected on various devices and orientations with theme toggle.",
+    "Application passes all automated tests and database migrations apply cleanly.",
+    "Documentation is comprehensive, clear, and up-to-date for development and deployment."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Django REST Framework",
+      "Tailwind CSS",
+      "JavaScript"
+    ],
+    "features": [
+      {
+        "name": "User Authentication",
+        "description": "Handles user registration, login, and profile management with social auth support",
+        "files": [
+          "accounts/views.py",
+          "accounts/urls.py",
+          "accounts/forms.py",
+          "accounts/models.py"
+        ]
+      },
+      {
+        "name": "Destinations Management",
+        "description": "Manages travel destinations and attractions with approval workflow",
+        "files": [
+          "destinations/views.py",
+          "destinations/urls.py",
+          "destinations/models.py",
+          "destinations/forms.py"
+        ]
+      },
+      {
+        "name": "Tours System",
+        "description": "Handles tour packages, availability, and bookings",
+        "files": [
+          "tours/views.py",
+          "tours/urls.py",
+          "tours/models.py",
+          "tours/forms.py"
+        ]
+      },
+      {
+        "name": "Reviews System",
+        "description": "Manages user reviews and ratings for destinations and tours",
+        "files": [
+          "reviews/views.py",
+          "reviews/urls.py",
+          "reviews/models.py"
+        ]
+      },
+      {
+        "name": "Rewards System",
+        "description": "Handles user points and rewards",
+        "files": [
+          "rewards/views.py",
+          "rewards/urls.py",
+          "rewards/models.py"
+        ]
+      },
+      {
+        "name": "REST API v1",
+        "description": "Versioned API endpoints for all major features",
+        "files": [
+          "core/urls_api_v1.py",
+          "destinations/urls_api_v1.py",
+          "tours/urls_api_v1.py"
+        ]
+      }
+    ]
+  }
+}

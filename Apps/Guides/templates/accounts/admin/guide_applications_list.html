@@ -1,0 +1,728 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load account_filters %}
+
+{% block title %}Guide Applications - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+<style>
+    /**
+     * Guide Applications List Styles
+     * =============================
+     * Custom CSS for the guide applications admin interface
+     * Uses the TravelGuide indigo/violet color palette
+     */
+    
+    /**
+     * Status Badge Styles
+     * ------------------
+     * Color-coded badges to visually indicate application status
+     * Each status has its own color scheme for quick recognition
+     */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1;
+        border-radius: 9999px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Pending status - Warm yellow/amber color */
+    .status-pending {
+        background-color: rgb(253, 230, 138); /* amber-200 */
+        color: rgb(146, 64, 14); /* amber-800 */
+    }
+    
+    /* Under Review status - Indigo color to match site theme */
+    .status-under_review {
+        background-color: rgb(199, 210, 254); /* indigo-200 */
+        color: rgb(67, 56, 202); /* indigo-700 */
+    }
+    
+    /* Approved status - Success green */
+    .status-approved {
+        background-color: rgb(167, 243, 208); /* green-200 */
+        color: rgb(6, 95, 70); /* green-800 */
+    }
+    
+    /* Rejected status - Error red */
+    .status-rejected {
+        background-color: rgb(254, 202, 202); /* red-200 */
+        color: rgb(153, 27, 27); /* red-800 */
+    }
+    
+    /**
+     * Action Button Styles
+     * -------------------
+     * Styled buttons for different actions (view, approve, reject)
+     * Consistent with the site's indigo/violet theme
+     */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all 150ms ease-in-out;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+    
+    /* View button - Indigo to match site theme */
+    .btn-view {
+        background-color: rgb(224, 231, 255); /* indigo-100 */
+        color: rgb(79, 70, 229); /* indigo-600 */
+        border-color: rgb(199, 210, 254); /* indigo-200 */
+    }
+    
+    .btn-view:hover {
+        background-color: rgb(199, 210, 254);
+    }
+    
+    .dark .btn-view {
+        background-color: rgb(30, 27, 75);
+        color: rgb(199, 210, 254);
+        border-color: rgb(55, 48, 163);
+    }
+    
+    .dark .btn-view:hover {
+        background-color: rgb(55, 48, 163);
+    }
+    
+    .btn-approve {
+        color: rgb(21, 128, 61);
+        background-color: rgb(220, 252, 231);
+        border-color: rgb(187, 247, 208);
+    }
+    
+    .btn-approve:hover {
+        background-color: rgb(187, 247, 208);
+    }
+    
+    .dark .btn-approve {
+        background-color: rgb(20, 83, 45);
+        color: rgb(134, 239, 172);
+        border-color: rgb(22, 101, 52);
+    }
+    
+    .dark .btn-approve:hover {
+        background-color: rgb(22, 101, 52);
+    }
+    
+    .btn-reject {
+        color: rgb(185, 28, 28);
+        background-color: rgb(254, 226, 226);
+        border-color: rgb(254, 202, 202);
+    }
+    
+    .btn-reject:hover {
+        background-color: rgb(254, 202, 202);
+    }
+    
+    .dark .btn-reject {
+        background-color: rgb(127, 29, 29);
+        color: rgb(254, 202, 202);
+        border-color: rgb(153, 27, 27);
+    }
+    
+    .dark .btn-reject:hover {
+        background-color: rgb(153, 27, 27);
+    }
+    
+    /* Table styles */
+    .table-container {
+        background-color: white;
+        --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .dark .table-container {
+        background-color: rgb(31, 41, 55);
+    }
+    
+    .table-header {
+        background-color: rgb(249, 250, 251);
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+        line-height: 1rem;
+        font-weight: 500;
+        color: rgb(107, 114, 128);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: left;
+    }
+    
+    .dark .table-header {
+        background-color: rgb(55, 65, 81);
+        color: rgb(209, 213, 219);
+    }
+    
+    .table-cell {
+        padding: 0.75rem 1rem;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        color: rgb(17, 24, 39);
+    }
+    
+    .dark .table-cell {
+        color: rgb(229, 231, 235);
+    }
+    
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: rgb(107, 114, 128);
+    }
+    
+    .dark .empty-state {
+        color: rgb(156, 163, 175);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-header, .table-cell {
+            padding: 0.5rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 
+    Guide Application Admin Dashboard
+    ==============================
+    
+    This template displays a list of all guide applications for admin review.
+    It allows filtering by status and provides a table with application details.
+    
+    Features:
+    - Status-based filtering with counts (All, Pending, Under Review, Approved, Rejected)
+    - Responsive table with applicant details, status, and action buttons
+    - Quick approve/reject actions for pending applications
+    - Detailed review page access for each application
+    - Empty state handling when no applications match the filter
+    
+    The admin interface follows the indigo/violet color scheme for consistency
+    and includes responsive design for various screen sizes.
+    
+    @author TravelGuide Development Team
+    @version 1.0.0
+-->
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+<section class="bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-screen-2xl w-full mx-auto px-6 sm:px-8 lg:px-12">
+        <!-- Page Header - Main title and description -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                Guide Applications
+            </h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">
+                Review and manage guide applications from users
+            </p>
+        </div>
+
+        <!-- Status Filter Tabs - Navigation tabs for filtering applications by status -->
+        <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+                <!-- "All Applications" Tab - Shows all applications regardless of status -->
+                <li class="mr-2" role="presentation">
+                    <a href="{% url 'accounts:guide_applications_list' %}" 
+                       class="inline-block p-4 rounded-t-lg border-b-2 {% if not status_filter %}border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500{% else %}border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300{% endif %}">
+                        All Applications
+                        <!-- Badge showing total count of all applications -->
+                        <span class="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-indigo-600 rounded-full">
+                            {{ applications.paginator.count }}
+                        </span>
+                    </a>
+                </li>
+                
+                <!-- Status-specific Filter Tabs - One tab for each possible application status -->
+                {% for status_code, status_name in status_choices %}
+                <li class="mr-2" role="presentation">
+                    <a href="{% url 'accounts:guide_applications_list' %}?status={{ status_code }}" 
+                       class="inline-block p-4 rounded-t-lg border-b-2 {% if status_filter == status_code %}border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500{% else %}border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300{% endif %}">
+                        {{ status_name }}
+                        <!-- Status-specific count badge with appropriate color coding -->
+                        <span class="ml-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none 
+                            {% if status_code == 'approved' %}bg-green-600
+                            {% elif status_code == 'rejected' %}bg-red-600
+                            {% elif status_code == 'under_review' %}bg-yellow-600
+                            {% elif status_code == 'pending' %}bg-blue-600
+                            {% else %}bg-gray-600{% endif %} rounded-full">
+                            {{ status_counts|get_item:status_code|default:0 }}
+                        </span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Applications Table - Main data display for guide applications -->
+        <div class="table-container">
+            <div class="overflow-x-auto">
+                {% if applications %}
+                <!-- 
+                    Responsive Table Structure
+                    --------------------------
+                    This table uses a responsive design that converts to cards on mobile.
+                    Each column has a specific purpose:
+                    - Applicant: Shows user avatar, name, and email
+                    - Applied: Shows application date and relative time
+                    - ID Type: Shows the type of government ID provided
+                    - Status: Shows color-coded status badge and reviewer info
+                    - Actions: Contains buttons for reviewing, approving, or rejecting
+                -->
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 table-header">Applicant</th>
+                            <th class="px-4 py-3 table-header">Applied</th>
+                            <th class="px-4 py-3 table-header">ID Type</th>
+                            <th class="px-4 py-3 table-header">Status</th>
+                            <th class="px-4 py-3 table-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <!-- Table Body - Lists all guide applications with their details -->                    
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for application in applications %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                            <!-- Applicant Column - Shows user avatar, name and email -->
+                            <td class="table-cell">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full object-cover" 
+                                             src="{{ application.user.profile.avatar_url|default:'/static/images/default-avatar.png' }}" 
+                                             alt="{{ application.user.get_full_name|default:application.user.username }}">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="font-medium text-gray-900 dark:text-white">
+                                            {{ application.user.get_full_name|default:application.user.username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ application.user.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Application Date Column - Shows formatted date and time since application -->
+                            <td class="table-cell">
+                                <div class="text-sm text-gray-900 dark:text-gray-200">
+                                    {{ application.application_date|date:"M d, Y" }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ application.application_date|timesince }} ago
+                                </div>
+                            </td>
+                            
+                            <!-- ID Type Column - Shows the type of ID provided with indigo badge -->
+                            <td class="table-cell">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                    {{ application.id_type }}
+                                </span>
+                            </td>
+                            
+                            <!-- Status Column - Shows color-coded status badge and reviewer info if available -->
+                            <td class="table-cell">
+                                <span class="status-badge status-{{ application.status|lower }}">
+                                    {{ application.get_status_display }}
+                                </span>
+                                
+                                {% if application.reviewed_by %}
+                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    By {{ application.reviewed_by.get_short_name }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Actions Column - Contains review button and quick action buttons -->
+                            <td class="table-cell">
+                                <div class="flex space-x-2">
+                                    <!-- Review Button - Opens detailed review page -->
+                                    <a href="{% url 'accounts:review_guide_application' application.id %}" 
+                                       class="action-btn btn-view" 
+                                       title="Review application details">
+                                        <i class="fas fa-eye mr-1"></i> Review
+                                    </a>
+                                    
+                                    <!-- Quick Action Buttons - Only shown for pending/under review applications -->
+                                    {% if application.status == 'PENDING' or application.status == 'UNDER_REVIEW' %}
+                                    <form method="post" action="{% url 'accounts:review_guide_application' application.id %}" 
+                                          class="inline" onsubmit="return confirm('Are you sure you want to approve this application?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="action-btn btn-approve" title="Approve application">
+                                            <i class="fas fa-check mr-1"></i> Approve
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="post" action="{% url 'accounts:review_guide_application' application.id %}" 
+                                          class="inline" onsubmit="return confirm('Are you sure you want to reject this application?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="action-btn btn-reject" title="Reject application">
+                                            <i class="fas fa-times mr-1"></i> Reject
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <!-- Empty State Row - Shown when no applications match the current filter -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                No guide applications found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <!-- 
+                    Empty State Display
+                    -------------------
+                    Shown when no applications match the current filter criteria.
+                    Provides a user-friendly message with visual indicator instead of an empty table.
+                    Uses a document icon SVG to visually communicate the empty state.
+                -->
+                <div class="py-12 px-4 text-center">
+                    <!-- Empty state icon - Document with lines -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <!-- Empty state heading -->
+                    <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No applications found</h3>
+                    <!-- Empty state description -->
+                    <p class="mt-2 text-gray-500 dark:text-gray-400">
+                        There are no guide applications matching the current filter.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 
+            Pagination Section
+            -----------------
+            Reserved for future implementation of pagination controls.
+            Will be used when the number of applications grows large enough to require pagination.
+            Will include previous/next buttons and page number indicators.
+        -->
+        <div class="mt-6">
+            <!-- Pagination controls would go here -->
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    /**
+     * Guide Applications List JavaScript
+     * =================================
+     * Handles interactive elements for the guide applications list interface:
+     * - Tab navigation for status filtering
+     * - Dynamic loading states
+     * - Confirmation dialogs for approve/reject actions
+     * - Responsive UI adjustments
+     * 
+     * @author TravelGuide Development Team
+     * @version 1.0.0
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        /**
+         * Initialize all interactive elements on the page
+         */
+        function initPage() {
+            initFilterTabs();
+            initConfirmDialogs();
+            initResponsiveAdjustments();
+            setupNotificationDismiss();
+        }
+        
+        /**
+         * Sets up the status filter tabs with active state styling
+         * Uses the indigo/violet color scheme for active tab indicators
+         */
+        function initFilterTabs() {
+            const tabs = document.querySelectorAll('[role="presentation"] a');
+            
+            tabs.forEach(tab => {
+                // Add click event to handle tab switching without page reload
+                tab.addEventListener('click', function(e) {
+                    if (this.getAttribute('data-ajax-enabled') === 'true') {
+                        e.preventDefault();
+                        
+                        // Update visual state of tabs
+                        tabs.forEach(t => t.classList.remove('border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400', 'dark:border-indigo-500'));
+                        tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500'));
+                        
+                        this.classList.remove('border-transparent', 'text-gray-500');
+                        this.classList.add('border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400', 'dark:border-indigo-500');
+                        
+                        // Get status from data attribute or URL
+                        const status = this.getAttribute('data-status') || 
+                                      new URLSearchParams(this.getAttribute('href').split('?')[1]).get('status');
+                        
+                        // Show loading state
+                        showLoadingState();
+                        
+                        // Fetch filtered results (would be implemented with AJAX in production)
+                        setTimeout(() => {
+                            // In a real implementation, this would fetch data from the server
+                            // For now, we'll just reload the page with the filter
+                            window.location.href = this.getAttribute('href');
+                        }, 300);
+                    }
+                });
+            });
+        }
+        
+        /**
+         * Sets up confirmation dialogs for approve/reject actions
+         * Ensures users confirm before taking irreversible actions
+         */
+        /**
+         * Sets up confirmation dialogs for approve/reject actions
+         * Handles form submission via AJAX for better user experience
+         */
+        function initConfirmDialogs() {
+            // Handle approve/reject form submissions
+            document.querySelectorAll('form[action*="review_guide_application"]').forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const form = this;
+                    const action = form.querySelector('input[name="action"]').value;
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    
+                    // Set up confirmation message based on action
+                    let confirmMessage = '';
+                    if (action === 'approve') {
+                        confirmMessage = 'Are you sure you want to approve this guide application? The user will be granted guide privileges.';
+                    } else if (action === 'reject') {
+                        confirmMessage = 'Are you sure you want to reject this guide application? You can provide feedback in the review notes.';
+                    }
+                    
+                    // Show confirmation dialog
+                    if (confirmMessage && !confirm(confirmMessage)) {
+                        return; // User cancelled the action
+                    }
+                    
+                    try {
+                        // Show loading state
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
+                        
+                        // Submit the form via AJAX
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                            },
+                            body: new URLSearchParams(new FormData(form))
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Show success message
+                            showNotification(
+                                action === 'approve' ? 'Application approved successfully' : 'Application rejected successfully',
+                                'success'
+                            );
+                            
+                            // Reload the page to show updated status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            throw new Error(data.message || 'Failed to process request');
+                        }
+                    } catch (error) {
+                        console.error('Error processing request:', error);
+                        showNotification(
+                            error.message || 'An error occurred while processing your request',
+                            'error'
+                        );
+                        
+                        // Reset button state
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
+                });
+            });
+        }
+        
+        /**
+         * Shows a notification message to the user
+         * @param {string} message - The message to display
+         * @param {string} type - The type of notification (success, error, info)
+         */
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-md shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.className = 'ml-4 text-white hover:text-gray-200';
+            closeButton.innerHTML = '&times;';
+            closeButton.onclick = () => notification.remove();
+            notification.appendChild(closeButton);
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+        
+        /**
+         * Sets up responsive adjustments for different screen sizes
+         * Ensures the interface remains usable on mobile devices
+         */
+        function initResponsiveAdjustments() {
+            const adjustLayout = () => {
+                const isMobile = window.innerWidth < 768;
+                const actionCells = document.querySelectorAll('td:last-child');
+                
+                actionCells.forEach(cell => {
+                    const actionButtons = cell.querySelector('.flex');
+                    if (actionButtons) {
+                        actionButtons.classList.toggle('flex-col', isMobile);
+                        actionButtons.classList.toggle('space-y-2', isMobile);
+                        actionButtons.classList.toggle('space-x-2', !isMobile);
+                    }
+                });
+            };
+            
+            // Run on load and window resize
+            adjustLayout();
+            window.addEventListener('resize', adjustLayout);
+        }
+        
+        /**
+         * Sets up notification dismiss functionality
+         * Allows users to close success/error messages
+         */
+        function setupNotificationDismiss() {
+            const dismissButtons = document.querySelectorAll('[data-dismiss="notification"]');
+            
+            dismissButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const notification = this.closest('.notification');
+                    if (notification) {
+                        notification.classList.add('opacity-0');
+                        setTimeout(() => notification.remove(), 300);
+                    }
+                });
+            });
+        }
+        
+        /**
+         * Shows a loading state in the applications table
+         * Provides visual feedback during AJAX operations
+         */
+        function showLoadingState() {
+            const tableBody = document.querySelector('tbody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-12 text-center">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                            <p class="mt-4 text-gray-500 dark:text-gray-400">Loading applications...</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // Initialize everything
+        initPage();
+    });
+</script>
+{% endblock %}
+{% endblock %}

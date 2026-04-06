@@ -1,0 +1,538 @@
+{% extends 'destinations/guide_base.html' %}
+{% load static %}
+{% load form_utils %}
+
+<!-- 
+Destination Form Template
+- Provides UI for creating and editing destination entries
+- Uses Bootstrap 5 for form styling with indigo/violet color scheme
+- Includes file upload fields for cover and banner images
+- Form validation with error display
+-->
+
+{% block page_title %}
+    {% if form.instance.pk %}
+        {% if form.instance.is_pending %}
+            Pending Review: {{ form.instance.name }}
+        {% else %}
+            Edit {{ form.instance.name }}
+        {% endif %}
+    {% else %}
+        Submit Destination for Review
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<style>
+    .form-section {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .form-section h5 {
+        color: #4f46e5;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #location-map {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    /* Custom marker icon */
+    .custom-marker {
+        background: #4f46e5;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    /* Search box styling */
+    .leaflet-control-geocoder {
+        border-radius: 4px;
+        background: white;
+        min-width: 26px;
+        min-height: 26px;
+    }
+    
+    .leaflet-control-geocoder a, 
+    .leaflet-control-geocoder .leaflet-control-geocoder-icon {
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
+    
+    /* Location button */
+    .locate-btn {
+        background: white;
+        border-radius: 4px;
+        padding: 3px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        cursor: pointer;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .locate-btn:hover {
+        background: #f4f4f4;
+    }
+</style>
+{% endblock %}
+
+{% block guide_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">
+                        <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} me-2"></i>
+                        {% if form.instance.pk %}Edit Destination{% else %}Add New Destination{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Review notification alert - Visible when accessed by local guides -->
+                    <div class="alert alert-info mb-4 border-left-4 border-indigo-500 bg-indigo-50">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-indigo-600 mt-0.5"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-indigo-800">Destination Review Process</h4>
+                                <div class="mt-1 text-sm text-indigo-700">
+                                    <p>All destination submissions go through our review process before publication:</p>
+                                    <ul class="list-disc pl-5 mt-1">
+                                        <li>Our team reviews submissions within 48-72 hours</li>
+                                        <li>Approved destinations are published immediately</li>
+                                        <li>You'll receive 50 reward points for each approved submission</li>
+                                        <li>If changes are needed, you'll receive feedback by email</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" id="destination-form">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                            <div class="row">
+                                <!-- Name field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                                        {{ form.name|add_class:"form-control" }}
+                                        {% if form.name.help_text %}
+                                            <div class="form-text text-muted">{{ form.name.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Region field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
+                                        {{ form.region|add_class:"form-control" }}
+                                        {% if form.region.help_text %}
+                                            <div class="form-text text-muted">{{ form.region.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.region.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.region.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Cover Image Upload -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="cover_image" class="form-label">Cover Image</label>
+                                    <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                                    <div class="form-text">This will be the main image displayed for your destination (recommended size: 1200x630px)</div>
+                                </div>
+                            </div>
+                            <!-- Banner Image Upload -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="banner_image" class="form-label">Banner Image</label>
+                                    <input type="file" class="form-control" id="banner_image" name="banner_image" accept="image/*">
+                                    <div class="form-text">This will be used as a banner for your destination (recommended size: 1920x400px)</div>
+                                </div>
+                            </div>
+                            <!-- Short description field with indigo/violet styling -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.short_description.id_for_label }}" class="form-label">{{ form.short_description.label }}</label>
+                                        {{ form.short_description|add_class:"form-control" }}
+                                        {% if form.short_description.help_text %}
+                                            <div class="form-text text-muted">{{ form.short_description.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.short_description.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.short_description.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Full description field with indigo/violet styling -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                                        {{ form.description|add_class:"form-control" }}
+                                        {% if form.description.help_text %}
+                                            <div class="form-text text-muted">{{ form.description.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.description.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Price Field -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.price.id_for_label }}" class="form-label">{{ form.price.label }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            {{ form.price|add_class:"form-control" }}
+                                        </div>
+                                        {% if form.price.help_text %}
+                                            <div class="form-text text-muted">{{ form.price.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.price.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.price.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Is Featured Field with Tailwind Toggle -->
+                                <div class="col-md-6">
+                                    <div class="mt-4 pt-2">
+                                        <label for="{{ form.is_featured.id_for_label }}" class="flex items-center cursor-pointer">
+                                            <!-- Toggle container -->
+                                            <div class="relative">
+                                                <!-- Hidden checkbox -->
+                                                {{ form.is_featured|add_class:"sr-only peer" }}
+                                                <!-- Toggle track -->
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-indigo-600 peer-checked:to-violet-600"></div>
+                                            </div>
+                                            <!-- Label text -->
+                                            <span class="ml-3 text-sm font-medium text-gray-700">
+                                                {{ form.is_featured.label }}
+                                            </span>
+                                        </label>
+                                        {% if form.is_featured.help_text %}
+                                            <p class="mt-1 text-xs text-gray-500">{{ form.is_featured.help_text }}</p>
+                                        {% endif %}
+                                        {% if form.is_featured.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.is_featured.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Location Information -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-map-marker-alt me-2"></i>Location Information</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <div id="location-map" 
+                                         data-lat="{{ form.instance.latitude|default:'20.5937' }}" 
+                                         data-lng="{{ form.instance.longitude|default:'78.9629' }}"
+                                         data-zoom="5">
+                                    </div>
+                                    <small class="text-muted">Click on the map to set the location or drag the marker</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Latitude Field -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.latitude.id_for_label }}" class="form-label">
+                                            {{ form.latitude.label }}
+                                            <small class="text-muted">(Click on the map to set)</small>
+                                        </label>
+                                        {{ form.latitude|add_class:"form-control" }}
+                                        {% if form.latitude.help_text %}
+                                            <div class="form-text text-muted">{{ form.latitude.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.latitude.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.latitude.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Longitude Field -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.longitude.id_for_label }}" class="form-label">
+                                            {{ form.longitude.label }}
+                                            <small class="text-muted">(Click on the map to set)</small>
+                                        </label>
+                                        {{ form.longitude|add_class:"form-control" }}
+                                        {% if form.longitude.help_text %}
+                                            <div class="form-text text-muted">{{ form.longitude.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.longitude.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.longitude.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- City Field -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.city.id_for_label }}" class="form-label">
+                                            {{ form.city.label }}
+                                        </label>
+                                        {{ form.city|add_class:"form-control" }}
+                                        {% if form.city.help_text %}
+                                            <div class="form-text text-muted">{{ form.city.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.city.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Country Field -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.country.id_for_label }}" class="form-label">
+                                            {{ form.country.label }}
+                                        </label>
+                                        {{ form.country|add_class:"form-select" }}
+                                        {% if form.country.help_text %}
+                                            <div class="form-text text-muted">{{ form.country.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.country.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.country.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% if form.instance.pk %}{% url 'destinations:destination_detail' form.instance.slug %}{% else %}{% url 'destinations:my_destinations' %}{% endif %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <div class="d-flex gap-2">
+                                {% if form.instance.pk and not form.instance.is_pending %}
+                                    <button type="submit" name="save_draft" value="true" class="btn btn-outline-primary">
+                                        <i class="fas fa-save me-2"></i>Save as Draft
+                                    </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas {% if form.instance.is_pending %}fa-hourglass-half{% elif form.instance.pk %}fa-save{% else %}fa-clipboard-check{% endif %} me-2"></i>
+                                    {% if form.instance.is_pending %}
+                                        Update Pending Submission
+                                    {% else %}
+                                        {% if form.instance.pk %}
+                                            Save Changes
+                                        {% else %}
+                                            Submit for Review and Approval
+                                        {% endif %}
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map if the element exists
+    if (document.getElementById('location-map')) {
+        const mapElement = document.getElementById('location-map');
+        let defaultLat = parseFloat(mapElement.dataset.lat) || 20.5937;
+        let defaultLng = parseFloat(mapElement.dataset.lng) || 78.9629;
+        const zoom = parseInt(mapElement.dataset.zoom) || 5;
+        
+        // Validate coordinates
+        if (isNaN(defaultLat) || defaultLat < -90 || defaultLat > 90) defaultLat = 20.5937;
+        if (isNaN(defaultLng) || defaultLng < -180 || defaultLng > 180) defaultLng = 78.9629;
+        
+        // Initialize the map
+        const map = L.map('location-map').setView([defaultLat, defaultLng], zoom);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Create a custom marker icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -10]
+        });
+        
+        // Add marker with custom icon
+        let marker = L.marker([defaultLat, defaultLng], {
+            draggable: true,
+            icon: customIcon
+        }).addTo(map);
+        
+        // Add popup with coordinates
+        marker.bindPopup(`<b>Location</b><br>Lat: ${defaultLat.toFixed(6)}<br>Lng: ${defaultLng.toFixed(6)}`).openPopup();
+        
+        // Function to update form fields and popup
+        const updateLocation = function(lat, lng) {
+            document.getElementById('id_latitude').value = lat.toFixed(6);
+            document.getElementById('id_longitude').value = lng.toFixed(6);
+            marker.setLatLng([lat, lng]);
+            marker.getPopup().setContent(`<b>Location</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
+            map.setView([lat, lng], map.getZoom());
+        };
+        
+        // Update location when marker is dragged
+        marker.on('dragend', function(e) {
+            const position = marker.getLatLng();
+            updateLocation(position.lat, position.lng);
+        });
+        
+        // Update marker position when clicking on the map
+        map.on('click', function(e) {
+            updateLocation(e.latlng.lat, e.latlng.lng);
+        });
+        
+        // Add search control
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: 'Search for a location...',
+            errorMessage: 'Location not found.'
+        })
+        .on('markgeocode', function(e) {
+            const { center, name } = e.geocode;
+            updateLocation(center.lat, center.lng);
+            marker.bindPopup(`<b>${name}</b><br>Lat: ${center.lat.toFixed(6)}<br>Lng: ${center.lng.toFixed(6)}`).openPopup();
+        })
+        .addTo(map);
+        
+        // Add locate control
+        const locateControl = L.control({position: 'topleft'});
+        locateControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            div.innerHTML = '<a href="#" class="locate-btn" title="Use my current location">📍</a>';
+            div.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        updateLocation(position.coords.latitude, position.coords.longitude);
+                        marker.bindPopup('<b>Your Location</b>').openPopup();
+                    }, function(error) {
+                        alert('Unable to retrieve your location: ' + error.message);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    });
+                } else {
+                    alert('Geolocation is not supported by your browser');
+                }
+            };
+            return div;
+        };
+        locateControl.addTo(map);
+        
+        // Handle form submission to validate coordinates
+        const form = document.getElementById('destination-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const lat = parseFloat(document.getElementById('id_latitude').value);
+                const lng = parseFloat(document.getElementById('id_longitude').value);
+                
+                if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lng) || lng < -180 || lng > 180) {
+                    e.preventDefault();
+                    alert('Please select a valid location on the map');
+                    map.flyTo([20.5937, 78.9629], 5);
+                    return false;
+                }
+                return true;
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

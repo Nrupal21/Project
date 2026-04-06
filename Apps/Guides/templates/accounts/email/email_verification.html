@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+    {# Meta tags for responsive design and character encoding #}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your TravelGuide Account</title>
+    
+    {# Inline styles for email client compatibility #}
+    <style>
+        /* Base styles - using inline styles for maximum email client compatibility */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        
+        /* Container styles */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header styling */
+        .header {
+            background-color: #4f46e5;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            color: white;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        
+        /* Content styling */
+        .content {
+            padding: 30px 40px;
+        }
+        
+        /* Button styling for the verification link */
+        .verify-button {
+            display: inline-block;
+            background-color: #4f46e5;
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        /* Footer styling */
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eaeaea;
+            background-color: #f5f5f5;
+        }
+        
+        /* Helper utility classes */
+        .center {
+            text-align: center;
+        }
+        
+        .mt-2 {
+            margin-top: 20px;
+        }
+        
+        .text-secondary {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Responsive adjustments for mobile */
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100%;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {# Main container #}
+    <table class="container" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td>
+                {# Header section with logo #}
+                <table class="header" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                        <td class="center">
+                            <div class="logo">TravelGuide</div>
+                        </td>
+                    </tr>
+                </table>
+                
+                {# Main content section #}
+                <table class="content" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                        <td>
+                            {# Greeting - personalized with username #}
+                            <h1>Hi {{ user.first_name|default:user.username }},</h1>
+                            
+                            {# Main message explaining the purpose of the email #}
+                            <p>Thanks for signing up with TravelGuide! To complete your registration and start exploring amazing destinations, please verify your email address.</p>
+                            
+                            {# Call to action - verification button #}
+                            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                                <tr>
+                                    <td class="center">
+                                        <a href="{{ verification_url }}" class="verify-button" target="_blank">Verify Email Address</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            {# Alternative text link in case button doesn't display properly #}
+                            <p class="text-secondary">If the button above doesn't work, copy and paste this link into your browser:</p>
+                            <p class="text-secondary">{{ verification_url }}</p>
+                            
+                            {# Security and expiration notice #}
+                            <p class="mt-2">This verification link will expire in 24 hours for security reasons. If you don't verify within this time, you'll need to request a new verification email from your account settings.</p>
+                            
+                            {# Help and support information #}
+                            <p class="mt-2">If you didn't create this account, you can safely ignore this email.</p>
+                            
+                            {# Closing #}
+                            <p class="mt-2">Happy travels,<br>The TravelGuide Team</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                {# Footer section with links and company info #}
+                <table class="footer" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                        <td class="center">
+                            <p>&copy; {% now "Y" %} TravelGuide. All rights reserved.</p>
+                            <p>
+                                <a href="{{ site_url }}{% url 'pages:privacy' %}" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+                                <a href="{{ site_url }}{% url 'pages:terms' %}" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+                                <a href="{{ site_url }}{% url 'accounts:settings' %}" style="color: #4f46e5; text-decoration: none; margin: 0 10px;">Account Settings</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

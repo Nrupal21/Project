@@ -1,0 +1,1111 @@
+{% comment %}
+  /**
+   * Guide Attractions List Template
+   * =============================
+   * Displays attractions created by the guide using a responsive card grid layout.
+   * Features:
+   * - Modern card-based grid layout with hover effects
+   * - Search and status filtering functionality
+   * - Responsive design with multi-column grid on larger screens
+   * - Visual indicators for status and featured attractions
+   * - Quick action buttons for each attraction
+   * - Empty state with helpful guidance
+   * - Accessible design with appropriate ARIA attributes
+   * - Consistent indigo/violet color scheme
+   * - Custom delete confirmation modal with warnings
+   */
+{% endcomment %}
+
+{% extends 'destinations/guide_base.html' %}
+{% load static %}
+
+{% block page_title %}My Attractions{% endblock %}
+
+{% block page_actions %}
+<!-- Primary action button for adding new attractions with consistent styling -->
+<a href="{% url 'destinations:attraction_create' %}" 
+   class="btn btn-quick-action primary">
+    <i class="fas fa-plus-circle"></i> Add Attraction
+</a>
+{% endblock %}
+
+{% block guide_content %}
+<!-- Main container for attractions management section -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-6">
+    <!-- Header Section with Title and Search/Filter Controls -->
+    <div class="p-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-violet-50">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <!-- Section Title with Icon -->
+            <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-inner">
+                    <i class="fas fa-landmark text-white"></i>
+                </div>
+                <div class="ml-4">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        My Attractions
+                        <span class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            <span id="attractionCount">{{ attractions|length }}</span> total
+                        </span>
+                    </h2>
+                    <p class="text-sm text-gray-500">
+                        Manage your attractions and their visibility
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Search and Filter Controls -->
+            <div class="w-full md:w-auto flex flex-col md:flex-row gap-3">
+                <!-- Search Input with Icon and Animation -->
+                <div class="relative w-full md:w-64 group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-indigo-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                    </div>
+                    <input type="text" 
+                           id="searchAttractions" 
+                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm
+                                  focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 focus:border-indigo-500
+                                  bg-white transition-all duration-200 ease-in-out" 
+                           placeholder="Search attractions..."
+                           aria-label="Search attractions">
+                </div>
+                
+                <!-- Status Filter Dropdown with Custom Styling -->
+                <div class="relative w-full md:w-auto">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-filter text-indigo-400"></i>
+                    </div>
+                    <select id="filterStatus" 
+                            class="appearance-none bg-white pl-10 pr-10 py-2 border border-gray-300 rounded-md text-sm w-full
+                                   focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 focus:border-indigo-500
+                                   transition-all duration-200 ease-in-out cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attractions Content Section -->
+    <div class="p-5">
+        {% if attractions %}
+            {% comment %}
+            /**
+             * Attractions Grid Layout
+             * =====================
+             * Modern card-based grid layout for attractions
+             * Features:
+             * - Responsive grid with 1-3 columns based on screen size
+             * - Image thumbnails with hover effects
+             * - Status badges and indicators
+             * - Quick action buttons
+             * - Consistent spacing and alignment
+             */
+            {% endcomment %}
+            
+            <!-- Attractions Card Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="attractionsGrid">
+                {% for attraction in attractions %}
+                <!-- Attraction Card with Hover Effect -->
+                <div class="bg-white rounded-lg shadow-md transition-all duration-200 ease-in-out hover:shadow-lg" 
+                     data-status="{{ attraction.status|lower }}">
+                    <!-- Attraction Thumbnail with Hover Effect -->
+                    <div class="relative h-48 overflow-hidden rounded-t-lg">
+                        {% if attraction.primary_image %}
+                        <!-- Attraction Image Thumbnail -->
+                        <img class="h-full w-full object-cover" 
+                             src="{{ attraction.primary_image.image.url }}" 
+                             alt="{{ attraction.name }}"
+                             loading="lazy">
+                        {% else %}
+                        <!-- Fallback Icon when no image -->
+                        <div class="flex items-center justify-center h-full bg-indigo-100">
+                            <i class="fas fa-image text-indigo-400 text-3xl"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Attraction Details Section -->
+                    <div class="p-5">
+                        <!-- Attraction Name with Link -->
+                        <a href="{% url 'destinations:attraction_detail' attraction.slug %}" 
+                           class="text-lg font-bold text-indigo-700 hover:text-indigo-900 transition-colors duration-150">
+                            {{ attraction.name }}
+                        </a>
+                        
+                        <!-- Attraction Category and Destination -->
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                <i class="fas {% if attraction.category == 'landmark' %}fa-landmark{% elif attraction.category == 'museum' %}fa-museum{% else %}fa-map-marker-alt{% endif %} mr-1"></i>
+                                {{ attraction.get_category_display }}
+                            </span>
+                            {% if attraction.is_featured %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                <i class="fas fa-star mr-1 text-yellow-500"></i>Featured
+                            </span>
+                            {% endif %}
+                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                bg-gray-100 text-gray-800 border border-gray-200">
+                                <i class="fas fa-map-marker-alt mr-1"></i>{{ attraction.destination.name }}
+                            </span>
+                        </div>
+                        
+                        <!-- Attraction Status and Updated At -->
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center">
+                                <span class="h-2.5 w-2.5 rounded-full mr-2 {% if attraction.is_active %}bg-green-400{% else %}bg-gray-400{% endif %}"></span>
+                                <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if attraction.is_active %}bg-green-50 text-green-800 border border-green-100
+                                    {% else %}bg-gray-50 text-gray-800 border border-gray-100{% endif %}">
+                                    {{ attraction.get_status_display }}
+                                </span>
+                            </div>
+                            {% if attraction.updated_at %}
+                            <div class="text-xs text-gray-400">
+                                <i class="far fa-clock mr-1"></i>Updated {{ attraction.updated_at|timesince }} ago
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Quick Action Buttons -->
+                        <div class="flex items-center justify-end space-x-3 mt-4">
+                            <!-- View Button -->
+                            <a href="{% url 'destinations:attraction_detail' attraction.slug %}" 
+                               class="text-indigo-500 hover:text-indigo-700 transition-colors duration-150"
+                               title="View details"
+                               aria-label="View {{ attraction.name }}">
+                                <i class="fas fa-eye text-lg"></i>
+                            </a>
+                            
+                            <!-- Edit Button -->
+                            <a href="{% url 'destinations:attraction_update' attraction.slug %}" 
+                               class="text-indigo-500 hover:text-indigo-700 transition-colors duration-150"
+                               title="Edit attraction"
+                               aria-label="Edit {{ attraction.name }}">
+                                <i class="fas fa-edit text-lg"></i>
+                            </a>
+                            
+                            <!-- Status Toggle Button -->
+                            <button type="button" 
+                                    class="{% if attraction.is_active %}text-yellow-500 hover:text-yellow-700{% else %}text-green-500 hover:text-green-700{% endif %} transition-colors duration-150"
+                                    title="{% if attraction.is_active %}Deactivate{% else %}Activate{% endif %} attraction"
+                                    aria-label="{% if attraction.is_active %}Deactivate{% else %}Activate{% endif %} {{ attraction.name }}"
+                                    data-status-url="{% url 'destinations:toggle_attraction_status' attraction.id %}">
+                                <i class="fas {% if attraction.is_active %}fa-toggle-on{% else %}fa-toggle-off{% endif %} text-lg"></i>
+                            </button>
+                            
+                            <!-- Delete Button -->
+                            <button type="button" 
+                                    class="text-red-500 hover:text-red-700 transition-colors duration-150"
+                                    data-modal-toggle="deleteModal"
+                                    data-attraction-id="{{ attraction.id }}"
+                                    data-attraction-name="{{ attraction.name }}"
+                                    title="Delete attraction"
+                                    aria-label="Delete {{ attraction.name }}">
+                                <i class="fas fa-trash-alt text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% comment %}
+            /**
+             * Empty State
+             * ===========
+             * Displays when no attractions are available
+             * Features:
+             * - Illustrated design with SVG graphics
+             * - Clear messaging and CTA
+             * - Consistent styling with the indigo/violet theme
+             */
+            {% endcomment %}
+            
+            <!-- Empty State with Illustrated Design -->
+            <div class="text-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-50 to-violet-50/30 rounded-lg mx-6">
+                <div class="max-w-md mx-auto">
+                    <!-- Empty State Illustration -->
+                    <svg class="mx-auto h-40 text-indigo-500" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 647.63626 632.17383" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <!-- SVG path details -->
+                        <path d="M687.3279,276.08691H512.81813a15.01828,15.01828,0,0,0-15,15v387.85l-2,.61005-42.81006,13.11a8.00676,8.00676,0,0,1-9.98974-5.31L315.678,271.39691a8.00313,8.00313,0,0,1,5.31006-9.99l65.97022-20.2,191.25-58.54,65.96972-20.2a7.98927,7.98927,0,0,1,9.99024,5.3l32.5498,106.32Z" transform="translate(-276.18187 -133.91309)" fill="#f2f2f2"/>
+                        <path d="M725.408,274.08691l-39.23-128.14a16.99368,16.99368,0,0,0-21.23-11.28l-92.75,28.39L380.95827,221.60693l-92.75,28.4a17.0152,17.0152,0,0,0-11.28028,21.23l134.08008,437.93a17.02661,17.02661,0,0,0,16.26026,12.03,16.78926,16.78926,0,0,0,4.96972-.75l63.58008-19.46,2-.62v-2.09l-2,.61-64.16992,19.65a15.01489,15.01489,0,0,1-18.73-9.95l-134.06983-437.94a14.97935,14.97935,0,0,1,9.94971-18.73l92.75-28.4,191.24024-58.54,92.75-28.4a15.15551,15.15551,0,0,1,4.40966-.66,15.01461,15.01461,0,0,1,14.32032,10.61l39.0498,127.56.62012,2h2.08008Z" transform="translate(-276.18187 -133.91309)" fill="#3f3d56"/>
+                        <path d="M398.86279,261.73389a9.0157,9.0157,0,0,1-8.61133-6.3667l-12.88037-42.07178a8.99884,8.99884,0,0,1,5.9712-11.24023l175.939-53.86377a9.00867,9.00867,0,0,1,11.24072,5.9707l12.88037,42.07227a9.01029,9.01029,0,0,1-5.9707,11.24072L401.49219,261.33887A8.976,8.976,0,0,1,398.86279,261.73389Z" transform="translate(-276.18187 -133.91309)" fill="#6366f1"/>
+                        <circle cx="190.15351" cy="24.95465" r="20" fill="#8b5cf6"/>
+                        <circle cx="190.15351" cy="24.95465" r="12.66462" fill="#fff"/>
+                        <path d="M878.81836,716.08691h-338a8.50981,8.50981,0,0,1-8.5-8.5v-405a8.50951,8.50951,0,0,1,8.5-8.5h338a8.50982,8.50982,0,0,1,8.5,8.5v405A8.51013,8.51013,0,0,1,878.81836,716.08691Z" transform="translate(-276.18187 -133.91309)" fill="#e6e6e6"/>
+                        <path d="M723.31813,274.08691h-210.5a17.02411,17.02411,0,0,0-17,17v407.8l2-.61v-407.19a15.01828,15.01828,0,0,1,15-15H723.93825Zm183.5,0h-394a17.02411,17.02411,0,0,0-17,17v458a17.0241,17.0241,0,0,0,17,17h394a17.0241,17.0241,0,0,0,17-17v-458A17.02411,17.02411,0,0,0,906.81813,274.08691Zm15,475a15.01828,15.01828,0,0,1-15,15h-394a15.01828,15.01828,0,0,1-15-15v-458a15.01828,15.01828,0,0,1,15-15h394a15.01828,15.01828,0,0,1,15,15Z" transform="translate(-276.18187 -133.91309)" fill="#3f3d56"/>
+                        <path d="M801.81836,318.08691h-184a9.01015,9.01015,0,0,1-9-9v-44a9.01016,9.01016,0,0,1,9-9h184a9.01016,9.01016,0,0,1,9,9v44A9.01015,9.01015,0,0,1,801.81836,318.08691Z" transform="translate(-276.18187 -133.91309)" fill="#6366f1"/>
+                        <circle cx="433.63626" cy="105.17383" r="20" fill="#8b5cf6"/>
+                        <circle cx="433.63626" cy="105.17383" r="12.18187" fill="#fff"/>
+                    </svg>
+                    
+                    <!-- Empty State Heading with Gradient Text -->
+                    <h3 class="mt-5 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                        No Attractions Found
+                    </h3>
+                    
+                    <!-- Empty State Description -->
+                    <p class="mt-2 text-gray-600">
+                        You haven't added any attractions yet. Start by creating your first attraction to showcase to visitors.
+                    </p>
+                    
+                    <!-- Empty State Action Button with Gradient -->
+                    <div class="mt-6">
+                        <a href="{% url 'destinations:attraction_create' %}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-md text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 font-medium transition-all duration-200 transform hover:scale-105">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            Create First Attraction
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        /**
+         * Pagination Controls
+         * ==================
+         * Navigation controls for paginated attraction results
+         * Features:
+         * - Responsive design that works on mobile and desktop
+         * - Clear visual indicators for current page
+         * - Consistent styling with indigo/violet theme
+         * - Accessible navigation with proper ARIA labels
+         */
+        {% endcomment %}
+        
+        {% if is_paginated %}
+        <!-- Pagination with Indigo/Violet Theme -->
+        <nav aria-label="Attraction pagination" class="mt-8 mb-6">
+            <ul class="flex items-center justify-center space-x-1">
+                <!-- Previous Page Button -->
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-indigo-50 hover:text-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                       aria-label="Previous page">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <span class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
+                          aria-disabled="true">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </span>
+                </li>
+                {% endif %}
+                
+                <!-- Page Number Buttons -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li>
+                        <span class="px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white border border-indigo-600"
+                              aria-current="page">
+                            {{ num }}
+                        </span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li>
+                        <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                           class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                           aria-label="Page {{ num }}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Next Page Button -->
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-indigo-50 hover:text-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                       aria-label="Next page">
+                        <i class="fas fa-chevron-right"></i>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <span class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed"
+                          aria-disabled="true">
+                        <i class="fas fa-chevron-right"></i>
+                        <span class="sr-only">Next</span>
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+{% comment %}
+/**
+ * Delete Confirmation Modal
+ * ======================
+ * Modal dialog for confirming attraction deletion
+ * Features:
+ * - Modern design with indigo/violet accents
+ * - Animated transitions for smooth UX
+ * - Warning indicators with appropriate colors
+ * - Clear action buttons with visual hierarchy
+ * - Accessible keyboard navigation and focus management
+ * - Mobile responsive layout
+ */
+{% endcomment %}
+
+<!-- Delete Confirmation Modal with Indigo/Violet Accents -->
+<div id="deleteModal" 
+     class="hidden fixed inset-0 z-50 overflow-y-auto" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true"
+     data-transition-enter="ease-out duration-300"
+     data-transition-enter-start="opacity-0 scale-95"
+     data-transition-enter-end="opacity-100 scale-100"
+     data-transition-leave="ease-in duration-200"
+     data-transition-leave-start="opacity-100 scale-100"
+     data-transition-leave-end="opacity-0 scale-95">
+    
+    <!-- Modal Backdrop with Enhanced Blur Effect and Gradient -->
+    <div class="fixed inset-0 bg-gradient-to-br from-gray-900/80 to-indigo-900/70 backdrop-blur-sm transition-all duration-300 modal-backdrop" 
+         aria-hidden="true"
+         onclick="closeModal('deleteModal')">
+         <!-- Animated decorative elements for visual interest -->
+         <div class="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/10 to-violet-500/10 blur-2xl"></div>
+         <div class="absolute bottom-1/4 right-1/3 w-64 h-64 rounded-full bg-gradient-to-br from-violet-600/10 to-purple-500/10 blur-3xl"></div>
+    </div>
+
+    <!-- Modal Container with Centered Positioning -->
+    <div class="flex min-h-screen items-center justify-center p-4 text-center">
+        
+        <!-- Modal Panel with Enhanced Shadow, Border and Gradient Accents -->
+        <div class="relative transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-indigo-100 dark:border-violet-800/30 px-4 pb-5 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+             data-transition="transform opacity"
+             data-enter="ease-out duration-300"
+             data-enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             data-enter-end="opacity-100 translate-y-0 sm:scale-100"
+             data-leave="ease-in duration-200"
+             data-leave-start="opacity-100 translate-y-0 sm:scale-100"
+             data-leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             tabindex="-1">
+             
+             <!-- Decorative gradient accent line at top of modal -->
+             <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-600"></div>
+            
+            <!-- Close Button with Improved Hover State -->
+            <button type="button" 
+                    onclick="closeModal('deleteModal')"
+                    class="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+                    aria-label="Close">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            
+            <!-- Modal Content with Warning Elements -->
+            <div class="sm:flex sm:items-start">
+                <!-- Warning Icon with Enhanced Gradient Background and Animation -->
+                <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-rose-100 shadow-inner shadow-red-200/50 sm:mx-0 sm:h-12 sm:w-12 border border-red-200/40 relative overflow-hidden">
+                    <!-- Subtle animated pulse effect for warning indicator -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/10 to-rose-500/20 animate-pulse rounded-full"></div>
+                    <i class="fas fa-exclamation-triangle text-rose-600 text-xl relative z-10"></i>
+                </div>
+                
+                <!-- Modal Body with Enhanced Typography and Visual Hierarchy -->
+                <div class="mt-3 text-center sm:ml-5 sm:mt-0 sm:text-left">
+                    <h3 class="text-lg font-bold leading-6 dark:text-white" id="modal-title">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-700 dark:from-indigo-400 dark:to-violet-400">Delete Attraction</span>
+                    </h3>
+                    <div class="mt-3">
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            Are you sure you want to delete <span id="attractionName" class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400"></span>?
+                        </p>
+                        <div class="mt-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-800/30 flex items-start shadow-sm">
+                            <div class="flex-shrink-0 bg-red-100 dark:bg-red-800/30 rounded-full p-1 mr-2.5">
+                                <i class="fas fa-exclamation-circle text-red-500 dark:text-red-400"></i>
+                            </div> 
+                            <span class="flex-1">This action <strong>cannot be undone</strong>. All associated data will be permanently removed from our servers.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer with Enhanced Action Buttons and Visual Hierarchy -->
+            <div class="mt-8 sm:mt-8 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-4">
+                <!-- Delete Button with Enhanced Animation and Warning Styling -->
+                <form id="deleteForm" method="post" action="" class="sm:col-start-2">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="inline-flex w-full justify-center items-center rounded-md bg-gradient-to-r from-red-500 to-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:from-red-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] gradient-hover relative overflow-hidden">
+                        <!-- Decorative glow effect for danger button -->
+                        <span class="absolute inset-0 overflow-hidden rounded-md">
+                            <span class="absolute inset-0 rounded-md bg-gradient-to-r from-red-400/20 to-rose-500/20 opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
+                        </span>
+                        
+                        <!-- Button content with icon -->
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        <span class="relative">Delete Permanently</span>
+                    </button>
+                </form>
+                
+                <!-- Cancel Button with Improved Indigo/Violet Styling -->
+                <button type="button" 
+                        onclick="closeModal('deleteModal')" 
+                        aria-label="Cancel deletion and close modal"
+                        class="mt-3 inline-flex w-full justify-center items-center rounded-md bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-indigo-300 dark:ring-violet-400/30 hover:bg-indigo-50 dark:hover:bg-gray-600 hover:text-indigo-700 dark:hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-violet-400 sm:col-start-1 sm:mt-0 transition-all duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% comment %}
+  JavaScript for Attractions Management
+  ===================================
+  Handles all interactive functionality for the attractions list page including:
+  - Modal dialogs (open/close, animations, keyboard navigation)
+  - Search and filter functionality
+  - Delete confirmation flow
+  - Status toggling
+  - Responsive interactions
+{% endcomment %}
+
+<script>
+/**
+ * Opens a modal dialog with smooth animation and proper accessibility handling
+ * 
+ * @param {string} modalId - The ID of the modal to open
+ * 
+ * This function handles:
+ * - Smooth CSS transitions for visual feedback
+ * - Focus management for accessibility
+ * - Body scroll locking to prevent background interaction
+ * - Scale and opacity transitions for a polished appearance
+ * - State tracking for keyboard navigation
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Store the element that had focus before opening modal for returning focus later
+    window.lastActiveElement = document.activeElement;
+    
+    // Prepare for animation
+    modal.classList.remove('hidden');
+    modal.classList.add('opacity-0');
+    
+    // Get panel element for additional animations
+    const panel = modal.querySelector('[data-transition="transform opacity"]');
+    if (panel) {
+        panel.classList.add(panel.getAttribute('data-enter'));
+        panel.classList.add(panel.getAttribute('data-enter-start'));
+        panel.classList.remove(panel.getAttribute('data-enter-end'));
+    }
+    
+    // Trigger browser reflow to ensure transitions work
+    void modal.offsetWidth;
+    
+    // Run entrance animations
+    modal.classList.remove('opacity-0');
+    modal.classList.add('opacity-100');
+    document.body.classList.add('overflow-hidden');
+    
+    if (panel) {
+        panel.classList.remove(panel.getAttribute('data-enter-start'));
+        panel.classList.add(panel.getAttribute('data-enter-end'));
+    }
+    
+    // Focus handling for accessibility
+    setTimeout(() => {
+        // Focus the first interactive element (preferably close button)
+        const closeButton = modal.querySelector('button[aria-label="Close"]');
+        if (closeButton) {
+            closeButton.focus();
+        } else {
+            const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable) focusable.focus();
+        }
+    }, 100);
+    
+    // Set modal state for keyboard navigation
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+/**
+ * Closes a modal dialog with smooth animation and proper accessibility handling
+ * 
+ * @param {string} modalId - The ID of the modal to close
+ * 
+ * This function handles:
+ * - Coordinated CSS transitions for visual polish
+ * - Returning focus to the triggering element
+ * - Body scroll unlocking
+ * - Proper timing for DOM manipulation
+ * - Accessibility state management
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Get panel element for coordinated animations
+    const panel = modal.querySelector('[data-transition="transform opacity"]');
+    if (panel) {
+        panel.classList.add(panel.getAttribute('data-leave'));
+        panel.classList.remove(panel.getAttribute('data-leave-start'));
+        panel.classList.add(panel.getAttribute('data-leave-end'));
+    }
+    
+    // Animate out with opacity
+    modal.classList.remove('opacity-100');
+    modal.classList.add('opacity-0');
+    
+    // Clean up DOM after animation completes
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        // Return focus to the element that opened the modal
+        if (window.lastActiveElement) {
+            window.lastActiveElement.focus();
+        }
+    }, 300); // Slightly longer duration to ensure animations complete
+}
+
+/**
+ * Sets up the delete confirmation flow for attractions
+ * 
+ * This function:
+ * - Sets up event listeners on delete buttons
+ * - Populates the confirmation modal with attraction details
+ * - Configures the form action for the selected attraction
+ * - Provides visual feedback during the deletion process
+ * - Handles form submission and response
+ */
+function setupDeleteConfirmation() {
+    const deleteButtons = document.querySelectorAll('[data-modal-toggle="deleteModal"]');
+    const deleteForm = document.getElementById('deleteForm');
+    const attractionName = document.getElementById('attractionName');
+    
+    if (!deleteButtons.length || !deleteForm || !attractionName) {
+        console.warn('Delete confirmation elements not found in the DOM');
+        return;
+    }
+    
+    // Add event listeners to all delete buttons
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default link behavior
+            
+            // Extract attraction data from button attributes
+            const attractionId = this.getAttribute('data-attraction-id');
+            const name = this.getAttribute('data-attraction-name');
+            
+            if (!attractionId) {
+                console.error('Missing attraction ID for delete operation');
+                return;
+            }
+            
+            // Update the form action with the correct endpoint
+            deleteForm.action = `/destinations/attractions/${attractionId}/delete/`;
+            
+            // Update the attraction name in the modal with proper escaping
+            attractionName.textContent = name || 'this attraction';
+            
+            // Add visual feedback to the clicked button
+            this.classList.add('animate-pulse');
+            setTimeout(() => this.classList.remove('animate-pulse'), 500);
+            
+            // Show the modal with animation
+            openModal('deleteModal');
+        });
+    });
+}
+
+/**
+ * Sets up the search and filter functionality for attractions list
+ * 
+ * This function implements:
+ * - Real-time search filtering with debounce for performance
+ * - Status-based filtering (active/inactive/all)
+ * - Animated transitions when showing/hiding results
+ * - Dynamic empty state display when no results match filters
+ * - Accessible form controls with appropriate ARIA attributes
+ * - Visual feedback during filtering operations
+ */
+function setupSearchAndFilter() {
+    // Get required DOM elements
+    const searchInput = document.getElementById('searchAttractions');
+    const filterStatus = document.getElementById('filterStatus');
+    const tableRows = document.querySelectorAll('tbody tr');
+    const resultsContainer = document.querySelector('.attraction-list') || document.querySelector('table');
+    
+    // Exit if required elements aren't found
+    if (!searchInput || !filterStatus || !tableRows.length) {
+        console.warn('Search and filter elements not found in the DOM');
+        return;
+    }
+    
+    // Add accessibility attributes to search controls
+    searchInput.setAttribute('aria-label', 'Filter attractions by name');
+    filterStatus.setAttribute('aria-label', 'Filter attractions by status');
+    
+    // Add visual loading indicator to results container
+    const addLoadingIndicator = () => {
+        if (resultsContainer) {
+            resultsContainer.classList.add('opacity-70');
+        }
+    };
+    
+    // Remove loading indicator
+    const removeLoadingIndicator = () => {
+        if (resultsContainer) {
+            resultsContainer.classList.remove('opacity-70');
+        }
+    };
+    
+    /**
+     * Filters the table based on search term and status selection
+     * Uses staggered animations for smooth visual experience
+     */
+    function filterTable() {
+        addLoadingIndicator();
+        
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const statusFilter = filterStatus.value.toLowerCase();
+        let visibleCount = 0;
+        let staggerDelay = 0;
+        
+        // Update URL parameters without page reload for bookmarkable filters
+        const url = new URL(window.location);
+        if (searchTerm) url.searchParams.set('search', searchTerm);
+        else url.searchParams.delete('search');
+        if (statusFilter && statusFilter !== 'all') url.searchParams.set('status', statusFilter);
+        else url.searchParams.delete('status');
+        window.history.replaceState({}, '', url);
+        
+        // Filter each row with staggered animation
+        tableRows.forEach(row => {
+            const nameCell = row.querySelector('td:first-child');
+            const descCell = row.querySelector('td:nth-child(2)');
+            
+            // Get text content for searching, including name and description if available
+            const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+            const description = descCell ? descCell.textContent.toLowerCase() : '';
+            const status = row.getAttribute('data-status');
+            
+            // Match against both name and description for better UX
+            const matchesSearch = !searchTerm || 
+                name.includes(searchTerm) || 
+                description.includes(searchTerm);
+                
+            const matchesStatus = !statusFilter || statusFilter === 'all' || status === statusFilter;
+            
+            if (matchesSearch && matchesStatus) {
+                row.classList.remove('hidden');
+                staggerDelay += 30; // Stagger animations for visual appeal
+                row.style.animation = `fadeIn 0.4s ease-in-out ${staggerDelay}ms both`;
+                visibleCount++;
+            } else {
+                // Fade out with brief animation before hiding
+                row.style.animation = 'fadeOut 0.2s ease-in-out forwards';
+                setTimeout(() => row.classList.add('hidden'), 200);
+            }
+        });
+        
+        // Show/hide empty state if no results with smooth transition
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) {
+            if (visibleCount === 0) {
+                // Update empty state message based on filters
+                const noResultsMessage = emptyState.querySelector('h3');
+                if (noResultsMessage) {
+                    if (searchTerm || (statusFilter && statusFilter !== 'all')) {
+                        noResultsMessage.innerHTML = `No attractions match your filters <span class="block text-sm mt-1 text-gray-500">Try adjusting your search criteria</span>`;
+                    } else {
+                        noResultsMessage.innerHTML = 'No attractions yet';
+                    }
+                }
+                
+                emptyState.classList.remove('hidden');
+                emptyState.style.animation = 'fadeIn 0.5s ease-in-out';
+            } else {
+                emptyState.style.animation = 'fadeOut 0.3s ease-in-out';
+                setTimeout(() => emptyState.classList.add('hidden'), 300);
+            }
+        }
+        
+        // Update filter count if element exists
+        const filterCount = document.getElementById('filterCount');
+        if (filterCount) {
+            filterCount.textContent = visibleCount;
+            filterCount.setAttribute('aria-live', 'polite');
+        }
+        
+        removeLoadingIndicator();
+    }
+    
+    // Debounce search input for better performance
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        addLoadingIndicator(); // Show loading state immediately
+        searchTimeout = setTimeout(filterTable, 300);
+    });
+    
+    // Add clear button to search input
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full p-1 transition-all duration-200';
+    clearButton.innerHTML = '<i class="fas fa-times-circle"></i>';
+    clearButton.setAttribute('aria-label', 'Clear search');
+    clearButton.style.display = 'none';
+    
+    // Add clear button functionality
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.focus();
+        clearButton.style.display = 'none';
+        filterTable();
+    });
+    
+    // Show/hide clear button based on input content
+    searchInput.addEventListener('input', () => {
+        clearButton.style.display = searchInput.value ? 'block' : 'none';
+    });
+    
+    // Add clear button to DOM
+    if (searchInput.parentNode) {
+        searchInput.parentNode.style.position = 'relative';
+        searchInput.parentNode.appendChild(clearButton);
+    }
+    
+    // Filter on status change
+    filterStatus.addEventListener('change', filterTable);
+    
+    // Initial filter on page load (respect URL parameters)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('search')) {
+        searchInput.value = urlParams.get('search');
+        clearButton.style.display = 'block';
+    }
+    if (urlParams.has('status')) {
+        filterStatus.value = urlParams.get('status');
+    }
+    
+    // Run initial filter
+    filterTable();
+}
+
+/**
+ * Sets up keyboard navigation and accessibility for modals
+ * 
+ * This function implements:
+ * - Escape key handling to close active modals
+ * - Focus trapping inside modal dialogs for keyboard accessibility
+ * - ARIA attribute management for screen readers
+ * - Event handling for keyboard navigation
+ * - Accessibility features required by WCAG 2.1
+ */
+function setupKeyboardNavigation() {
+    // List of keys and their functions
+    const KEY = {
+        ESCAPE: 'Escape',
+        TAB: 'Tab',
+        ENTER: 'Enter',
+        SPACE: ' '
+    };
+    
+    // Handle keydown events globally
+    document.addEventListener('keydown', function(event) {
+        // Close on Escape key
+        if (event.key === KEY.ESCAPE) {
+            const openModal = document.querySelector('.fixed[role="dialog"]:not(.hidden)');
+            if (openModal) {
+                closeModal(openModal.id);
+                event.preventDefault(); // Prevent default browser behavior
+            }
+        }
+        
+        // Handle focus trapping in active modal
+        const activeModal = document.querySelector('.fixed[role="dialog"]:not(.hidden)');
+        if (activeModal && event.key === KEY.TAB) {
+            // Define focusable elements within the modal
+            const focusableSelector = [
+                'button:not([disabled])',
+                '[href]',
+                'input:not([disabled])',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                '[tabindex]:not([tabindex="-1"])',
+                '[contenteditable="true"]'
+            ].join(', ');
+            
+            // Get all focusable elements in the modal
+            const focusableElements = Array.from(activeModal.querySelectorAll(focusableSelector))
+                .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0); // Only visible elements
+                
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+            
+            // Circle focus when tabbing beyond boundaries
+            if (event.shiftKey && document.activeElement === firstFocusable) {
+                lastFocusable.focus();
+                event.preventDefault();
+            } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+                firstFocusable.focus();
+                event.preventDefault();
+            }
+        }
+        
+        // Activate buttons/links on Enter or Space
+        if ((event.key === KEY.ENTER || event.key === KEY.SPACE) && 
+            (document.activeElement.tagName === 'BUTTON' || 
+             document.activeElement.tagName === 'A')) {
+            // Only trigger if not already handled by browser
+            if (document.activeElement.getAttribute('role') === 'button' && event.key === KEY.SPACE) {
+                document.activeElement.click();
+                event.preventDefault(); // Prevent page scrolling on space
+            }
+        }
+    });
+    
+    // Set initial ARIA attributes for modals
+    const modals = document.querySelectorAll('[role="dialog"]');
+    modals.forEach(modal => {
+        if (modal.classList.contains('hidden')) {
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    });
+}
+
+/**
+ * Initializes all functionality when the DOM is fully loaded
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all components
+    setupDeleteConfirmation();
+    setupSearchAndFilter();
+    setupKeyboardNavigation();
+    
+    // Add comprehensive animation styles with indigo/violet focus rings
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Fade in animation for elements appearing */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Fade out animation for elements disappearing */
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
+        }
+        
+        /* Pulse animation for selection feedback */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        
+        /* Scale animation for buttons */
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Badge status transitions */
+        .badge-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Modal backdrop blur effect */
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            transition: backdrop-filter 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        
+        /* Custom focus styles for all interactive elements */
+        button:focus, a:focus, input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.4);
+        }
+        
+        /* Gradient interactions */
+        .gradient-hover {
+            background-size: 200% auto;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .gradient-hover:hover {
+            background-position: right center;
+        }
+        
+        /* Custom scrollbar with theme colors */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #6366f1, #8b5cf6);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #4f46e5, #7c3aed);
+        }
+        
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Show a toast notification if there's a message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        showToast('Operation completed successfully!', 'success');
+    } else if (urlParams.has('error')) {
+        showToast('An error occurred. Please try again.', 'error');
+    }
+});
+
+/**
+ * Shows a toast notification with appropriate styling and accessibility
+ * 
+ * @param {string} message - The message to display in the notification
+ * @param {string} type - The type of notification (success, error, warning, info)
+ * @param {number} duration - How long the toast should remain visible in ms (default: 5000ms)
+ * 
+ * This function creates a toast notification with:
+ * - Gradient styling aligned with the indigo/violet theme
+ * - Proper accessibility attributes for screen readers
+ * - Smooth entrance and exit animations
+ * - Automatic timeout with configurable duration
+ * - Close button for user dismissal
+ * - Appropriate icons and colors based on notification type
+ */
+function showToast(message, type = 'info', duration = 5000) {
+    // Create the toast container with accessibility attributes
+    const toast = document.createElement('div');
+    const toastId = `toast-${Date.now()}`;
+    
+    // Apply appropriate gradient styling based on notification type
+    let bgGradient, iconClass;
+    
+    switch(type) {
+        case 'success':
+            bgGradient = 'bg-gradient-to-r from-green-500 to-emerald-600';
+            iconClass = 'fa-check-circle';
+            break;
+        case 'error':
+            bgGradient = 'bg-gradient-to-r from-red-500 to-rose-600';
+            iconClass = 'fa-exclamation-circle';
+            break;
+        case 'warning':
+            bgGradient = 'bg-gradient-to-r from-yellow-400 to-amber-500';
+            iconClass = 'fa-exclamation-triangle';
+            break;
+        default: // info and default
+            bgGradient = 'bg-gradient-to-r from-indigo-500 to-violet-600';
+            iconClass = 'fa-info-circle';
+    }
+    
+    // Set toast classes with proper styling and initial position
+    toast.className = `fixed z-50 top-4 right-4 p-4 rounded-lg shadow-xl text-white ${bgGradient} transform transition-all duration-300 translate-x-full max-w-md`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('id', toastId);
+    toast.setAttribute('tabindex', '0');
+    
+    // Create toast content with proper semantic structure
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-white bg-opacity-20 rounded-full p-2 mr-3">
+                <i class="fas ${iconClass}"></i>
+            </div>
+            <div class="flex-grow pr-3">
+                <p class="font-medium">${message}</p>
+            </div>
+            <button 
+                onclick="dismissToast('${toastId}')" 
+                class="flex-shrink-0 ml-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-1.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-80" 
+                aria-label="Close notification"
+                title="Dismiss">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Add toast to DOM
+    document.body.appendChild(toast);
+    
+    // Create global dismiss function if it doesn't exist
+    if (!window.dismissToast) {
+        window.dismissToast = function(id) {
+            const toastElement = document.getElementById(id);
+            if (toastElement) {
+                toastElement.classList.remove('translate-x-0');
+                toastElement.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toastElement.remove(), 300);
+            }
+        };
+    }
+    
+    // Add keyboard handler for accessibility (dismiss on Enter/Space)
+    toast.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            window.dismissToast(toastId);
+        }
+    });
+    
+    // Animate in with a slight delay for smooth entrance
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+        toast.classList.add('translate-x-0');
+    }, 10);
+    
+    // Auto-remove after specified duration
+    if (duration > 0) {
+        setTimeout(() => {
+            // Check if toast still exists
+            const toastElement = document.getElementById(toastId);
+            if (toastElement) {
+                // Begin exit animation
+                toastElement.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    if (document.getElementById(toastId)) {
+                        toastElement.remove();
+                    }
+                }, 300);
+            }
+        }, duration);
+    }
+    
+    // Return the toast ID for potential programmatic dismissal
+    return toastId;
+}
+</script>
+{% endblock %}

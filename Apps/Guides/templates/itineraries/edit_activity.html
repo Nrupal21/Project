@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Activity" %}{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container my-4">
+    <!-- Page header with title and contextual information -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="display-5">{% trans "Edit Activity" %}</h1>
+            
+            <!-- Descriptive text showing which day we're editing -->
+            <p class="lead text-secondary">
+                {% blocktrans with day_num=activity.itinerary_day.day_number date=activity.itinerary_day.date|date:"l, F j, Y" %}
+                Editing activity for Day {{ day_num }}: {{ date }}
+                {% endblocktrans %}
+            </p>
+            
+            <!-- Show destination if available -->
+            {% if activity.itinerary_day.destination %}
+            <div class="mb-3">
+                <span class="badge bg-info">
+                    <i class="bi bi-geo-alt me-1"></i>{{ activity.itinerary_day.destination.name }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Activity edit form section -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Activity form with validation, pre-populated with current values -->
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Activity title field -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">{% trans "Activity Title" %}*</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="title" 
+                                   name="title"
+                                   placeholder="{% trans 'e.g., Visit Eiffel Tower' %}" 
+                                   value="{{ activity.title }}"
+                                   required>
+                            <small class="form-text text-muted">
+                                {% trans "Enter a clear, descriptive name for this activity." %}
+                            </small>
+                        </div>
+                        
+                        <!-- Time range fields -->
+                        <div class="row mb-3">
+                            <!-- Start time -->
+                            <div class="col-md-6">
+                                <label for="start_time" class="form-label">{% trans "Start Time" %}*</label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="start_time" 
+                                       name="start_time" 
+                                       value="{{ activity.start_time|time:'H:i' }}"
+                                       required>
+                                <small class="form-text text-muted">
+                                    {% trans "When does this activity begin?" %}
+                                </small>
+                            </div>
+                            
+                            <!-- End time -->
+                            <div class="col-md-6">
+                                <label for="end_time" class="form-label">{% trans "End Time" %}*</label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="end_time" 
+                                       name="end_time" 
+                                       value="{{ activity.end_time|time:'H:i' }}"
+                                       required>
+                                <small class="form-text text-muted">
+                                    {% trans "When does this activity end?" %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Location field -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">{% trans "Location" %}</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="location" 
+                                   name="location"
+                                   placeholder="{% trans 'e.g., Champ de Mars, 5 Avenue Anatole France, 75007 Paris' %}"
+                                   value="{{ activity.location }}">
+                            <small class="form-text text-muted">
+                                {% trans "Where will this activity take place?" %}
+                            </small>
+                        </div>
+                        
+                        <!-- Activity description field -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{% trans "Description" %}</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3"
+                                      placeholder="{% trans 'Describe what this activity involves...' %}">{{ activity.description }}</textarea>
+                            <small class="form-text text-muted">
+                                {% trans "Additional details about this activity." %}
+                            </small>
+                        </div>
+                        
+                        <!-- Cost and booking details -->
+                        <div class="row mb-3">
+                            <!-- Cost field -->
+                            <div class="col-md-6">
+                                <label for="cost" class="form-label">{% trans "Cost" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="cost" 
+                                           name="cost"
+                                           step="0.01" 
+                                           min="0"
+                                           placeholder="0.00"
+                                           value="{{ activity.cost|default:'' }}">
+                                </div>
+                                <small class="form-text text-muted">
+                                    {% trans "Optional: How much does this activity cost per person?" %}
+                                </small>
+                            </div>
+                            
+                            <!-- Booking reference field -->
+                            <div class="col-md-6">
+                                <label for="booking_reference" class="form-label">{% trans "Booking Reference" %}</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="booking_reference" 
+                                       name="booking_reference"
+                                       placeholder="{% trans 'e.g., ABC123XYZ' %}"
+                                       value="{{ activity.booking_reference }}">
+                                <small class="form-text text-muted">
+                                    {% trans "Optional: Add confirmation number or booking ID." %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Form submission buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <!-- Cancel button returns to itinerary detail -->
+                            <a href="{% url 'itineraries:itinerary_detail' activity.itinerary_day.itinerary.pk %}" class="btn btn-outline-secondary me-md-2">
+                                {% trans "Cancel" %}
+                            </a>
+                            
+                            <!-- Submit button -->
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>{% trans "Save Changes" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional JavaScript for time input validation -->
+{% block extra_js %}
+<script>
+    // When document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the form and time input elements
+        const form = document.querySelector('form');
+        const startTimeInput = document.getElementById('start_time');
+        const endTimeInput = document.getElementById('end_time');
+        
+        // Add form validation before submission
+        form.addEventListener('submit', function(event) {
+            // Check if end time is after start time
+            if (startTimeInput.value && endTimeInput.value) {
+                if (endTimeInput.value <= startTimeInput.value) {
+                    // Prevent form submission
+                    event.preventDefault();
+                    
+                    // Show error message
+                    alert("{% trans 'End time must be after start time.' %}");
+                    
+                    // Focus on the end time input
+                    endTimeInput.focus();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

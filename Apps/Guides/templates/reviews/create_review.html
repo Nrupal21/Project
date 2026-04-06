@@ -1,0 +1,906 @@
+{% extends 'reviews/base_reviews.html' %}
+{% load static %}
+
+{# 
+  Review Creation Template
+  Provides a form for users to submit new reviews with ratings, text content, and images.
+  Includes star rating input, content fields, and image upload functionality.
+#}
+
+{% block reviews_title %}
+  {% if content_object %}Write a Review for {{ content_object.name }}{% else %}Create Review{% endif %}
+{% endblock %}
+
+{% block reviews_breadcrumb %}
+  {% if content_object %}
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <a href="{{ content_object.get_absolute_url }}" class="ml-1 text-sm font-medium text-gray-700 hover:text-indigo-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
+        {{ content_object.name }}
+      </a>
+    </div>
+  </li>
+  {% endif %}
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Write a Review</span>
+    </div>
+  </li>
+{% endblock %}
+
+{% block reviews_header %}
+  {% if content_object %}Write a Review for {{ content_object.name }}{% else %}Create Review{% endif %}
+{% endblock %}
+
+{% block reviews_subheader %}
+  <p class="text-gray-600 dark:text-gray-400">
+    Share your experience with others. Your review will help others make informed decisions.
+  </p>
+{% endblock %}
+
+{% block reviews_content %}
+<div class="max-w-3xl mx-auto">
+  {# Review form card #}
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    {# Display any form validation errors #}
+    {% if form.errors or image_formset.errors %}
+      <div class="mb-6 bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4" id="form-errors">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+              Please correct the following {% if form.errors and image_formset.errors %}form and image {% elif form.errors %}form{% else %}image{% endif %} error{% if form.errors|length + image_formset.total_error_count > 1 %}s{% endif %}:
+            </h3>
+            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+              <ul class="list-disc pl-5 space-y-1">
+                {# Form field errors #}
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error|escape }}</li>
+                  {% endfor %}
+                {% endfor %}
+                
+                {# Non-field form errors #}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error|escape }}</li>
+                {% endfor %}
+                
+                {# Formset errors #}
+                {% if image_formset.non_form_errors %}
+                  {% for error in image_formset.non_form_errors %}
+                    <li>{{ error|escape }}</li>
+                  {% endfor %}
+                {% endif %}
+                
+                {# Formset form errors #}
+                {% for form in image_formset %}
+                  {% for field in form %}
+                    {% for error in field.errors %}
+                      <li><strong>Image {{ forloop.parentloop.counter }} - {{ field.label }}:</strong> {{ error|escape }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    
+    {# Success message if redirected from successful submission #}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-6 bg-green-50 dark:bg-green-900 border-l-4 border-green-500 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-green-700 dark:text-green-200">
+                {{ message }}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+    {# Review creation form #}
+    <form method="post" 
+          action="{% if content_type_id and object_id %}{% url 'reviews:create_review' content_type_id=content_type_id object_id=object_id %}{% else %}{% url 'reviews:create_review' %}{% endif %}" 
+          enctype="multipart/form-data" 
+          class="space-y-6" 
+          id="review-form"
+          novalidate>
+      {% csrf_token %}
+      
+      {# Hidden fields for content object #}
+      {% if content_type_id and object_id %}
+        <input type="hidden" name="content_type" value="{{ content_type_id }}">
+        <input type="hidden" name="object_id" value="{{ object_id }}">
+      {% endif %}
+      
+      {# Rating field #}
+      <div class="form-group">
+        <label for="{{ form.rating.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {{ form.rating.label }} *
+        </label>
+        <div class="rating-input" id="rating-container">
+          {% for value, text in form.rating.field.choices %}
+            <input type="radio" 
+                   name="rating" 
+                   value="{{ value }}" 
+                   id="rating-{{ value }}"
+                   {% if form.rating.value|stringformat:"s" == value|stringformat:"s" %}checked{% endif %} 
+                   required>
+            <label for="rating-{{ value }}" title="{{ text }}">★</label>
+          {% endfor %}
+        </div>
+        {% if form.rating.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.rating.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select a star rating from 1 to 5</p>
+        {% endif %}
+      </div>
+      
+      {# Title field #}
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Title *
+        </label>
+        <input type="text" 
+               name="title" 
+               id="id_title"
+               value="{{ form.title.value|default:'' }}"
+               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
+               placeholder="Summarize your experience" 
+               maxlength="100"
+               required>
+        {% if form.title.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">A brief headline for your review (maximum 100 characters)</p>
+        {% endif %}
+      </div>
+      
+      {# Content field #}
+      <div>
+        <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Review *
+        </label>
+        <textarea name="content" 
+                  id="id_content" 
+                  rows="6"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
+                  placeholder="Share details of your experience..." 
+                  minlength="20"
+                  required>{{ form.content.value|default:'' }}</textarea>
+        {% if form.content.errors %}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.content.errors|join:", " }}</p>
+        {% else %}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Describe your experience in detail (minimum 20 characters)</p>
+        {% endif %}
+      </div>
+      
+      {# Image upload field #}
+      <div class="form-group">
+        <label for="id_images" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {{ image_formset.management_form }}
+          Add Photos (Optional) <span class="text-xs text-gray-500">(Max 5 images, 5MB each)</span>
+        </label>
+        
+        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed dark:border-gray-600 rounded-md" 
+             id="drop-zone"
+             data-max-size="5242880"  <!-- 5MB in bytes -->
+             data-max-files="5">
+          <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-400">
+              <label for="id_images" class="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <span>Select files</span>
+                <input id="id_images" 
+                       name="images" 
+                       type="file" 
+                       class="sr-only" 
+                       multiple 
+                       accept="image/*"
+                       data-max-size="5242880"
+                       data-max-files="5">
+              </label>
+              <p class="mt-1">or drag and drop images here</p>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              JPG, PNG, GIF, WEBP up to 5MB each
+            </p>
+            <p id="file-count" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
+              0/5 files selected
+            </p>
+          </div>
+        </div>
+        
+        {# Image preview container #}
+        <div id="image-preview" class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+          <!-- Image previews will be added here dynamically -->
+        </div>
+        
+        {# Hidden template for image previews #}
+        <template id="image-preview-template">
+          <div class="relative group">
+            <img src="#" alt="Preview" class="h-32 w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+              <button type="button" class="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" data-remove>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>  
+      
+      {# Submit and Cancel buttons #}
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        {# Cancel button #}
+        {% if content_object %}
+          <a href="{{ content_object.get_absolute_url }}" 
+             class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            Cancel
+          </a>
+        {% else %}
+          <a href="{% url 'reviews:review_list' %}" 
+             class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            Cancel
+          </a>
+        {% endif %}
+        
+        {# Submit button #}
+        <button type="submit" 
+                id="submit-button"
+                class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+          <span class="submit-text">Submit Review</span>
+          <svg id="loading-spinner" class="hidden animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  {# Review guidelines #}
+  <div class="mt-8 bg-indigo-50 dark:bg-indigo-900 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-indigo-900 dark:text-indigo-200 mb-4">Review Guidelines</h3>
+    <ul class="text-sm text-indigo-800 dark:text-indigo-300 space-y-2">
+      <li class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Be honest and specific about your experience</span>
+      </li>
+      <li class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Include helpful details about what you liked and didn't like</span>
+      </li>
+      <li class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Keep it family-friendly and respectful</span>
+      </li>
+      <li class="flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Reviews are moderated and may take up to 24 hours to appear</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+{# Custom JavaScript for form handling and image preview #}
+<script>
+  /**
+   * Review Form Handler
+   * Manages form submission, validation, and image previews
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Constants
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_FILES = 5;
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    // DOM Elements
+    const form = document.getElementById('review-form');
+    const imageInput = document.getElementById('id_images');
+    const previewContainer = document.getElementById('image-preview');
+    const dropZone = document.getElementById('drop-zone');
+    const fileCountElement = document.getElementById('file-count');
+    const ratingContainer = document.getElementById('rating-container');
+    
+    // State
+    let files = []; // Store selected files
+    let isSubmitting = false;
+    
+    /**
+     * Initialize the form and its event listeners
+     */
+    function initializeForm() {
+      // Initialize star rating UI
+      if (ratingContainer) {
+        initRatingInput();
+      }
+      
+      // Initialize image upload handling
+      if (imageInput && previewContainer) {
+        initImageUpload();
+      }
+      
+      // Initialize drag and drop if available
+      if (dropZone) {
+        initDragAndDrop();
+      }
+      
+      // Form submission handler
+      if (form) {
+        form.addEventListener('submit', handleFormSubmit);
+      }
+    }
+    
+    /**
+     * Initialize star rating input with visual feedback
+     */
+    function initRatingInput() {
+      const ratingInputs = ratingContainer.querySelectorAll('input[type="radio"]');
+      
+      ratingInputs.forEach(input => {
+        // Handle click/tap
+        input.addEventListener('change', function() {
+          updateRatingVisuals(this.value);
+        });
+        
+        // Initialize checked state
+        if (input.checked) {
+          updateRatingVisuals(input.value);
+        }
+      });
+    }
+    
+    /**
+     * Update the visual state of rating stars
+     * @param {string} rating - The selected rating value
+     */
+    function updateRatingVisuals(rating) {
+      const stars = ratingContainer.querySelectorAll('input[type="radio"]');
+      
+      stars.forEach(star => {
+        const label = document.querySelector(`label[for="${star.id}"]`);
+        if (label) {
+          if (star.value <= rating) {
+            label.querySelector('svg').classList.add('text-yellow-400');
+            label.querySelector('svg').classList.remove('text-gray-300', 'dark:text-gray-600');
+          } else {
+            label.querySelector('svg').classList.remove('text-yellow-400');
+            label.querySelector('svg').classList.add('text-gray-300', 'dark:text-gray-600');
+          }
+        }
+      });
+    }
+    
+    /**
+     * Handle form submission with validation
+     * @param {Event} e - The form submit event
+     */
+    function handleFormSubmit(e) {
+      // Prevent double submission
+      if (isSubmitting) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Run validation
+      if (!validateForm()) {
+        e.preventDefault();
+        scrollToFirstError();
+        return false;
+      }
+      
+      // Update UI for submission
+      isSubmitting = true;
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+        const submitText = submitButton.querySelector('.submit-text');
+        if (submitText) {
+          submitText.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" 
+                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Submitting...
+          `;
+        }
+      }
+      
+      return true;
+    }
+    
+    /**
+     * Validate the form fields
+     * @returns {boolean} True if form is valid, false otherwise
+     */
+    function validateForm() {
+      let isValid = true;
+      
+      // Clear previous errors
+      clearErrors();
+      
+      // Validate rating
+      const ratingInput = form.querySelector('input[name="rating"]:checked');
+      if (!ratingInput) {
+        showError('Please select a rating', 'rating');
+        isValid = false;
+      }
+      
+      // Validate title
+      const titleInput = form.querySelector('input[name="title"]');
+      if (!titleInput || !titleInput.value.trim()) {
+        showError('Please enter a title for your review', 'title');
+        isValid = false;
+      } else if (titleInput.value.trim().length < 5) {
+        showError('Title must be at least 5 characters long', 'title');
+        isValid = false;
+      }
+      
+      // Validate content
+      const contentInput = form.querySelector('textarea[name="content"]');
+      if (!contentInput || !contentInput.value.trim()) {
+        showError('Please enter your review content', 'content');
+        isValid = false;
+      } else if (contentInput.value.trim().length < 20) {
+        showError('Review content must be at least 20 characters long', 'content');
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+    
+    /**
+     * Initialize image upload functionality
+     */
+    function initImageUpload() {
+      // Handle file selection via input
+      imageInput.addEventListener('change', function(e) {
+        handleFiles(e.target.files);
+      });
+      
+      // Handle click on preview container (for removing images)
+      previewContainer.addEventListener('click', function(e) {
+        const removeBtn = e.target.closest('[data-remove]');
+        if (removeBtn) {
+          e.preventDefault();
+          const previewItem = removeBtn.closest('.preview-item');
+          if (previewItem) {
+            const index = parseInt(previewItem.dataset.index, 10);
+            removeImage(index);
+          }
+        }
+      });
+      
+      // Initialize with any existing files
+      if (imageInput.files && imageInput.files.length > 0) {
+        handleFiles(imageInput.files);
+      }
+    }
+    
+    /**
+     * Initialize drag and drop functionality
+     */
+    function initDragAndDrop() {
+      // Prevent default drag behaviors
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      // Highlight drop zone when item is dragged over it
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, function() {
+          dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900');
+        }, false);
+      });
+      
+      // Remove highlight when item leaves drop zone
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, function() {
+          dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900');
+        }, false);
+      });
+      
+      // Handle dropped files
+      dropZone.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+      }, false);
+    }
+    
+    /**
+     * Process selected files (from both input and drag & drop)
+     * @param {FileList} fileList - List of files to process
+     */
+    function handleFiles(fileList) {
+      // Clear previous errors
+      clearImageErrors();
+      
+      // Convert FileList to array and filter out non-image files
+      const newFiles = Array.from(fileList).filter(file => {
+        // Check file type
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+          showImageError(`Skipped ${file.name}: Unsupported file type. Allowed: JPG, PNG, GIF, WEBP`);
+          return false;
+        }
+        
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+          showImageError(`Skipped ${file.name}: File is too large (max 5MB)`);
+          return false;
+        }
+        
+        return true;
+      });
+      
+      // Check total file count
+      if (files.length + newFiles.length > MAX_FILES) {
+        showImageError(`You can upload a maximum of ${MAX_FILES} files`);
+        return;
+      }
+      
+      // Add new files to the files array
+      files = [...files, ...newFiles];
+      
+      // Update file input with the new files
+      updateFileInput();
+      
+      // Update preview
+      updateImagePreviews();
+      
+      // Update file count
+      updateFileCount();
+    }
+        
+    /**
+     * Update the file input with the current files
+     */
+    function updateFileInput() {
+      const dataTransfer = new DataTransfer();
+      files.forEach(file => dataTransfer.items.add(file));
+      imageInput.files = dataTransfer.files;
+    }
+    
+    /**
+     * Update the image previews in the UI
+     */
+    function updateImagePreviews() {
+      // Clear existing previews
+      previewContainer.innerHTML = '';
+      
+      // Create preview for each file
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'preview-item relative group';
+          previewItem.dataset.index = index;
+          
+          previewItem.innerHTML = `
+            <div class="relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              <img src="${e.target.result}" 
+                   alt="Preview ${file.name}" 
+                   class="h-32 w-full object-cover">
+              <button type="button" 
+                      data-remove 
+                      class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove image">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
+                ${file.name}
+              </div>
+            </div>
+          `;
+          
+          previewContainer.appendChild(previewItem);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    /**
+     * Remove an image from the files array
+     * @param {number} index - Index of the file to remove
+     */
+    function removeImage(index) {
+      if (index >= 0 && index < files.length) {
+        files.splice(index, 1);
+        updateFileInput();
+        updateImagePreviews();
+        updateFileCount();
+      }
+    }
+    
+    /**
+     * Update the file count display
+     */
+    function updateFileCount() {
+      if (fileCountElement) {
+        const remaining = MAX_FILES - files.length;
+        fileCountElement.textContent = `${files.length} file${files.length !== 1 ? 's' : ''} selected (${remaining} remaining)`;
+        fileCountElement.className = `text-sm mt-2 ${files.length > 0 ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}`;
+      }
+    }
+    
+    /**
+     * Show an error message for image uploads
+     * @param {string} message - The error message to display
+     */
+    function showImageError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'text-red-500 text-sm mt-2';
+      errorDiv.textContent = message;
+      
+      const errorContainer = document.getElementById('image-errors');
+      if (errorContainer) {
+        errorContainer.appendChild(errorDiv);
+      }
+    }
+    
+    /**
+     * Clear all image error messages
+     */
+    function clearImageErrors() {
+      const errorContainer = document.getElementById('image-errors');
+      if (errorContainer) {
+        errorContainer.innerHTML = '';
+      }
+    }
+    
+    /**
+     * Show an error message for a form field
+     * @param {string} message - The error message to display
+     * @param {string} fieldName - The name of the field the error is for
+     */
+    function showError(message, fieldName) {
+      // Find or create error container
+      let errorContainer = document.getElementById(`${fieldName}-error`);
+      
+      if (!errorContainer) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+          errorContainer = document.createElement('p');
+          errorContainer.id = `${fieldName}-error`;
+          errorContainer.className = 'mt-1 text-sm text-red-600 dark:text-red-400';
+          field.parentNode.insertBefore(errorContainer, field.nextSibling);
+        }
+      }
+      
+      if (errorContainer) {
+        errorContainer.textContent = message;
+      }
+    }
+    
+    /**
+     * Clear all form errors
+     */
+    function clearErrors() {
+      document.querySelectorAll('[id$="-error"]').forEach(el => {
+        el.textContent = '';
+      });
+    }
+    
+    /**
+     * Scroll to the first error in the form
+     */
+    function scrollToFirstError() {
+      const firstError = document.querySelector('[id$="-error"]:not(:empty)');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus({ preventScroll: true });
+      }
+    }
+    
+    /**
+     * Prevent default browser behaviors for drag and drop
+     * @param {Event} e - The event
+     */
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Initialize the form when the DOM is fully loaded
+    initializeForm();
+    
+    // Add any additional initialization code here if needed
+    
+    // Example: Log when the form is ready
+    console.log('Review form initialized and ready');
+    
+    // Global error handler for uncaught errors
+    window.addEventListener('error', function(e) {
+      console.error('Unhandled error:', e.error);
+      
+      // Show a user-friendly error message
+      const errorContainer = document.getElementById('global-errors');
+      if (errorContainer) {
+        errorContainer.innerHTML = `
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            <p class="font-bold">An error occurred</p>
+            <p>${e.message || 'Please try again or contact support if the problem persists.'}</p>
+          </div>
+        `;
+      }
+    });
+    
+    // Add a global error handler for unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('Unhandled promise rejection:', e.reason);
+      
+      // Show a user-friendly error message
+      const errorContainer = document.getElementById('global-errors');
+      if (errorContainer) {
+        errorContainer.innerHTML = `
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            <p class="font-bold">An error occurred</p>
+            <p>${e.reason?.message || 'Please try again or contact support if the problem persists.'}</p>
+          </div>
+        `;
+      }
+      
+      // Prevent the default handler
+      e.preventDefault();
+    });
+    
+    // Initialize form submission handler
+    if (form) {
+      form.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Add global error handler for fetch API errors
+    if (window.fetch) {
+      const originalFetch = window.fetch;
+      window.fetch = async function(...args) {
+        try {
+          const response = await originalFetch.apply(this, args);
+          if (!response.ok) {
+            const error = new Error(`HTTP error! status: ${response.status}`);
+            error.response = response;
+            throw error;
+          }
+          return response;
+        } catch (error) {
+          console.error('Fetch error:', error);
+          throw error;
+        }
+      };
+    }
+    
+    // Helper functions
+    function showError(message) {
+      // Create error message element if it doesn't exist
+      let errorDiv = document.getElementById('form-errors');
+      
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'form-errors';
+        errorDiv.className = 'mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md';
+        form.prepend(errorDiv);
+      }
+      
+      // Add the error message
+      const errorMessage = document.createElement('p');
+      errorMessage.className = 'text-sm text-red-600 dark:text-red-400';
+      errorMessage.textContent = message;
+      errorDiv.appendChild(errorMessage);
+      
+      // Scroll to the error message
+      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    function clearErrors() {
+      const errorDiv = document.getElementById('form-errors');
+      if (errorDiv) {
+        errorDiv.remove();
+      }
+    }
+    
+    function showImageError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'mt-2 text-sm text-red-600 dark:text-red-400';
+      errorDiv.textContent = message;
+      previewContainer.appendChild(errorDiv);
+    }
+    
+    function clearImageErrors() {
+      const errorMessages = previewContainer.querySelectorAll('.text-red-600, .text-red-400');
+      errorMessages.forEach(msg => msg.remove());
+    }
+    
+    function removeImage(index) {
+      const input = document.getElementById('id_images');
+      const files = Array.from(input.files);
+      
+      // Remove the file at the specified index
+      files.splice(index, 1);
+      
+      // Update the file input
+      const dataTransfer = new DataTransfer();
+      files.forEach(file => dataTransfer.items.add(file));
+      input.files = dataTransfer.files;
+      
+      // Trigger change event to update preview
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+</script>
+          // Maximum allowed images (5)
+          const maxImages = 5;
+          const filesToPreview = Array.from(this.files).slice(0, maxImages);
+          
+          // Show warning if too many files selected
+          if (this.files.length > maxImages) {
+            const warning = document.createElement('p');
+            warning.className = 'text-sm text-yellow-600 dark:text-yellow-400 mb-2';
+            warning.textContent = `Only the first ${maxImages} images will be uploaded.`;
+            previewContainer.appendChild(warning);
+          }
+          
+          // Create preview for each image
+          filesToPreview.forEach((file, index) => {
+            if (!file.type.startsWith('image/')) return;
+            
+            // Create preview item container
+            const previewItem = document.createElement('div');
+            previewItem.className = 'relative border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden h-32';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'h-full w-full object-cover';
+            img.onload = function() {
+              URL.revokeObjectURL(this.src);
+            };
+            
+            // Add image to preview container
+            previewItem.appendChild(img);
+            previewGrid.appendChild(previewItem);
+          });
+          
+          // Add preview grid to the container
+          previewContainer.appendChild(previewGrid);
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

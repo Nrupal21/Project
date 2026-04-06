@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ destination.name }} - Guides{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="bg-white">
+  <!-- Destination header -->
+  <div class="relative">
+    <div class="h-96 w-full object-cover">
+      {% if destination.primary_image %}
+        <img src="{{ destination.primary_image.image.url }}" alt="{{ destination.name }}" class="w-full h-full object-cover">
+      {% else %}
+        <img src="{% static 'img/placeholder-wide.jpg' %}" alt="Placeholder" class="w-full h-full object-cover">
+      {% endif %}
+      <div class="absolute inset-0 bg-black opacity-40"></div>
+    </div>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="text-center text-white px-4">
+        <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl">{{ destination.name }}</h1>
+        <p class="mt-4 text-xl">{{ destination.city }}, {{ destination.country }}</p>
+        <!-- Rating display -->
+        <div class="mt-4 flex items-center justify-center">
+          <div class="flex items-center">
+            {% for i in "12345" %}
+              {% if forloop.counter <= destination.average_rating %}
+                <svg class="h-6 w-6 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              {% else %}
+                <svg class="h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <p class="ml-2 text-white">{{ destination.average_rating|floatformat:1 }} ({{ destination.review_count }} reviews)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="max-w-screen-2xl w-full mx-auto px-6 sm:px-8 lg:px-12 py-12">
+    <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+      <!-- Left column - Main content -->
+      <div class="lg:col-span-8">
+        <!-- Description -->
+        <div class="prose prose-lg max-w-none">
+          <h2>About {{ destination.name }}</h2>
+          {{ destination.description|safe }}
+        </div>
+
+        <!-- Weather and best time to visit -->
+        <div class="mt-12">
+          <h2 class="text-2xl font-bold text-gray-900">Best Time to Visit</h2>
+          <div class="mt-4 bg-emerald-50 rounded-lg p-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {% for season in destination.seasons.all %}
+                <div class="bg-white p-4 rounded-lg shadow">
+                  <h3 class="font-medium text-gray-900">{{ season.name }}</h3>
+                  <p class="text-sm text-gray-500">{{ season.months }}</p>
+                  <div class="mt-2 flex items-center">
+                    <svg class="h-5 w-5 {% if season.is_high_season %}text-green-500{% else %}text-gray-400{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="ml-1 text-sm {% if season.is_high_season %}text-green-500 font-medium{% else %}text-gray-500{% endif %}">
+                      {% if season.is_high_season %}Recommended{% else %}Off-season{% endif %}
+                    </span>
+                  </div>
+                  <p class="mt-2 text-sm text-gray-600">{{ season.description }}</p>
+                </div>
+              {% empty %}
+                <p class="col-span-4 text-gray-500">No seasonal information available.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Attractions -->
+        <div class="mt-12">
+          <h2 class="text-2xl font-bold text-gray-900">Top Attractions</h2>
+          <div class="mt-6 grid gap-6 grid-cols-1 sm:grid-cols-2">
+            {% for attraction in attractions %}
+              <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="aspect-w-16 aspect-h-9">
+                  {% if attraction.primary_image %}
+                    <img src="{{ attraction.primary_image.image.url }}" alt="{{ attraction.name }}" class="w-full h-48 object-cover">
+                  {% else %}
+                    <img src="{% static 'img/placeholder.jpg' %}" alt="Placeholder" class="w-full h-48 object-cover">
+                  {% endif %}
+                </div>
+                <div class="p-4">
+                  <h3 class="text-lg font-medium text-gray-900">{{ attraction.name }}</h3>
+                  <p class="mt-1 text-sm text-gray-500">{{ attraction.category }}</p>
+                  <p class="mt-2 text-sm text-gray-600 line-clamp-2">{{ attraction.short_description }}</p>
+                  <div class="mt-4">
+                    <a href="{% url 'destinations:attraction_detail' attraction.slug %}" 
+                       class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                      Learn more <span aria-hidden="true">&rarr;</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <p class="col-span-2 text-gray-500">No attractions available for this destination.</p>
+            {% endfor %}
+          </div>
+          {% if attractions_count > 4 %}
+            <div class="mt-6 text-center">
+              <a href="{% url 'destinations:attraction_list' %}?destination={{ destination.id }}" 
+                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                View all {{ attractions_count }} attractions
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Photo gallery -->
+        <div class="mt-12">
+          <h2 class="text-2xl font-bold text-gray-900">Photo Gallery</h2>
+          <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {% for image in destination.images.all %}
+              <div class="aspect-w-1 aspect-h-1">
+                <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" 
+                     class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity duration-300"
+                     onclick="openGallery(parseInt('{{ forloop.counter0 }}'))">
+              </div>
+            {% empty %}
+              <p class="col-span-3 text-gray-500">No gallery images available.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Reviews section -->
+        <div class="mt-12">
+          <h2 class="text-2xl font-bold text-gray-900">Traveler Reviews</h2>
+          <div class="mt-6 space-y-8">
+            {% for review in reviews %}
+              <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    {% if review.user.profile.profile_picture %}
+                      <img class="h-10 w-10 rounded-full" src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.username }}">
+                    {% else %}
+                      <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                        <span class="text-gray-600 font-medium">{{ review.user.username|make_list|first|upper }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="text-sm font-medium text-gray-900">{{ review.user.get_full_name|default:review.user.username }}</h4>
+                    <div class="mt-1 flex items-center">
+                      <div class="flex items-center">
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= review.rating %}
+                            <svg class="h-4 w-4 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          {% else %}
+                            <svg class="h-4 w-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      <p class="ml-2 text-xs text-gray-500">{{ review.created_at|date:"F j, Y" }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <h5 class="text-base font-medium text-gray-900">{{ review.title }}</h5>
+                  <p class="mt-2 text-sm text-gray-600">{{ review.content }}</p>
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-center py-8">
+                <p class="text-gray-500">No reviews yet. Be the first to review this destination!</p>
+              </div>
+            {% endfor %}
+          </div>
+          
+          {% if reviews_count > 3 %}
+            <div class="mt-6 text-center">
+              <a href="{% url 'reviews:destination_reviews' destination.slug %}" 
+                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-emerald-700 bg-emerald-100 hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                View all {{ reviews_count }} reviews
+              </a>
+            </div>
+          {% endif %}
+          
+          {% if user.is_authenticated %}
+            <div class="mt-8">
+              <a href="{% url 'reviews:add_destination_review' destination.slug %}" 
+                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Write a Review
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Right column - Sidebar -->
+      <div class="mt-12 lg:mt-0 lg:col-span-4">
+        <!-- Map -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Location</h3>
+          </div>
+          <div class="aspect-w-1 aspect-h-1">
+            <div id="map" class="h-64 w-full"></div>
+          </div>
+          <div class="p-4">
+            <p class="text-sm text-gray-600">{{ destination.address }}</p>
+            <p class="text-sm text-gray-600">{{ destination.city }}, {{ destination.country }}</p>
+          </div>
+        </div>
+        
+        <!-- Tours -->
+        <div class="mt-8 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Available Tours</h3>
+          </div>
+          <div class="divide-y divide-gray-200">
+            {% for tour in related_tours %}
+              <div class="p-4 hover:bg-gray-50">
+                <a href="{% url 'tours:detail' tour.slug %}" class="block">
+                  <h4 class="text-base font-medium text-gray-900">{{ tour.name }}</h4>
+                  <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ tour.short_description }}</p>
+                  <div class="mt-2 flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-900">${{ tour.price|floatformat:2 }}</span>
+                    <span class="text-xs text-gray-500">{{ tour.duration }} days</span>
+                  </div>
+                </a>
+              </div>
+            {% empty %}
+              <div class="p-4">
+                <p class="text-sm text-gray-500">No tours available for this destination.</p>
+              </div>
+            {% endfor %}
+          </div>
+          {% if related_tours %}
+            <div class="p-4 bg-gray-50 border-t border-gray-200">
+              <a href="{% url 'tours:list' %}?destination={{ destination.id }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                View all tours <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Weather widget -->
+        <div class="mt-8 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Current Weather</h3>
+          </div>
+          <div class="p-4">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <img src="{% static 'img/weather/sunny.svg' %}" alt="Weather icon" class="h-16 w-16">
+              </div>
+              <div class="ml-4">
+                <div class="text-3xl font-bold text-gray-900">24°C</div>
+                <div class="text-sm text-gray-500">Sunny</div>
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div>
+                <div class="text-xs text-gray-500">Humidity</div>
+                <div class="font-medium">65%</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">Wind</div>
+                <div class="font-medium">12 km/h</div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">Precipitation</div>
+                <div class="font-medium">5%</div>
+              </div>
+            </div>
+            <div class="mt-4 text-xs text-gray-500 text-center">
+              Weather data is simulated for demonstration purposes.
+            </div>
+          </div>
+        </div>
+        
+        <!-- Save to favorites -->
+        {% if user.is_authenticated %}
+          <div class="mt-8">
+            <form method="POST" action="{% url 'destinations:toggle_favorite' destination.id %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full flex justify-center items-center px-4 py-2 border {% if is_favorite %}border-red-300 bg-red-50 hover:bg-red-100 text-red-700{% else %}border-gray-300 bg-white hover:bg-gray-50 text-gray-700{% endif %} rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <svg class="h-5 w-5 {% if is_favorite %}text-red-500{% else %}text-gray-400{% endif %} mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                </svg>
+                {% if is_favorite %}
+                  Remove from Favorites
+                {% else %}
+                  Save to Favorites
+                {% endif %}
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Photo gallery modal -->
+<div id="gallery-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="gallery-modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg leading-6 font-medium text-gray-900" id="gallery-modal-title">
+                Photo Gallery
+              </h3>
+              <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none" onclick="closeGallery()">
+                <span class="sr-only">Close</span>
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div class="mt-2">
+              <div class="gallery-container">
+                <img id="gallery-image" src="" alt="Gallery image" class="w-full h-auto max-h-96 object-contain">
+              </div>
+              <div class="mt-4 flex justify-between items-center">
+                <button type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500" onclick="prevImage()">
+                  <svg class="h-5 w-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                  Previous
+                </button>
+                <span id="gallery-counter" class="text-sm text-gray-500">1 / 10</span>
+                <button type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500" onclick="nextImage()">
+                  Next
+                  <svg class="h-5 w-5 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Map script -->
+<script>
+  /**
+   * Initialize the Google Map with destination coordinates
+   * Creates a map centered on the destination and adds a marker
+   */
+  function initMap() {
+    // Parse coordinates from Django template variables
+    const lat = parseFloat("{{ destination.latitude|default:'0' }}");
+    const lng = parseFloat("{{ destination.longitude|default:'0' }}");
+    
+    // Configure map options
+    const mapOptions = {
+      center: { lat: lat, lng: lng },
+      zoom: 12
+    };
+    
+    // Create the map instance
+    const map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    
+    // Add marker at destination location
+    new google.maps.Marker({
+      position: { lat: lat, lng: lng },
+      map: map,
+      title: "{{ destination.name|escapejs }}"
+    });
+  }
+</script>
+<!-- Load Google Maps API with callback to initMap function -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+<!-- Gallery script -->
+<script>
+  /**
+   * Gallery functionality for destination detail page
+   * This script handles the image gallery modal and navigation
+   * 
+   * NOTE: This script contains Django template syntax that will be processed server-side
+   * before being sent to the browser. The JavaScript linter may show errors because it
+   * cannot interpret the Django template tags, but the resulting JavaScript will be valid.
+   */
+  
+  // Initialize gallery images array from Django template
+  // We use a special comment to disable linting for this section
+  /* eslint-disable */
+  // The following code will be processed by Django templating before reaching the browser
+  let galleryImages = [];
+  {% if destination.images.all %}
+    galleryImages = [
+      {% for image in destination.images.all %}
+        { 
+          "src": "{{ image.image.url|escapejs }}", 
+          "alt": "{{ image.alt_text|escapejs }}" 
+        }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+  {% endif %}
+  /* eslint-enable */
+  
+  // Track the currently displayed image index
+  let currentImageIndex = 0;
+  
+  // Get DOM elements for gallery functionality
+  const galleryModal = document.getElementById('gallery-modal');
+  const galleryImage = document.getElementById('gallery-image');
+  const galleryCounter = document.getElementById('gallery-counter');
+  
+  /**
+   * Opens the gallery modal with the specified image
+   * @param {number} index - The index of the image to display
+   */
+  function openGallery(index) {
+    // Convert index to number to ensure proper type
+    currentImageIndex = parseInt(index, 10);
+    updateGalleryImage();
+    galleryModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden'); // Prevent scrolling while modal is open
+  }
+  
+  /**
+   * Closes the gallery modal and restores scrolling
+   */
+  function closeGallery() {
+    galleryModal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+  
+  /**
+   * Updates the displayed image and counter based on currentImageIndex
+   */
+  function updateGalleryImage() {
+    if (galleryImages.length === 0) return;
+    
+    const image = galleryImages[currentImageIndex];
+    galleryImage.src = image.src;
+    galleryImage.alt = image.alt;
+    galleryCounter.textContent = `${currentImageIndex + 1} / ${galleryImages.length}`;
+  }
+  
+  /**
+   * Shows the next image in the gallery
+   * Loops back to first image if at the end
+   */
+  function nextImage() {
+    if (galleryImages.length === 0) return;
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    updateGalleryImage();
+  }
+  
+  /**
+   * Shows the previous image in the gallery
+   * Loops to last image if at the beginning
+   */
+  function prevImage() {
+    if (galleryImages.length === 0) return;
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    updateGalleryImage();
+  }
+  
+  // Close gallery when clicking outside
+  galleryModal.addEventListener('click', function(event) {
+    if (event.target === galleryModal) {
+      closeGallery();
+    }
+  });
+  
+  // Keyboard navigation
+  document.addEventListener('keydown', function(event) {
+    if (galleryModal.classList.contains('hidden')) return;
+    
+    if (event.key === 'Escape') {
+      closeGallery();
+    } else if (event.key === 'ArrowRight') {
+      nextImage();
+    } else if (event.key === 'ArrowLeft') {
+      prevImage();
+    }
+  });
+</script>
+{% endblock %}

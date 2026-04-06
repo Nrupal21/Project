@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Points History | TravelGuide Rewards{% endblock %}
+{% block meta_description %}View your complete rewards points history, including points earned and redeemed, with TravelGuide's rewards program.{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<style>
+    /**
+     * Points History Styles
+     * - Custom styling for the points history page
+     * - Uses the indigo/violet color scheme for consistency
+     * - Includes responsive adjustments for various screen sizes
+     */
+    .history-table th {
+        font-weight: 600;
+        padding: 0.75rem;
+    }
+    
+    .history-table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    
+    .history-table tbody tr {
+        border-bottom: 1px solid rgba(209, 213, 219, 0.5);
+        transition: background-color 0.2s;
+    }
+    
+    .history-table tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.05); /* indigo-500 with opacity */
+    }
+    
+    .filter-active {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #4F46E5; /* indigo-600 */
+        border-color: #4F46E5;
+    }
+    
+    /* Responsive table adjustments */
+    @media (max-width: 768px) {
+        .history-table-container {
+            overflow-x: auto;
+        }
+        
+        .history-table th,
+        .history-table td {
+            white-space: nowrap;
+        }
+    }
+    
+    /* Responsive adjustments for mobile landscape orientation */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .page-header {
+            padding: 0.75rem 0;
+        }
+        
+        .filter-container {
+            padding: 0.5rem;
+        }
+        
+        .filter-button {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+ * Points History Page Container
+ * - Main container for the points history listing with filters
+ * - Shows a table of all point-earning/deduction activities
+ * - Includes filters to sort by activity type, date, etc.
+ */
+-->
+<div class="bg-gray-50 dark:bg-gray-900 py-8 md:py-12">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <!-- Page Header with Back Navigation -->
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between page-header">
+            <div>
+                <div class="flex items-center mb-2">
+                    <a href="{% url 'rewards:dashboard' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Points History</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300">View all your point-earning activities and redemptions</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <span class="text-lg font-bold text-gray-700 dark:text-gray-200">Current Balance:</span>
+                <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400 ml-2">{{ points_balance|intcomma }}</span>
+                <span class="text-gray-500 dark:text-gray-400 ml-1">points</span>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-6 filter-container">
+            <div class="p-4">
+                <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-3">Filter by Activity</h3>
+                <form method="get" action="{% url 'rewards:points_history' %}" class="flex flex-wrap gap-2">
+                    <!-- 
+                     * Activity Filter Buttons
+                     * - Each button represents a different activity type
+                     * - Active filter is highlighted with indigo color
+                     * - All filter resets the activity type filter
+                     */
+                    -->
+                    <button type="submit" name="activity" value="" 
+                            class="filter-button px-3 py-1 rounded-md text-sm border border-gray-300 dark:border-gray-600 
+                                   {% if not selected_activity %}filter-active{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %} transition-colors duration-200">
+                        All
+                    </button>
+                    {% for activity_code, activity_name in activity_choices %}
+                        <button type="submit" name="activity" value="{{ activity_code }}" 
+                                class="filter-button px-3 py-1 rounded-md text-sm border border-gray-300 dark:border-gray-600 
+                                       {% if selected_activity == activity_code %}filter-active{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %} transition-colors duration-200">
+                            {{ activity_name }}
+                        </button>
+                    {% endfor %}
+                    
+                    <!-- 
+                     * Date Range Filter
+                     * - Optional date range filter to narrow down results
+                     * - Uses HTML5 date input fields
+                     */
+                    -->
+                    {% if date_from or date_to %}
+                        <div class="ml-auto mt-3 sm:mt-0">
+                            <a href="{% url 'rewards:points_history' %}{% if selected_activity %}?activity={{ selected_activity }}{% endif %}" class="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                Clear date filter
+                            </a>
+                        </div>
+                    {% endif %}
+                </form>
+                
+                <!-- Date filter form -->
+                <form method="get" action="{% url 'rewards:points_history' %}" class="mt-3 flex flex-wrap gap-3 items-end">
+                    {% if selected_activity %}
+                        <input type="hidden" name="activity" value="{{ selected_activity }}">
+                    {% endif %}
+                    
+                    <div>
+                        <label for="date_from" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                        <input type="date" id="date_from" name="date_from" value="{{ date_from|date:'Y-m-d' }}"
+                               class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-800 dark:text-white text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="date_to" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+                        <input type="date" id="date_to" name="date_to" value="{{ date_to|date:'Y-m-d' }}"
+                               class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-800 dark:text-white text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                            Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Points History Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <div class="history-table-container overflow-hidden">
+                <!-- 
+                 * Points History Table
+                 * - Shows all point activities in chronological order
+                 * - Each row includes activity type, points, date, and expiration
+                 * - Color-coded for positive (green) and negative (red) point changes
+                 */
+                -->
+                {% if points_list %}
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 history-table">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th scope="col" class="text-left text-gray-500 dark:text-gray-300">Activity</th>
+                                <th scope="col" class="text-left text-gray-500 dark:text-gray-300">Description</th>
+                                <th scope="col" class="text-center text-gray-500 dark:text-gray-300">Points</th>
+                                <th scope="col" class="text-center text-gray-500 dark:text-gray-300">Date</th>
+                                <th scope="col" class="text-center text-gray-500 dark:text-gray-300">Expiration</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            {% for point in points_list %}
+                                <tr>
+                                    <td class="text-gray-800 dark:text-white">
+                                        <div class="flex items-center">
+                                            <div class="{% if point.points > 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %} mr-2">
+                                                {% if point.points > 0 %}
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                                {% else %}
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                                {% endif %}
+                                            </div>
+                                            {{ point.get_activity_display }}
+                                        </div>
+                                    </td>
+                                    <td class="text-gray-600 dark:text-gray-300">
+                                        {% if point.related_object_id %}
+                                            {% if point.activity == 'BOOKING' %}
+                                                Tour Booking #{{ point.related_object_id|truncatechars:8 }}
+                                            {% elif point.activity == 'REVIEW' %}
+                                                Review #{{ point.related_object_id|truncatechars:8 }}
+                                            {% elif point.activity == 'REDEMPTION' %}
+                                                Redemption #{{ point.related_object_id|truncatechars:8 }}
+                                            {% else %}
+                                                {{ point.related_object_id|truncatechars:12 }}
+                                            {% endif %}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center font-bold {% if point.points > 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                        {{ point.points|intcomma }}
+                                    </td>
+                                    <td class="text-center text-gray-600 dark:text-gray-300">
+                                        {{ point.created_at|date:"M d, Y" }}
+                                    </td>
+                                    <td class="text-center text-gray-600 dark:text-gray-300">
+                                        {% if point.expiry_date %}
+                                            {% if point.is_expired %}
+                                                <span class="text-red-600 dark:text-red-400">Expired</span>
+                                            {% else %}
+                                                {{ point.expiry_date|date:"M d, Y" }}
+                                            {% endif %}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Pagination controls -->
+                    {% if is_paginated %}
+                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                        <!-- 
+                         * Pagination Component
+                         * - Shows previous, next, and page numbers
+                         * - Current page is highlighted with indigo color
+                         * - Preserves filters when navigating between pages
+                         */
+                        -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700 dark:text-gray-300">
+                                    Showing <span class="font-medium">{{ page_obj.start_index }}</span> 
+                                    to <span class="font-medium">{{ page_obj.end_index }}</span> 
+                                    of <span class="font-medium">{{ paginator.count }}</span> entries
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="flex items-center">
+                                    {% if page_obj.has_previous %}
+                                        <a href="?page={{ page_obj.previous_page_number }}{% if selected_activity %}&activity={{ selected_activity }}{% endif %}{% if date_from %}&date_from={{ date_from|date:'Y-m-d' }}{% endif %}{% if date_to %}&date_to={{ date_to|date:'Y-m-d' }}{% endif %}" 
+                                           class="px-3 py-1 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 mr-1">
+                                            Previous
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% for i in paginator.page_range %}
+                                        {% if page_obj.number == i %}
+                                            <span class="px-3 py-1 rounded-md text-sm bg-indigo-600 text-white">{{ i }}</span>
+                                        {% elif i > page_obj.number|add:"-3" and i < page_obj.number|add:"3" %}
+                                            <a href="?page={{ i }}{% if selected_activity %}&activity={{ selected_activity }}{% endif %}{% if date_from %}&date_from={{ date_from|date:'Y-m-d' }}{% endif %}{% if date_to %}&date_to={{ date_to|date:'Y-m-d' }}{% endif %}" 
+                                               class="px-3 py-1 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 mx-1">
+                                                {{ i }}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <a href="?page={{ page_obj.next_page_number }}{% if selected_activity %}&activity={{ selected_activity }}{% endif %}{% if date_from %}&date_from={{ date_from|date:'Y-m-d' }}{% endif %}{% if date_to %}&date_to={{ date_to|date:'Y-m-d' }}{% endif %}" 
+                                           class="px-3 py-1 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 ml-1">
+                                            Next
+                                        </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                {% else %}
+                    <!-- Empty state when no points history is available -->
+                    <div class="text-center py-16">
+                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <h3 class="text-xl font-medium text-gray-800 dark:text-white mb-2">No Points Activity Yet</h3>
+                        <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                            {% if selected_activity or date_from or date_to %}
+                                No activities found with your selected filters. Try adjusting your filters or <a href="{% url 'rewards:points_history' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">view all activities</a>.
+                            {% else %}
+                                Start earning points by booking tours, writing reviews, or completing your profile.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

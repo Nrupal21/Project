@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Application Submitted - TravelGuide{% endblock %}
+
+{% block extra_css %}
+
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+    Guide Application Submission Confirmation Page
+    
+    This template is shown after a user successfully submits a guide application.
+    It provides confirmation, next steps, and estimated processing time information.
+    
+    Uses the site-wide indigo/violet color scheme for consistency.
+-->
+<section class="bg-gray-50 dark:bg-gray-900 py-12 md:py-20">
+    <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <!-- Success Icon -->
+        <div class="mx-auto w-24 h-24 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        
+        <!-- Confirmation Header -->
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl mb-4">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-600">
+                Application Submitted!
+            </span>
+        </h1>
+        
+        <!-- Application Status Badge -->
+        <div class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 mb-6">
+            <span class="relative flex h-3 w-3 mr-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            Application Successfully Submitted!
+        </div>
+        
+        <!-- Confirmation Message -->
+        <p class="text-xl text-gray-700 dark:text-gray-300 mb-8">
+            Thank you for applying to become a local guide. We've received your application and will review it shortly.
+        </p>
+        
+        <!-- Status Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 mb-10">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">What Happens Next?</h2>
+            
+            <div class="space-y-6">
+                <!-- Timeline -->
+                <div class="relative pl-8 py-2">
+                    <!-- Vertical timeline line -->
+                    <div class="absolute top-0 left-3 h-full w-0.5 bg-gradient-to-b from-indigo-300 to-violet-400 dark:from-indigo-700 dark:to-violet-800"></div>
+                    
+                    <!-- Step 1 -->
+                    <div class="relative mb-8">
+                        <!-- Timeline dot -->
+                        <div class="absolute -left-1.5 mt-1.5 h-7 w-7 rounded-full border-2 border-indigo-500 bg-white dark:bg-gray-900 flex items-center justify-center">
+                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">1</span>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Application Review</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-400">
+                            Our team will review your application, including your experience, expertise, and verify your identification documents.
+                        </p>
+                        <p class="mt-1 text-sm text-indigo-600 dark:text-indigo-400">
+                            Estimated time: 1-3 business days
+                        </p>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="relative mb-8">
+                        <!-- Timeline dot -->
+                        <div class="absolute -left-1.5 mt-1.5 h-7 w-7 rounded-full border-2 border-indigo-500 bg-white dark:bg-gray-900 flex items-center justify-center">
+                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">2</span>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Decision Notification</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-400">
+                            You'll receive an email notification with our decision. If approved, your account will be upgraded to local guide status.
+                        </p>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="relative">
+                        <!-- Timeline dot -->
+                        <div class="absolute -left-1.5 mt-1.5 h-7 w-7 rounded-full border-2 border-indigo-500 bg-white dark:bg-gray-900 flex items-center justify-center">
+                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">3</span>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Guide Onboarding</h3>
+                        <p class="mt-2 text-gray-600 dark:text-gray-400">
+                            If approved, you'll gain access to the guide dashboard, where you can create listings, manage bookings, and set your availability.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Application Status -->
+        <div class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+            <span class="relative flex h-3 w-3 mr-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+            </span>
+            Current Status: Pending Review
+        </div>
+        
+        <!-- Navigation Options -->
+        <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'accounts:profile' %}" class="inline-flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                Go to Profile
+            </a>
+            <a href="{% url 'core:home' %}" class="inline-flex justify-center items-center px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 transition duration-150 ease-in-out">
+                Return to Home
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "emails/base_email.html" %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+  Welcome Email Template
+  
+  Purpose: This template creates a visually appealing welcome email for new users
+  that follows the site's indigo/violet color scheme.
+  
+  Features:
+  - Personalized greeting with user's first name
+  - Clear call-to-action button
+  - Next steps checklist for new users
+  - Support contact information
+  
+  Context variables required:
+  - user: User object with first_name field
+  - site_url: URL to the main website
+  - help_center_url: URL to the help center
+-->
+
+<!-- Main content container - Table for email client compatibility -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+    <!-- Header Section with Personalized Welcome Message -->
+    <tr>
+        <td style="padding: 20px 20px 10px 20px; text-align: center;">
+            <!-- Heading with indigo/violet gradient text effect -->
+            <h1 style="background: linear-gradient(90deg, #4F46E5, #7C3AED); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 20px 0; font-family: 'Helvetica Neue', Arial, sans-serif;">
+                Welcome to TravelGuide, {{ user.first_name }}! 👋
+            </h1>
+        </td>
+    </tr>
+    
+    <!-- Main Content Section -->
+    <tr>
+        <td style="padding: 0 20px 20px 20px; text-align: center; color: #4B5563; font-size: 16px; line-height: 1.6;">
+            <!-- Welcome message -->
+            <p>Thank you for joining our community of travelers. We're excited to have you on board!</p>
+            
+            <!-- Call-to-action button with indigo-to-violet gradient -->
+            <p style="margin: 25px 0;">
+                <a href="{{ site_url }}" 
+                   style="background: linear-gradient(90deg, #4F46E5, #7C3AED); color: white; padding: 12px 24px; 
+                          text-decoration: none; border-radius: 6px; display: inline-block; 
+                          font-weight: 500; font-size: 16px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">
+                    Start Exploring
+                </a>
+            </p>
+            
+            <!-- Next steps section -->
+            <p>Here's what you can do next:</p>
+            <ul style="text-align: left; max-width: 400px; margin: 20px auto; padding-left: 20px;">
+                <li>Complete your profile to get personalized recommendations</li>
+                <li>Browse popular destinations and create your travel wishlist</li>
+                <li>Connect with other travelers in our community</li>
+            </ul>
+            
+            <!-- Support information with violet hyperlink -->
+            <p>If you have any questions, feel free to reply to this email or visit our <a href="{{ help_center_url }}" style="color: #7C3AED; text-decoration: underline; font-weight: 500;">Help Center</a>.</p>
+            
+            <!-- Email signature -->
+            <p>Happy travels!<br>The TravelGuide Team</p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

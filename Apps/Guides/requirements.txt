@@ -1,0 +1,36 @@
+# Core Dependencies
+Django>=5.0.0  # Django web framework
+psycopg2-binary>=2.9.9  # PostgreSQL adapter
+python-dotenv>=1.0.0  # Environment variables
+Pillow>=10.0.0  # Image processing
+whitenoise>=6.4.0  # Static files serving
+
+# API & REST Framework
+djangorestframework>=3.14.0  # REST API framework
+django-filter>=23.3  # Filtering for DRF
+drf-yasg>=1.21.6  # API documentation
+
+# Authentication
+django-allauth>=0.58.0  # Authentication & registration
+django-guardian>=2.5.0  # Object permissions
+
+# Development & Testing
+django-debug-toolbar>=4.0.0  # Debug toolbar
+pytest-django>=4.6.0  # Testing framework
+coverage>=7.3.0  # Test coverage
+
+# Utilities
+django-cors-headers>=4.3.0  # CORS handling
+python-dateutil>=2.8.2  # Date utilities
+pytz>=2023.3  # Timezone support
+
+# Email
+django-anymail>=9.0  # Email backend
+sphinx>=7.0.0  # Documentation generator
+
+# AI Integration
+openai>=1.6.0  # OpenAI API for itinerary generation
+langchain>=0.0.335  # LangChain for AI processing pipelines
+tiktoken>=0.5.2  # Token counting for OpenAI models
+tenacity>=8.2.3  # Retry library for API requests
+python-json-logger>=2.0.7  # JSON logging for AI request tracking

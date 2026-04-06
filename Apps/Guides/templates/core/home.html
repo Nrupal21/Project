@@ -1,0 +1,3204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TravelGuide - Your Ultimate Travel Companion{% endblock %}
+
+{% block meta_description %}Discover amazing destinations and tours with TravelGuide. Plan your perfect trip with expert guides and personalized itineraries.{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /**
+     * TravelGuide Home Page Styles
+     * @description Core styles for the TravelGuide homepage with modern aesthetics
+     * @author TravelGuide Team
+     * @version 3.0 - Updated with modern design principles and better performance
+     */
+    
+    /* ===== CUSTOM PROPERTIES ===== */
+    /**
+     * Color Variables
+     * @description Defines the color scheme for the entire homepage
+     * Using a cohesive indigo/violet palette with complementary accents
+     */
+    :root {
+        /* Primary Colors - Indigo-Violet Palette */
+        --color-primary: #4f46e5;       /* Indigo 600 */
+        --color-primary-light: #6366f1; /* Indigo 500 */
+        --color-primary-dark: #4338ca;  /* Indigo 700 */
+        
+        /* Secondary Colors - Rose Accents */
+        --color-secondary: #e11d48;     /* Rose 600 */
+        --color-secondary-light: #f43f5e; /* Rose 500 */
+        --color-secondary-dark: #be123c; /* Rose 700 */
+        
+        /* Accent Colors - Teal/Cyan */
+        --color-accent: #06b6d4;        /* Cyan 500 */
+        --color-accent-light: #22d3ee;  /* Cyan 400 */
+        --color-accent-dark: #0891b2;   /* Cyan 600 */
+        
+        /* Success Colors */
+        --color-success: #10b981;       /* Emerald 500 */
+        --color-success-light: #34d399; /* Emerald 400 */
+        
+        /* Neutral Colors */
+        --color-text: #1e293b;          /* Slate 800 */
+        --color-text-light: #64748b;    /* Slate 500 */
+        --color-bg-light: #f8fafc;      /* Slate 50 */
+        --color-bg-dark: #0f172a;       /* Slate 900 */
+        --color-white: #ffffff;
+        --color-black: #000000;
+        
+        /* Gradient Colors */
+        --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        --gradient-secondary: linear-gradient(135deg, var(--color-secondary), var(--color-accent-light));
+        --gradient-hero: linear-gradient(to bottom, rgba(79, 70, 229, 0.8), rgba(6, 182, 212, 0.7));
+        --gradient-card: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(6, 182, 212, 0.05));
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+        --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.05);
+        
+        /* Transitions */
+        --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ===== ANIMATIONS ===== */
+    /**
+     * Animations Library
+     * @description Collection of reusable animations for various UI elements
+     * Each animation is documented with its purpose and usage
+     */
+    
+    /* Fade In Up Animation - Used for revealing content as it scrolls into view */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Scale In Animation - Creates a pleasant entry effect for cards */
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Shimmer Effect - Creates a loading state appearance */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    /* Float Animation - Creates a gentle hovering effect */
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+    }
+    
+    /* Pulse Animation - Subtle breathing effect for attention */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.05); }
+    }
+    
+    /* Gradient Flow - Animated gradient backgrounds */
+    @keyframes gradientFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Slide In Animation - For progressive disclosure elements */
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Width Pulse - For progress bars and dividers */
+    @keyframes widthPulse {
+        0%, 100% { width: 3.5rem; }
+        50% { width: 5rem; }
+    }
+
+    /**
+     * Destination Cards
+     * @description Modern card design for showcasing destinations with hover effects
+     * Enhanced with subtle animations and improved visual hierarchy
+     */
+    .destination-card {
+        position: relative;
+        border-radius: 1rem; /* Increased radius for modern look */
+        overflow: hidden;
+        transition: all var(--transition-normal);
+        animation: fadeInUp 0.6s ease-out forwards;
+        animation-delay: var(--animation-delay, 0s);
+        opacity: 0;
+        transform: translateY(20px);
+        box-shadow: var(--shadow-md);
+        background: var(--color-white);
+        border: 1px solid rgba(226, 232, 240, 0.8); /* Subtle border for definition */
+        height: 100%; /* Ensure consistent height in grid */
+    }
+
+    /* Hover state with elevated appearance */
+    .destination-card:hover {
+        transform: translateY(-8px); /* More pronounced lift */
+        box-shadow: var(--shadow-xl);
+        border-color: rgba(79, 70, 229, 0.2); /* Subtle colored border on hover */
+    }
+    
+    /* Card image container with overflow control */
+    .destination-card .image-container {
+        position: relative;
+        overflow: hidden;
+        height: 220px; /* Consistent height for images */
+    }
+
+    /* Card image with enhanced transition */
+    .destination-card img {
+        transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    /* Image zoom effect on hover */
+    .destination-card:hover img {
+        transform: scale(1.08);
+    }
+
+    /* Distance badge with glass morphism effect */
+    .destination-card .distance-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(8px);
+        border-radius: 9999px;
+        padding: 0.375rem 0.875rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--color-primary); /* Using theme color */
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.15);
+        z-index: 10;
+        transition: all var(--transition-fast);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Badge hover state */
+    .destination-card:hover .distance-badge {
+        background: rgba(79, 70, 229, 0.95);
+        color: white;
+    }
+
+    /* Badge icon styling */
+    .destination-card .distance-badge i {
+        margin-right: 0.375rem;
+    }
+    
+    /* Card content styling */
+    .destination-card .content {
+        padding: 1.25rem;
+        position: relative;
+    }
+    
+    /* Card title styling */
+    .destination-card .title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+        transition: color var(--transition-fast);
+    }
+    
+    /* Card title hover effect */
+    .destination-card:hover .title {
+        color: var(--color-primary);
+    }
+    
+    /* Card description styling */
+    /**
+     * Card description text
+     * @description Truncated text with line clamping for consistent card heights
+     * Uses both standard and webkit prefixed properties for cross-browser compatibility
+     */
+    .destination-card .description {
+        color: var(--color-text-light);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2; /* Standard property for compatibility */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        max-height: 3em; /* Fallback for browsers that don't support line-clamp */
+    }
+
+    /* Loading Animation */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+
+    .loading-shimmer {
+        background: #f6f7f8;
+        background: linear-gradient(to right, #f6f7f8 0%, #e9ebee 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-size: 1000px 100%;
+        animation: shimmer 1.5s infinite linear;
+    }
+    
+    /* Slider Loader */
+    .loader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        width: 100%;
+        margin: 2rem 0;
+    }
+
+    .slider {
+        overflow: hidden;
+        background-color: var(--color-white);
+        margin: 0 10px;
+        height: 60px;
+        width: 16px;
+        border-radius: 20px;
+        box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.05), -10px -10px 20px #fff,
+            inset -3px -3px 8px rgba(0, 0, 0, 0.05),
+            inset 3px 3px 8px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+
+    .slider::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        box-shadow: inset 0px 0px 0px rgba(0, 0, 0, 0.1), 
+            0px 320px 0 300px var(--color-primary),
+            inset 0px 0px 0px rgba(0, 0, 0, 0.05);
+        animation: slide 2.5s ease-in-out infinite;
+        animation-delay: calc(-0.5s * var(--i));
+    }
+
+    /* Enhanced Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes spin-slow {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    @keyframes slideRight {
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    @keyframes widthPulse {
+        0% {
+            width: 0;
+        }
+        50% {
+            width: 100%;
+        }
+        100% {
+            width: 0;
+        }
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+    
+    @keyframes float-slow {
+        0% {
+            transform: translateY(0px) translateX(0px);
+        }
+        33% {
+            transform: translateY(-15px) translateX(10px);
+        }
+        66% {
+            transform: translateY(5px) translateX(-10px);
+        }
+        100% {
+            transform: translateY(0px) translateX(0px);
+        }
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+    }
+    
+    @keyframes pulse-slow {
+        0% {
+            transform: scale(1);
+            opacity: 0.7;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.7;
+        }
+    }
+    
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-150%);
+        }
+        100% {
+            transform: translateX(150%);
+        }
+    }
+    
+    @keyframes shimmer-slow {
+        0% {
+            transform: translateX(-150%);
+        }
+        100% {
+            transform: translateX(150%);
+        }
+    }
+    
+    @keyframes ping-slow {
+        0% {
+            transform: scale(0.2);
+            opacity: 0;
+        }
+        50% {
+            opacity: 0.3;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    
+    /* Prefers reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .animate-float,
+        .animate-float-slow,
+        .animate-float-delay-1,
+        .animate-float-delay-2,
+        .animate-pulse,
+        .animate-pulse-slow,
+        .animate-spin-slow,
+        .animate-shimmer,
+        .animate-shimmer-slow,
+        .animate-ping-slow {
+            animation: none !important;
+        }
+    }
+
+    /**
+     * Section Headers
+     * @description Modern heading design with animated underlines and gradient text
+     * Creates visual hierarchy and draws attention to each major content section
+     */
+    .section-header {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 3rem;
+        /* Gradient text effect using the updated indigo-violet-cyan palette */
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent; /* Fallback for browsers that don't support text-fill-color */
+        background-size: 200% auto;
+        animation: gradientFlow 4s ease-in-out infinite;
+        font-weight: 800; /* Bolder text for better impact */
+        letter-spacing: -0.025em; /* Tighter letter spacing for modern look */
+        line-height: 1.1;
+        text-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); /* Subtle text glow */
+    }
+
+    /* Decorative underline elements */
+    .section-header::before,
+    .section-header::after {
+        content: '';
+        position: absolute;
+        bottom: -0.75rem;
+        height: 0.25rem;
+        border-radius: 1rem;
+    }
+
+    /* Background track for the animated indicator */
+    .section-header::before {
+        left: 0;
+        width: 100%;
+        background: rgba(79, 70, 229, 0.1); /* Subtle background track */
+    }
+
+    /* Animated indicator using gradient colors */
+    .section-header::after {
+        left: 0;
+        width: 3.5rem;
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        animation: slideIn 1.5s ease-out forwards, widthPulse 3s ease-in-out infinite;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); /* Subtle glow effect */
+    }
+    
+    /* Mobile optimization for section headers */
+    @media (max-width: 640px) {
+        .section-header {
+            font-size: 1.75rem; /* Smaller on mobile devices */
+            margin-bottom: 2rem;
+        }
+        
+        .section-header::after {
+            width: 2.5rem; /* Smaller indicator on mobile */
+        }
+    }
+
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes slideIn {
+        from { width: 0; opacity: 0; }
+        to { width: 3.5rem; opacity: 1; }
+    }
+
+    @keyframes widthPulse {
+        0%, 100% { width: 3.5rem; }
+        50% { width: 4rem; }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+    }
+    
+    @keyframes textGlow {
+        0%, 100% { text-shadow: 0 0 0px rgba(13, 148, 136, 0); }
+        50% { text-shadow: 0 0 12px rgba(13, 148, 136, 0.4); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .destination-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-header {
+            font-size: 1.75rem;
+        }
+    }
+
+    /* Custom Drop Shadow Glow Effect */
+    .drop-shadow-glow {
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+    
+    /* Nearby Destinations Section Styles */
+    .nearby-destination-enter {
+        animation: fadeInScale 0.6s ease-out forwards;
+    }
+    
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    /* Card hover effects */
+    .destination-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .destination-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 30px -10px rgba(76, 29, 149, 0.5);
+    }
+    
+    /* Hero Slideshow Styles */
+    .slideshow-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3); /* Enhanced blue shadow */
+        border-radius: 0.5rem;
+        transform: translateZ(0); /* Hardware acceleration */
+        backface-visibility: hidden; /* Prevent flickering */
+    }
+    
+    /* Slideshow slide with improved transition */
+    .slideshow-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 0;
+        transform: scale(1.05);
+        will-change: opacity, transform;
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.9);
+    }
+    
+    /* Add a subtle animation to active slide */
+    .slideshow-slide.active {
+        animation: subtle-ken-burns 15s ease-out forwards;
+    }
+    
+    .slideshow-slide:first-child {
+        opacity: 1;
+        z-index: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    
+    /* Add slide content transitions */
+    .slide-content {
+        transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+    }
+    
+    /* Ken Burns subtle zoom effect */
+    @keyframes subtle-ken-burns {
+        0% {
+            transform: scale(1);
+        }
+        100% {
+            transform: scale(1.03);
+        }
+    }
+    
+    /**
+     * Slide Indicators Styling
+     * @description Modern, accessible slide indicators with indigo/violet theme
+     * Enhanced with subtle animations, responsive sizing, and visual feedback
+     * for both mouse and keyboard interaction
+     */
+    .slide-indicator {
+        /* Base styling for indicator dots */
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin: 0 3px;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+        background-color: rgba(255, 255, 255, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        /* Accessibility improvements */
+        padding: 0;
+        outline: none;
+        /* No default button styles */
+        appearance: none;
+    }
+    
+    /* Indicator hover state with subtle glow effect */
+    .slide-indicator:hover {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 6px rgba(99, 102, 241, 0.5);
+    }
+    
+    /* Focus state for keyboard navigation accessibility */
+    .slide-indicator:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6);
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    /* Active state for current slide */
+    .slide-indicator.active {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        border-color: rgba(255, 255, 255, 0.9);
+        transform: scale(1.25);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+    }
+    /**
+     * Slide Indicator Ripple Effect
+     * @description Creates an interactive ripple animation when indicators are clicked
+     * Uses pseudo-element for the ripple effect to maintain clean DOM
+     */
+    .slide-indicator::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        z-index: 1;
+    }
+    
+    /* Trigger ripple animation on focus and active states */
+    .slide-indicator:focus::after,
+    .slide-indicator:active::after {
+        animation: ripple 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    /**
+     * Ripple Animation
+     * @description Creates an expanding circular animation for feedback
+     * Uses variable opacity to create a fading effect as the circle expands
+     */
+    @keyframes ripple {
+        0% {
+            width: 0;
+            height: 0;
+            opacity: 0.5;
+        }
+        100% {
+            width: 200%;
+            height: 200%;
+            opacity: 0;
+        }
+    }
+    
+    /* Responsive sizing for different screen sizes */
+    @media (max-width: 640px) {
+        .slide-indicator {
+            width: 10px;
+            height: 10px;
+            margin: 0 2px;
+        }
+    }
+    
+    /* Progress bar styling */
+    .progress-bar {
+        transition: width 0.3s ease-out;
+        height: 4px;
+        background-color: #06b6d4; /* cyan-500 */
+        background-image: linear-gradient(to right, #3b82f6, #06b6d4, #2563eb); /* blue-500 to cyan-500 to blue-600 */
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* blue-500 glow */
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Add shimmer effect to progress bar */
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+    
+    .slide-content {
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, opacity;
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        transform: translateY(calc(-50% + 20px));
+        width: 100%;
+        pointer-events: none;
+        padding: 2rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .slide-content[style*="display: block"] {
+        opacity: 1;
+        transform: translateY(-50%);
+        pointer-events: auto;
+    }
+    
+    .slide-content h1 {
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+        animation: fadeInUp 0.5s ease-out both;
+        animation-delay: 0.3s;
+    }
+    
+    .slide-content p {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        animation: fadeInUp 0.5s ease-out both;
+        animation-delay: 0.5s;
+    }
+    
+    .btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+        white-space: nowrap;
+        will-change: transform;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .hero-section {
+        height: 100vh;
+        position: relative;
+        background-color: rgba(30, 58, 138, 0.1); /* Light blue background */
+    }
+    
+    .hero-content {
+        min-height: 100vh;
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .slide-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .slide-content p {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9375rem;
+        }
+    }
+    
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Slideshow JavaScript - Placed at top for immediate loading -->
+<script>
+/**
+ * Hero Slideshow Implementation
+ * @description Complete slideshow functionality with synchronized image and content transitions
+ * @author Travel Guides Team - Optimized for blue theme
+ * @version 2.0 - Performance optimized with better error handling
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        /**
+         * Initialize and cache DOM elements
+         * @description Improves performance by avoiding repeated DOM queries
+         */
+        // Cache DOM elements for better performance
+        // Each element is carefully selected once to avoid repeated DOM queries
+        const heroSection = document.querySelector('.hero-section');
+        const slideContents = document.querySelectorAll('.slide-content');
+        const slideIndicators = document.querySelectorAll('.slide-indicator');
+        const prevButton = document.querySelector('.prev-slide');
+        const nextButton = document.querySelector('.next-slide');
+        
+        // Count slides by selecting them directly - this helps ensure we have the correct number
+        const slides = document.querySelectorAll('.slideshow-slide');
+        const totalSlides = Math.min(slides.length, slideContents.length);
+        
+        // Log slide counts for debugging
+        console.log(`Detected ${slides.length} slide images and ${slideContents.length} content blocks`);
+        
+        // Configuration variables
+        const slideDuration = 6000; // Time between auto-slides in ms
+        const contentFadeDuration = 500; // Content fade transition duration in ms
+        const imageFadeDuration = 1500; // Image fade transition duration in ms
+        
+        // Initialize variables for slideshow control
+        let currentSlide = 0;
+        let autoSlideTimer = null;
+        let progressTimer = null;
+        let isTransitioning = false;
+        let isPaused = false;
+        let resizeTimer = null;
+        
+        // Touch event variables
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let touchStartTime = 0;
+        let isTouchActive = false; // Flag to track active touch interactions
+        
+        // Swipe detection configuration
+        const minSwipeDistance = 50; // Minimum distance for a swipe in pixels
+        const maxSwipeTime = 500; // Maximum time for a swipe in milliseconds
+        const maxVerticalMovement = 100; // Maximum vertical movement to still count as horizontal swipe
+        
+        // Create an observer to pause slideshow when not in viewport
+        let slideIntersectionObserver = null;
+        
+        /**
+         * Initialize the slideshow
+         * @description Sets up slideshow with initial state and creates slide indicators
+         * This function handles the complete setup of the slideshow including indicators
+         * and ensures the first slide is properly displayed
+         */
+        function initSlideshow() {
+            // Check for IntersectionObserver support to optimize performance
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        // Update viewport visibility flag
+                        const isInViewport = entries[0].isIntersecting;
+                        
+                        // Pause/resume slideshow based on visibility
+                        if (isInViewport && !isPaused) {
+                            resumeSlideshow();
+                        } else if (!isInViewport && !isPaused) {
+                            pauseSlideshow();
+                        }
+                    },
+                    { threshold: 0.25 } // Trigger when 25% of the slideshow is visible
+                );
+                
+                // Observe the hero section
+                if (heroSection) {
+                    observer.observe(heroSection);
+                }
+            }
+            
+            // Ensure all slides are properly initialized with the correct starting state
+            const allSlideElements = document.querySelectorAll('.slideshow-slide');
+            allSlideElements.forEach((slide, index) => {
+                // Set initial state for all slides
+                slide.style.opacity = index === 0 ? '1' : '0';
+                slide.style.zIndex = index === 0 ? '1' : '0';
+                slide.style.transform = index === 0 ? 'scale(1)' : 'scale(1.05)';
+                slide.style.filter = index === 0 ? 'brightness(1)' : 'brightness(0.9)';
+                slide.classList.toggle('active', index === 0);
+                
+                // Add a data attribute to help with debugging
+                slide.setAttribute('data-slide-index', index);
+            });
+            
+            // Show first slide with proper transition
+            showSlide(0);
+            
+            // Start auto slideshow
+            startAutoSlideshow();
+            
+            // Set up intersection observer for better performance
+            setupIntersectionObserver();
+        }
+        
+        /**
+         * Show slide with the specified index
+         * @param {number} slideIndex - Index of slide to show
+         * @description Manages slide switching with proper transitions between images and content
+         */
+        function showSlide(slideIndex) {
+            // Prevent multiple transitions from occurring simultaneously
+            if (isTransitioning) return;
+            isTransitioning = true;
+            
+            try {
+                // Handle looping at start/end with proper index wrapping
+                if (slideIndex >= totalSlides) {
+                    currentSlide = 0;
+                } else if (slideIndex < 0) {
+                    currentSlide = totalSlides - 1;
+                } else {
+                    currentSlide = slideIndex;
+                }
+                
+                // Phase 1: Fade out current slide content for better timing
+                updateSlideContent(currentSlide);
+                
+                // Phase 2: Update slide visibility with delay for content transition
+                setTimeout(() => {
+                    try {
+                        // Hide all slides by setting opacity to 0 and scaling slightly
+                        const allSlides = document.querySelectorAll('.slideshow-slide');
+                        allSlides.forEach((slide, index) => {
+                            if (!slide) return; // Skip if element doesn't exist
+                            
+                            // Reset all slides to hidden state
+                            slide.style.opacity = '0';
+                            slide.style.zIndex = '0';
+                            slide.style.transform = 'scale(1.05)';
+                            slide.classList.remove('active');
+                            slide.style.filter = 'brightness(0.9)';
+                        });
+                        
+                        // Get the current slide element directly from our query result
+                        const currentSlideElement = allSlides[currentSlide];
+                        
+                        // Debug slide transition
+                        console.log(`Showing slide ${currentSlide+1} of ${totalSlides}`);
+                        
+                        // Show current slide with active state and proper styling
+                        if (currentSlideElement) {
+                            currentSlideElement.style.opacity = '1';
+                            currentSlideElement.style.zIndex = '1';
+                            currentSlideElement.style.transform = 'scale(1)';
+                            currentSlideElement.classList.add('active');
+                            currentSlideElement.style.filter = 'brightness(1)';
+                            
+                            // Preload next slide image for better performance
+                            const nextIndex = (currentSlide + 1) % totalSlides;
+                            const nextSlideElement = document.querySelectorAll('.slideshow-slide')[nextIndex];
+                            if (nextSlideElement) {
+                                const nextSlideImg = nextSlideElement.querySelector('img');
+                                if (nextSlideImg && !nextSlideImg.complete) {
+                                    nextSlideImg.setAttribute('loading', 'eager');
+                                }
+                            }
+                        }
+                        
+                        // Update indicators and progress bar
+                        updateSlideIndicators();
+                        updateProgressBar(true);
+                        
+                        // Phase 3: Complete transition after animation finishes
+                        setTimeout(() => {
+                            isTransitioning = false;
+                        }, imageFadeDuration);
+                        
+                    } catch (error) {
+                        console.error('Error updating slide visibility:', error);
+                        isTransitioning = false; // Reset flag if error occurs
+                    }
+                }, contentFadeDuration / 2);
+                
+                // Reset timer for auto sliding
+                resetAutoSlideTimer();
+            } catch (error) {
+                console.error('Error in showSlide function:', error);
+                isTransitioning = false; // Reset flag if error occurs
+            }
+        }
+        
+        /**
+         * Update slide content to match current slide
+         * @param {number} slideIndex - Index of slide content to show
+         * @description Handles showing and hiding slide content blocks with smooth transitions
+         */
+        function updateSlideContent(slideIndex) {
+            try {
+                // Get cached content elements instead of querying DOM again
+                const targetContent = document.querySelector(`.slide-content[data-slide="${slideIndex}"]`);
+                
+                // Validate target content exists
+                if (!targetContent) {
+                    console.warn(`No content found for slide ${slideIndex}`);
+                    return;
+                }
+                
+                // Phase 1: Hide all contents with fade out and transform
+                slideContents.forEach(content => {
+                    if (content === targetContent || content.style.display === 'none') return;
+                    
+                    // Apply fade out transition
+                    content.style.opacity = '0';
+                    content.style.transform = 'translateY(calc(-50% + 20px))';
+                    
+                    // Hide after transition completes
+                    setTimeout(() => { 
+                        content.style.display = 'none'; 
+                    }, contentFadeDuration);
+                });
+                
+                // Phase 2: Show target content with fade in and transform after delay
+                setTimeout(() => {
+                    // Set initial state before showing
+                    targetContent.style.opacity = '0';
+                    targetContent.style.transform = 'translateY(calc(-50% + 20px))';
+                    targetContent.style.display = 'block';
+                    
+                    // Force browser reflow to ensure transition applies
+                    void targetContent.offsetHeight;
+                    
+                    // Apply fade in transition
+                    targetContent.style.opacity = '1';
+                    targetContent.style.transform = 'translateY(-50%)';
+                    
+                    // Ensure any buttons in the content are properly focusable
+                    const buttons = targetContent.querySelectorAll('button, a');
+                    buttons.forEach(btn => {
+                        btn.classList.add('focus-visible');
+                        btn.setAttribute('tabindex', '0');
+                    });
+                }, contentFadeDuration / 2); // Half the fade duration for better timing
+                
+                // Update ARIA attributes for accessibility
+                slideContents.forEach(content => {
+                    const isActive = content === targetContent;
+                    content.setAttribute('aria-hidden', !isActive);
+                    content.setAttribute('aria-live', isActive ? 'polite' : 'off');
+                });
+                
+                // Announce slide change to screen readers
+                announceSlideChange();
+            } catch (error) {
+                console.error('Error updating slide content:', error);
+            }
+        }
+        
+        /**
+         * Update progress bar animation
+         * @param {boolean} reset - Whether to reset the progress bar
+         * @description Animates the progress bar to show time until next slide
+         */
+        function updateProgressBar(reset = false) {
+            try {
+                // Find progress bar element
+                const progressBar = document.querySelector('.progress-bar');
+                if (!progressBar) {
+                    console.warn('Progress bar element not found');
+                    return;
+                }
+                
+                // Clear any existing progress timer
+                if (progressTimer) {
+                    clearTimeout(progressTimer);
+                    progressTimer = null;
+                }
+                
+                // Reset progress bar if requested
+                if (reset) {
+                    // Remove transition temporarily
+                    progressBar.style.transition = 'none';
+                    progressBar.style.width = '0%';
+                    
+                    // Force browser reflow to ensure transition applies
+                    void progressBar.offsetHeight;
+                }
+                
+                // Set transition and animate to 100%
+                progressBar.style.transition = `width ${slideDuration/1000}s linear`;
+                progressBar.style.width = '100%';
+                
+                // Optional: Add callback when progress completes
+                // progressTimer = setTimeout(() => {
+                //     console.log('Progress bar animation complete');
+                // }, slideDuration);
+            } catch (error) {
+                console.error('Error updating progress bar:', error);
+            }
+        }
+        
+        /**
+         * Announce slide change to screen readers
+         * @description Updates the live region for accessibility announcements
+         */
+        function announceSlideChange() {
+            try {
+                // Find live region for screen reader announcements
+                const liveRegion = document.getElementById('slideshow-live-region');
+                if (!liveRegion) {
+                    console.warn('Live region element not found for accessibility announcements');
+                    return;
+                }
+                
+                // Get content for current slide
+                const currentContent = document.querySelector(`.slide-content[data-slide="${currentSlide}"]`);
+                if (!currentContent) return;
+                
+                // Extract heading text if available
+                const heading = currentContent.querySelector('h1, h2, h3');
+                
+                // Create appropriate announcement text
+                if (heading) {
+                    liveRegion.textContent = `Now showing: ${heading.textContent}. Slide ${currentSlide + 1} of ${totalSlides}.`;
+                } else {
+                    liveRegion.textContent = `Now showing slide ${currentSlide + 1} of ${totalSlides}.`;
+                }
+                
+                // Optional: Add description text if available
+                const description = currentContent.querySelector('p');
+                if (description) {
+                    // Append description to announcement after a short delay
+                    setTimeout(() => {
+                        liveRegion.textContent += ` ${description.textContent.substring(0, 100)}${description.textContent.length > 100 ? '...' : ''}`;
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('Error announcing slide change:', error);
+            }
+        }
+
+        /**
+         * Shows the next slide in rotation
+         * Used for automatic advancement and next button
+         */
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        /**
+         * Shows the previous slide in rotation
+         * Used for previous button navigation
+         */
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        /**
+         * Reset the auto-slide timer
+         * @description Clears existing timer and starts a new one with progress bar animation
+         */
+        function resetAutoSlideTimer() {
+            // Clear existing timer if it exists
+            if (autoSlideTimer) {
+                clearTimeout(autoSlideTimer);
+            }
+            
+            // Set new timer for automatic slide advancement
+            autoSlideTimer = setTimeout(() => {
+                showSlide(currentSlide + 1);
+            }, slideDuration);
+            
+            // Reset and start progress bar animation
+            updateProgressBar(true);
+            
+            // For debugging
+            // console.log(`Auto-slide timer reset. Next slide in ${slideDuration/1000} seconds`);
+        }
+        
+        // Pause auto-slide on hover for better user experience
+        if (heroSection) {
+            heroSection.addEventListener('mouseenter', () => {
+                if (autoSlideTimer) clearTimeout(autoSlideTimer);
+            });
+            
+            heroSection.addEventListener('mouseleave', resetAutoSlideTimer);
+        }
+
+        /**
+         * Pauses the slideshow when user is interacting
+         */
+        function pauseSlideshow() {
+            clearTimeout(autoSlideTimer);
+            clearInterval(progressTimer);
+            const progressBar = document.querySelector('.progress-bar');
+            if (progressBar) progressBar.style.transition = 'none';
+        }
+
+        /**
+         * Resumes the slideshow after user interaction
+         */
+        function resumeSlideshow() {
+            resetAutoSlideTimer();
+            const progressBar = document.querySelector('.progress-bar');
+            if (progressBar) progressBar.style.transition = 'all 0.3s ease-out';
+            updateProgressBar();
+        }
+        
+        /**
+         * Handle touch start event
+         * @param {TouchEvent} e - The touch event
+         * @description Records the starting position for swipe detection
+         * Enhanced with better touch handling for mobile devices
+         */
+        function handleTouchStart(e) {
+            // Store touch coordinates for swipe detection
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+            
+            // Track that we're in a touch interaction
+            isTouchActive = true;
+            
+            // Pause slideshow during touch interaction
+            pauseSlideshow();
+        }
+        
+        /**
+         * Handle touch move event
+         * @param {TouchEvent} e - The touch event
+         * @description Tracks finger movement during swipe and prevents default scrolling behavior
+         * when a horizontal swipe is detected to ensure smooth slideshow navigation
+         */
+        function handleTouchMove(e) {
+            // Skip if touch interaction isn't active
+            if (!isTouchActive) return;
+            
+            // Get current touch coordinates
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            
+            // Calculate movement in both directions
+            const deltaX = Math.abs(currentX - touchStartX);
+            const deltaY = Math.abs(currentY - touchStartY);
+            
+            // Determine if this is likely a horizontal swipe
+            // We use a lower threshold on mobile devices for better responsiveness
+            const isHorizontalSwipe = deltaX > deltaY;
+            const isMobile = window.innerWidth < 768;
+            const horizontalThreshold = isMobile ? 20 : 30; // Lower threshold for mobile
+            
+            // If horizontal movement is greater than vertical and exceeds threshold, prevent default scrolling
+            // This ensures the slideshow swipe takes precedence over page scrolling
+            if (isHorizontalSwipe && deltaX > horizontalThreshold) {
+                e.preventDefault();
+                
+                // Update touch end position in real-time for potential animation effects
+                touchEndX = currentX;
+                touchEndY = currentY;
+            }
+        }
+
+        /**
+         * Handle touch end event
+         * @param {TouchEvent} e - The touch event
+         * @description Records the ending position and time, then analyzes the swipe
+         * Enhanced with improved touch handling and feedback
+         */
+        function handleTouchEnd(e) {
+            // Only process if we have a valid touch start position
+            if (!isTouchActive) return;
+            
+            // Get touch end coordinates
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            const touchEndTime = Date.now();
+            
+            // Process the swipe
+            const swipeProcessed = handleSwipe(touchEndTime - touchStartTime);
+            
+            // Reset touch tracking flag
+            isTouchActive = false;
+            
+            // Resume slideshow after touch interaction
+            // Add a small delay to ensure smooth transition
+            setTimeout(() => {
+                resumeSlideshow();
+            }, 100);
+            
+            // Return swipe processing result
+            return swipeProcessed;
+        }
+
+        /**
+         * Handle swipe gesture with improved detection
+         * @param {number} swipeTime - Time taken for the swipe in milliseconds
+         * @description Analyzes swipe direction, speed, and intent for better accuracy
+         * Enhanced with better mobile touch handling and responsiveness
+         */
+        function handleSwipe(swipeTime) {
+            const horizontalDistance = touchEndX - touchStartX;
+            const verticalDistance = Math.abs(touchEndY - touchStartY);
+            const swipeVelocity = Math.abs(horizontalDistance) / swipeTime * 1000; // pixels per second
+            
+            // Only count as swipe if:
+            // 1. Horizontal distance exceeds minimum threshold
+            // 2. Swipe time is under maximum threshold (quick swipe)
+            // 3. Vertical movement is limited (to avoid detecting scrolls as swipes)
+            // 4. Or if the swipe velocity is high enough (quick flick)
+            
+            // Lower the threshold for mobile devices to improve responsiveness
+            const effectiveMinSwipeDistance = window.innerWidth < 768 ? minSwipeDistance * 0.7 : minSwipeDistance;
+            
+            const isIntentionalSwipe = (
+                Math.abs(horizontalDistance) > effectiveMinSwipeDistance && 
+                swipeTime < maxSwipeTime && 
+                verticalDistance < maxVerticalMovement
+            ) || swipeVelocity > 500; // Reduced velocity threshold for better responsiveness
+            
+            if (isIntentionalSwipe) {
+                // Add haptic feedback if available
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(50); // Short vibration for feedback
+                }
+                
+                if (horizontalDistance < 0) {
+                    // Swipe left, go to next slide
+                    nextSlide();
+                    // Log analytics if needed
+                    console.log('User swiped left to next slide');
+                } else {
+                    // Swipe right, go to previous slide
+                    prevSlide();
+                    // Log analytics if needed
+                    console.log('User swiped right to previous slide');
+                }
+                
+                // Prevent any default behavior
+                return false;
+            }
+            
+            return true; // Allow default behavior if not a swipe
+        }
+
+        // Add slide indicators if they don't exist
+        if (document.querySelectorAll('.slide-indicator').length === 0) {
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.className = 'absolute bottom-6 left-0 right-0 flex justify-center space-x-2 z-30';
+            indicatorContainer.setAttribute('role', 'tablist');
+            indicatorContainer.setAttribute('aria-label', 'Slideshow navigation');
+            
+            for (let i = 0; i < totalSlides; i++) {
+                /**
+                 * Create slide indicator button
+                 * @description Creates an accessible button for slideshow navigation
+                 * Uses our indigo/violet theme with the slide-indicator class we defined in CSS
+                 */
+                const indicator = document.createElement('button');
+                indicator.className = `slide-indicator ${i === 0 ? 'active' : ''}`;
+                indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
+                indicator.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+                indicator.setAttribute('role', 'tab');
+                indicator.setAttribute('tabindex', i === 0 ? '0' : '-1');
+                indicator.setAttribute('data-slide-index', i);
+                indicator.onclick = () => {
+                    showSlide(i);
+                    indicator.focus(); // Maintain focus for keyboard users
+                };
+                indicatorContainer.appendChild(indicator);
+            }
+            
+            document.querySelector('.hero-section').appendChild(indicatorContainer);
+        }
+
+        /**
+         * Update slide indicators to show current slide
+         * @description Highlights the indicator for the current slide using our indigo/violet theme
+         * Maintains accessibility by updating ARIA attributes and focus management
+         * The active class triggers our custom CSS for the active indicator
+         */
+        function updateSlideIndicators() {
+            const indicators = document.querySelectorAll('.slide-indicator');
+            indicators.forEach((indicator, index) => {
+                if (index === currentSlide) {
+                    // Update to active state
+                    indicator.classList.add('active');
+                    indicator.setAttribute('aria-current', 'true');
+                    indicator.setAttribute('tabindex', '0');
+                    
+                    // Focus the current indicator when using keyboard navigation
+                    if (document.activeElement && document.activeElement.classList.contains('slide-indicator')) {
+                        indicator.focus();
+                    }
+                } else {
+                    // Remove active state
+                    indicator.classList.remove('active');
+                    indicator.setAttribute('aria-current', 'false');
+                    indicator.setAttribute('tabindex', '-1');
+                }
+            });
+        }
+        
+        // Set up event listeners for navigation
+        if (prevButton) prevButton.addEventListener('click', prevSlide);
+        if (nextButton) nextButton.addEventListener('click', nextSlide);
+        
+        // Set up slide indicators
+        slideIndicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => showSlide(index));
+        });
+        
+        // Set up keyboard navigation with enhanced accessibility
+        document.addEventListener('keydown', (e) => {
+            // Only handle keyboard events when slideshow is in viewport or focused
+            const slideShowInView = isElementInViewport(heroSection);
+            const slideShowHasFocus = heroSection.contains(document.activeElement);
+            
+            if (slideShowInView || slideShowHasFocus) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault(); // Prevent page scrolling
+                    prevSlide();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault(); // Prevent page scrolling
+                    nextSlide();
+                } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    showSlide(0); // Go to first slide
+                } else if (e.key === 'End') {
+                    e.preventDefault();
+                    showSlide(totalSlides - 1); // Go to last slide
+                } else if (e.key === 'Space' || e.key === 'Enter') {
+                    // If focus is on an indicator, activate it
+                    if (document.activeElement.classList.contains('slide-indicator')) {
+                        e.preventDefault();
+                        const index = parseInt(document.activeElement.getAttribute('data-slide-index'));
+                        if (!isNaN(index)) {
+                            showSlide(index);
+                        }
+                    }
+                }
+            }
+        });
+        
+        /**
+         * Check if an element is currently visible in the viewport
+         * @param {HTMLElement} el - The element to check
+         * @return {boolean} - True if element is in viewport
+         */
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.bottom >= 0 &&
+                rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+                rect.right >= 0
+            );
+        }
+        
+        /**
+         * Set up touch events for swipe gestures with optimized settings
+         * @description Configures touch event listeners with appropriate passive settings
+         * to ensure smooth performance on mobile devices while maintaining proper behavior
+         */
+        function setupTouchEvents() {
+            if (!heroSection) return;
+            
+            // Remove any existing listeners to prevent duplicates
+            heroSection.removeEventListener('touchstart', handleTouchStart);
+            heroSection.removeEventListener('touchmove', handleTouchMove);
+            heroSection.removeEventListener('touchend', handleTouchEnd);
+            heroSection.removeEventListener('touchcancel', handleTouchEnd);
+            
+            // Add listeners with optimized settings
+            // Use passive: true where possible for better performance
+            heroSection.addEventListener('touchstart', handleTouchStart, { passive: true });
+            heroSection.addEventListener('touchmove', handleTouchMove, { passive: false }); // Need preventDefault for this one
+            heroSection.addEventListener('touchend', handleTouchEnd, { passive: true });
+            heroSection.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+            
+            console.log('Touch events initialized with optimized settings');
+        }
+        
+        // Initialize touch events
+        setupTouchEvents();
+        
+        // Initialize slideshow
+        initSlideshow();
+        
+        // Log initialization completion
+        console.log('Slideshow initialization complete with blue theme optimizations');
+    } catch (error) {
+        console.error('Error initializing slideshow:', error);
+    }
+});
+</script>
+
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Hero Section -->
+<!-- Hero Section - Immersive full-screen slideshow with modern controls -->
+<section class="hero-section relative h-[calc(100vh-4rem)] flex items-center justify-center bg-indigo-700 pt-0">
+    <!-- Modern gradient overlay for better contrast and visual depth -->
+    <div class="absolute inset-0 bg-gradient-to-b from-indigo-900/70 via-indigo-800/50 to-violet-900/40 opacity-70 z-10"></div>
+    
+    <!-- Accessibility announcement region for screen readers -->
+    <div class="sr-only" aria-live="polite" id="slide-announcement"></div>
+    
+    <!-- Navigation Arrows with enhanced visual feedback -->
+    <button 
+        id="prev-slide" 
+        class="absolute left-4 md:left-8 z-30 text-white hover:text-indigo-200 hover:scale-110 active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-transparent rounded-full p-3 bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl"
+        aria-label="Previous slide"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+    
+    <button 
+        id="next-slide" 
+        class="absolute right-4 md:right-8 z-30 text-white hover:text-indigo-200 hover:scale-110 active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-transparent rounded-full p-3 bg-black/20 backdrop-blur-sm border border-white/10 shadow-xl"
+        aria-label="Next slide"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+    </button>
+    
+    <!-- Progress bar for slide timing -->
+    <div class="absolute bottom-0 left-0 w-full h-1.5 bg-white/20 z-20">
+        <div class="progress-bar h-full w-0 bg-gradient-to-r from-indigo-600 to-violet-500 transition-all duration-100 ease-linear"></div>
+    </div>
+    
+    <!-- Slide indicators with improved visibility and accessibility -->
+    <div class="slide-indicators absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-30">
+        <button class="slide-indicator" aria-label="Go to slide 1" aria-current="true"></button>
+        <button class="slide-indicator" aria-label="Go to slide 2"></button>
+        <button class="slide-indicator" aria-label="Go to slide 3"></button>
+        <button class="slide-indicator" aria-label="Go to slide 4"></button>
+        <button class="slide-indicator" aria-label="Go to slide 5"></button>
+    </div>
+
+    <!-- Comments explaining slide indicators are already added above -->
+
+    <!-- SR announcement for slide changes -->
+    <div class="sr-only" aria-live="polite" id="slide-announcement"></div>
+
+    <!-- Hero content container with slide-specific content -->   
+    <div class="hero-content text-center px-4 z-20 relative max-w-6xl w-full mx-auto">
+        <!-- Slide 1: Mountain Lake - First slide uses larger font size and more dramatic spacing -->
+        <div class="slide-content" data-slide="0" style="display: block;">
+            <!-- Enhanced heading typography with improved text shadow and font weight -->
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Mountain Lake Retreat</h1>
+            <!-- Description text with improved line height and subtle text shadow for readability -->
+            <p class="text-xl text-white/90 mb-8 max-w-4xl w-full mx-auto leading-relaxed">Discover crystal-clear alpine lakes nestled between majestic peaks. Perfect for hiking, photography, and peaceful reflection.</p>
+            <!-- Button container with improved layout and spacing -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Primary button with new indigo gradient and enhanced interactive effects -->
+                <a href="{% url 'destinations:destination_list' %}?category=lakes" class="btn bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:scale-105 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-mountain mr-2"></i>Explore Lakes
+                </a>
+                <!-- Secondary button with elegant glass morphism effect -->
+                <a href="{% url 'tours:list' %}?category=hiking" class="btn bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 backdrop-blur-sm transform hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-hiking mr-2"></i>Hiking Tours
+                </a>
+            </div>
+        </div>
+        
+        <!-- Slide 2: Snowy Peaks - Winter theme with cool-toned accents -->
+        <div class="slide-content" data-slide="1" style="display: none;">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Alpine Winter Wonderland</h1>
+            <p class="text-xl text-white/90 mb-8 max-w-4xl w-full mx-auto leading-relaxed">Experience the magic of snow-covered peaks and crisp mountain air in our winter wonderland.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Primary button with blue-indigo gradient theme -->
+                <a href="{% url 'tours:list' %}?category=winter" class="btn bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-700 hover:to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:scale-105 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-snowflake mr-2"></i>Winter Adventures
+                </a>
+                <!-- Secondary glass button -->
+                <a href="{% url 'destinations:destination_list' %}?category=skiing" class="btn bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 backdrop-blur-sm transform hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-skiing mr-2"></i>Ski Resorts
+                </a>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Misty Forest - Nature theme with green accents -->
+        <div class="slide-content" data-slide="2" style="display: none;">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Mystical Forest Trails</h1>
+            <p class="text-xl text-white/90 mb-8 max-w-4xl w-full mx-auto leading-relaxed">Wander through ancient forests where sunlight filters through towering trees and nature's magic comes alive.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Primary button with green-violet gradient theme -->
+                <a href="{% url 'destinations:destination_list' %}?category=forests" class="btn bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-700 hover:to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:scale-105 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-tree mr-2"></i>Forest Walks
+                </a>
+                <!-- Secondary glass button -->
+                <a href="{% url 'tours:list' %}?category=nature" class="btn bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 backdrop-blur-sm transform hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-binoculars mr-2"></i>Wildlife Tours
+                </a>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Sunset Lake - Warm sunset theme with orange/gold accents -->
+        <div class="slide-content" data-slide="3" style="display: none;">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Golden Hour Paradise</h1>
+            <p class="text-xl text-white/90 mb-8 max-w-4xl w-full mx-auto leading-relaxed">Witness breathtaking sunsets over tranquil lakes, where the water mirrors the sky's fiery colors.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Primary button with sunset gradient theme -->
+                <a href="{% url 'destinations:destination_list' %}?category=lakes" class="btn bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:scale-105 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-sun mr-2"></i>Sunset Spots
+                </a>
+                <!-- Secondary glass button -->
+                <a href="{% url 'tours:list' %}?category=photography" class="btn bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 backdrop-blur-sm transform hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-camera mr-2"></i>Photo Tours
+                </a>
+            </div>
+        </div>
+        
+        <!-- Slide 5: Tropical Beach - Beach theme with cyan/turquoise accents -->
+        <div class="slide-content" data-slide="4" style="display: none;">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">Tropical Beach Escape</h1>
+            <p class="text-xl text-white/90 mb-8 max-w-4xl w-full mx-auto leading-relaxed">Relax on pristine white sands and swim in crystal-clear turquoise waters at our handpicked beach destinations.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Primary button with beach gradient theme -->
+                <a href="{% url 'tours:list' %}" class="btn bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-600 hover:to-violet-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:scale-105 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-umbrella-beach mr-2"></i>Beach Resorts
+                </a>
+                <!-- Secondary glass button -->
+                <a href="{% url 'tours:list' %}?category=water-sports" class="btn bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-300 backdrop-blur-sm transform hover:scale-105 focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-indigo-900/30">
+                    <i class="fas fa-water mr-2"></i>Water Sports
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hero background slideshow -->
+    <div class="absolute inset-0 overflow-hidden">
+        
+        <!-- Responsive Slideshow container -->
+        <div class="slideshow-container relative w-full h-full overflow-hidden">
+            <!-- Responsive Images with srcset for different device sizes -->
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-100">
+                <img 
+                    src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Beautiful lake view with mountains"
+                    loading="eager"
+                    decoding="async">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img 
+                    src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Snowy mountain peaks"
+                    loading="lazy"
+                    decoding="async">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img 
+                    src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Misty forest with sun rays"
+                    loading="lazy"
+                    decoding="async">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img 
+                    src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Scenic mountain lake at sunset"
+                    loading="lazy"
+                    decoding="async">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img 
+                    src="https://images.unsplash.com/photo-1470114716159-e389f8713d3c?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1470114716159-e389f8713d3c?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1470114716159-e389f8713d3c?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1470114716159-e389f8713d3c?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1470114716159-e389f8713d3c?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Tropical beach with turquoise water"
+                    loading="lazy"
+                    decoding="async">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" 
+                    class="w-full h-full object-cover" alt="Snow-capped mountains under starry night sky">
+            </div>
+            <div class="slideshow-slide absolute inset-0 transition-all duration-1500 ease-in-out opacity-0">
+                <img 
+                    src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80" 
+                    srcset="
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80 400w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80 800w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80 1200w,
+                        https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80 1600w"
+                    sizes="100vw"
+                    class="w-full h-full object-cover" 
+                    alt="Tropical beach with palm trees and turquoise water"
+                    loading="lazy"
+                    decoding="async">
+            </div>
+        </div>
+    </div>
+    
+    <!-- We already have slide indicators above, removing duplicate indicators -->
+</section>
+
+<!-- AI Travel Planner Section -->
+<section class="py-16 bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-12">
+            <span class="inline-block mb-3 px-3 py-1 text-sm font-semibold text-indigo-700 dark:text-indigo-200 bg-indigo-100 dark:bg-indigo-900/50 rounded-full">
+                AI-Powered
+            </span>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Your Personal AI Travel Assistant
+            </h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Let our intelligent system craft the perfect itinerary tailored to your preferences, budget, and travel style.
+            </p>
+        </div>
+
+        <!-- How It Works Steps -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- Step 1 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">1</span>
+                </div>
+                <h3 class="text-xl font-semibold text-center text-gray-900 dark:text-white mb-3">Tell Us Your Preferences</h3>
+                <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+                    Share your travel dates, interests, budget, and any specific requirements or preferences.
+                </p>
+                <!-- Added button link -->
+                <div class="text-center">
+                    <a href="{% url 'itineraries:ai_auto_select' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center">
+                        Get Started <span class="ml-1">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700 transform hover:-translate-y-1">
+                <div class="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">2</span>
+                </div>
+                <h3 class="text-xl font-semibold text-center text-gray-900 dark:text-white mb-3">AI Generates Options</h3>
+                <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+                    Our advanced AI analyzes thousands of options to create personalized travel recommendations just for you.
+                </p>
+                <!-- Added button link -->
+                <div class="text-center">
+                    <a href="{% url 'tours:list' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center">
+                        View Examples <span class="ml-1">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">3</span>
+                </div>
+                <h3 class="text-xl font-semibold text-center text-gray-900 dark:text-white mb-3">Customize & Book</h3>
+                <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+                    Review your personalized itinerary, make adjustments, and book everything in one place.
+                </p>
+                <!-- Added button link -->
+                <!-- Button link with proper URL pattern -->
+                <div class="text-center">
+                    <a href="{% url 'bookings:create_booking' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center">
+                        Learn More <span class="ml-1">→</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Step 4 (New Card) -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">4</span>
+                </div>
+                <h3 class="text-xl font-semibold text-center text-gray-900 dark:text-white mb-3">Share & Collaborate</h3>
+                <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+                    Share your itinerary with travel companions and collaborate on planning the perfect trip together.
+                </p>
+                <!-- Added button link -->
+                <div class="text-center">
+                    <a href="{% url 'itineraries:itinerary_list' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center">
+                        View Itineraries <span class="ml-1">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Button -->
+        <div class="text-center">
+            <a href="{% url 'itineraries:ai_auto_select' %}" class="inline-flex items-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg hover:shadow-indigo-500/30 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Start Planning Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Rewards Callout Section -->
+{% if user.is_authenticated %}
+<section class="bg-gradient-to-r from-indigo-600 to-violet-700 text-white py-12">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="mb-6 md:mb-0 md:mr-8">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2">Earn Points & Get Rewarded</h2>
+                <p class="text-indigo-100 max-w-2xl">Join our loyalty program and earn points on every booking. Redeem for discounts, free tours, and exclusive experiences!</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'rewards:dashboard' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 transition-colors duration-200 shadow-md">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    View Rewards
+                </a>
+                <a href="{% url 'rewards:redeem_points' %}" class="inline-flex items-center justify-center px-6 py-3 border border-white border-opacity-25 text-base font-medium rounded-md text-white bg-transparent hover:bg-white hover:bg-opacity-10 transition-colors duration-200">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Redeem Points
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<!-- Non-authenticated users see a sign-up CTA -->
+<section class="bg-gradient-to-r from-indigo-600 to-violet-700 text-white py-12">
+    <div class="max-w-screen-2xl w-full mx-auto px-4 text-center">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">Join Our Rewards Program</h2>
+        <p class="text-indigo-100 max-w-3xl w-full mx-auto mb-6">Sign up today and earn points on every booking. Get access to exclusive deals and rewards!</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'accounts:register' %}?next={{ request.path }}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 transition-colors duration-200 shadow-md">
+                Sign Up for Free
+            </a>
+            <a href="{% url 'rewards:tier_benefits' %}" class="inline-flex items-center justify-center px-6 py-3 border border-white border-opacity-25 text-base font-medium rounded-md text-white bg-transparent hover:bg-white hover:bg-opacity-10 transition-colors duration-200">
+                Learn More
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Header Ad placement - appears below hero section -->
+{% if ADSENSE_ENABLED %}
+<div class="max-w-7xl mx-auto px-4 py-4">
+    <!-- Home Page Header Ad -->
+    <div class="mb-4 bg-white rounded-lg shadow-md p-1">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3458812139504498"
+             crossorigin="anonymous"></script>
+        <!-- home page -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3458812139504498"
+             data-ad-slot="4149303381"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+</div>
+{% endif %}
+
+<!-- Nearby Destinations Section -->
+<section class="py-16 bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+        <div class="absolute top-1/3 right-1/4 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+        <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+    </div>
+    
+    <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Explore Nearby Destinations</h2>
+            <p class="text-gray-300 max-w-4xl w-full mx-auto">Discover amazing places just around the corner from your current location</p>
+        </div>
+        
+        <!-- Loader Animation -->
+        <div class="loader-container mb-12" id="nearby-loader">
+            <section class="loader">
+                <div class="slider" style="--i:0"></div>
+                <div class="slider" style="--i:1"></div>
+                <div class="slider" style="--i:2"></div>
+                <div class="slider" style="--i:3"></div>
+                <div class="slider" style="--i:4"></div>
+            </section>
+        </div>
+        
+        <!-- Location Permission Request -->
+        <div id="location-request" class="text-center mb-8 {% if nearby_destinations %}hidden{% endif %}">
+            <p class="text-white mb-4">Allow location access to see destinations near you</p>
+            <button id="enable-location" class="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-pink-500 hover:to-purple-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Enable Location
+            </button>
+        </div>
+        
+        <!-- Nearby Destinations Grid -->
+        <div id="nearby-destinations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% if nearby_destinations %}
+                {% for destination in nearby_destinations %}
+                <a href="{% url 'destinations:destination_detail' destination.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                    <div class="relative h-64">
+                        {% with destination.images.all|first as first_image %}
+                        {% if first_image %}
+                            <img src="{{ first_image.image.url }}" 
+                                 alt="{{ first_image.alt_text|default:destination.name }}" 
+                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                 loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                        {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                <i class="fas fa-image text-gray-300 text-4xl"></i>
+                            </div>
+                        {% endif %}
+                        {% endwith %}   
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                        <div class="absolute top-4 right-4 bg-white/90 text-gray-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center">
+                            <svg class="w-3 h-3 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg> 
+                            {% with distance=destination.distance %}
+                                {% if distance < 0.1 %}
+                                    {% widthratio distance 1 1000 as meters %}
+                                    {{ meters|floatformat:'0' }} m
+                                {% elif distance < 1 %}
+                                    {% widthratio distance 1 1000 as meters %}
+                                    {{ meters|floatformat:'0' }} m
+                                {% elif distance < 10 %}
+                                    {{ distance|floatformat:'1' }} km
+                                {% else %}
+                                    {{ distance|floatformat:'0' }} km
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="absolute bottom-0 left-0 p-4 w-full">
+                            <h5 class="text-lg font-bold text-white">{{ destination.name }}</h5>
+                            <p class="text-blue-100 text-sm">
+                                {% if destination.city %}{{ destination.city }}{% endif %}
+                                {% if destination.region %}, {{ destination.region.name }}{% endif %}
+                            </p>
+                            {% if destination.rating %}
+                            <div class="mt-2 flex items-center">
+                                <div class="flex text-yellow-300">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= destination.rating %}
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-xs text-gray-200">({{ destination.reviews_count|default:0 }})</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <!-- Fallback message when no nearby destinations are available -->
+                <div class="col-span-full text-center py-12">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No nearby destinations found</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4">We couldn't find any destinations near your current location.</p>
+                    <button id="retry-location" class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">
+                        Try Again
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-12 text-center">
+            <a href="{% url 'destinations:destination_list' %}" class="inline-block bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-600 text-white font-medium py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+                View All Destinations
+            </a>
+        </div>
+        
+        <!-- Popular Attractions Section -->
+        <div class="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+            <div class="max-w-screen-2xl w-full mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Popular Attractions</h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"></div>
+                    <p class="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-3xl w-full mx-auto">
+                        Discover the most visited and highly rated attractions around the world
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for attraction in popular_attractions %}
+                    <div class="group bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+                        <div class="relative overflow-hidden h-64">
+                            {% if attraction.destination.images.all %}
+                                <img src="{{ attraction.destination.images.first.image.url }}" 
+                                     alt="{{ attraction.name }}" 
+                                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                                     alt="{{ attraction.name }}" 
+                                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-6">
+                                <div class="flex items-center mb-2">
+                                    <span class="text-yellow-400 text-sm">★★★★★</span>
+                                    <span class="text-white text-sm ml-2">4.8 ({{ forloop.counter }}k)</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white">{{ attraction.name }}</h3>
+                                <p class="text-gray-200 text-sm">
+                                    {{ attraction.city }}{% if attraction.country %}, {{ attraction.country }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                                {% if attraction.description %}
+                                    {{ attraction.description|truncatewords:25 }}
+                                {% else %}
+                                    Discover the beauty of {{ attraction.name }}, a must-visit attraction in {{ attraction.destination.name }}.
+                                {% endif %}
+                            </p>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-500 text-sm">Starting from</p>
+                                    <p class="text-purple-600 dark:text-purple-400 font-bold">
+                                        ${{ forloop.counter|add:19 }}.99
+                                    </p>
+                                </div>
+                                <a href="{% url 'destinations:attraction_detail' attraction.slug %}" 
+                                   class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
+                                    Learn More →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <!-- Fallback content if no attractions are available -->
+                    <div class="col-span-full text-center py-12">
+                        <div class="flex flex-col items-center justify-center">
+                            <div id="attractions-loader" class="attractions-loader-container">
+                                <div class="attraction-slide-bar" style="--i:0"></div>
+                                <div class="attraction-slide-bar" style="--i:1"></div>
+                                <div class="attraction-slide-bar" style="--i:2"></div>
+                                <div class="attraction-slide-bar" style="--i:3"></div>
+                                <div class="attraction-slide-bar" style="--i:4"></div>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 mt-6">Loading popular attractions...</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-12 text-center">
+                    <a href="{% url 'destinations:attraction_list' %}" class="inline-block bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-600 text-white font-medium py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        View All Attractions
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Travel Tips & Guides Section -->
+        <section class="py-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                <div class="absolute bottom-1/4 left-1/4 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+            </div>
+            
+            <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+                <!-- Section header with title and description -->
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Travel Tips & Guides</h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-indigo-500 to-pink-500 mx-auto rounded-full"></div>
+                    <p class="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-3xl w-full mx-auto">
+                        Expert travel advice, packing tips, and destination guides to help you plan your perfect trip
+                    </p>
+                </div>
+
+                <!-- Travel tips grid layout - responsive with 4 columns on large screens, 2 on medium, 1 on small -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Travel Tip 1: Packing Essentials -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+                        <!-- Card header with gradient background and icon -->
+                        <div class="h-48 bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <!-- Card content with title, description and button -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Packing Essentials</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Never forget the essentials with our comprehensive packing checklist for any type of trip.
+                            </p>
+                            <!-- Button with proper URL and enhanced hover effects -->
+                            <a href="{% url 'destinations:destination_list' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center group transition-all duration-200">
+                                Read Guide <span class="ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Travel Tip 2: Best Time to Visit -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+                        <!-- Card header with gradient background and icon -->
+                        <div class="h-48 bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <!-- Card content with title, description and button -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Best Time to Visit</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Discover the perfect time to visit popular destinations around the world for the best experience.
+                            </p>
+                            <!-- Button with proper URL and enhanced hover effects -->
+                            <a href="{% url 'tours:list' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center group transition-all duration-200">
+                                View Tours <span class="ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Travel Tip 3: Budget Travel -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+                        <!-- Card header with gradient background and icon -->
+                        <div class="h-48 bg-gradient-to-r from-pink-400 to-rose-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                        </div>
+                        <!-- Card content with title, description and button -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Budget Travel</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Explore the world without breaking the bank with our money-saving travel tips and tricks.
+                            </p>
+                            <!-- Button with proper URL and enhanced hover effects -->
+                            <a href="{% url 'bookings:create_booking' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center group transition-all duration-200">
+                                Book Now <span class="ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Travel Tip 4: Photography Tips (New Card) -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+                        <!-- Card header with gradient background and icon -->
+                        <div class="h-48 bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <!-- Card content with title, description and button -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Photography Tips</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Capture stunning travel memories with our expert photography tips for any destination.
+                            </p>
+                            <!-- Button with proper URL and enhanced hover effects -->
+                            <a href="{% url 'itineraries:itinerary_list' %}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium inline-flex items-center group transition-all duration-200">
+                                View Itineraries <span class="ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section> 
+        <!-- Popular Destinations Section -->
+        <section class="py-20 bg-white dark:bg-gray-900 relative overflow-hidden">
+            <div class="absolute inset-0">
+                <div class="absolute inset-0 bg-grid-gray-200 dark:bg-grid-gray-700/50 [mask-image:linear-gradient(0deg,white,transparent)]"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/90 to-white dark:from-transparent dark:via-gray-900/90 dark:to-gray-900"></div>
+            </div>
+            
+            <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+                <div class="text-center mb-16">
+                    <!-- Section Badge - Blue to Purple Gradient -->
+                    <span class="inline-block px-5 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold tracking-wide uppercase rounded-full mb-4 shadow-lg">
+                        <span class="relative z-10">Explore The World</span>
+                    </span>
+                    <!-- Section Heading with Gradient Text -->
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                        Popular <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">Destinations</span>
+                    </h2>
+                    <!-- Decorative Divider Line with Matching Gradient -->
+                    <div class="w-24 h-1.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full mb-6"></div>
+                    <!-- Section Description -->
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-4xl w-full mx-auto leading-relaxed">
+                        Discover our most sought-after destinations that promise unforgettable experiences and breathtaking landscapes
+                    </p>
+                </div>
+
+                <!-- Regional Highlights Section -->
+                {% if has_regional_content %}
+                <div class="mb-20">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Explore by Region</h3>
+                    <div class="space-y-8">
+                        {% for region, destinations in regional_destinations.items %}
+                        <div class="region-section">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ region.name }}</h4>
+                                <a href="{% url 'destinations:region_detail' region.slug %}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center">
+                                    View all in {{ region.name }} <span class="ml-1">→</span>
+                                </a>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {% for destination in destinations %}
+                                <a href="{% url 'destinations:destination_detail' destination.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                                    <div class="relative h-64 w-full overflow-hidden">
+                                        {% with destination.images.all|first as first_image %}
+                                            {% if first_image %}
+                                                <img src="{{ first_image.image.url }}" 
+                                                     alt="{{ first_image.alt_text|default:destination.name }}" 
+                                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                     loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                            {% else %}
+                                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-image text-gray-300 text-4xl"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                        <div class="absolute bottom-0 left-0 p-4 w-full">
+                                            <h5 class="text-lg font-bold text-white">{{ destination.name }}</h5>
+                                            <p class="text-blue-100 text-sm">
+                                                {% if destination.city %}{{ destination.city }}{% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top Rated Destinations -->
+                {% if has_top_rated %}
+                <div class="mb-20">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Top Rated Destinations</h3>
+                        <a href="{% url 'destinations:destination_list' %}?sort=rating" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center">
+                            View all <span class="ml-1">→</span>
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% for destination in top_rated_destinations %}
+                        <a href="{% url 'destinations:destination_detail' destination.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                            <div class="relative h-64">
+                                {% with destination.images.all|first as first_image %}
+                                    {% if first_image %}
+                                        <img src="{{ first_image.image.url }}" 
+                                             alt="{{ first_image.alt_text|default:destination.name }}" 
+                                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                             loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                    {% else %}
+                                        <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-300 text-4xl"></i>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                <div class="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full flex items-center">
+                                    <span>★</span>
+                                    <span class="ml-1">{{ destination.rating|default:5.0|floatformat:1 }}</span>
+                                </div>
+                                <div class="absolute bottom-0 left-0 p-4 w-full">
+                                    <h5 class="text-lg font-bold text-white">{{ destination.name }}</h5>
+                                    <p class="text-blue-100 text-sm">
+                                        {% if destination.city %}{{ destination.city }}{% endif %}
+                                        {% if destination.region %}, {{ destination.region.name }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Nearby Destinations -->
+                {% if has_nearby %}
+                <div class="mb-20">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Destinations Near You</h3>
+                        <button id="getLocationBtn" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Refresh Location
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="nearbyDestinations">
+                        {% for destination in nearby_destinations %}
+                        <a href="{% url 'destinations:destination_detail' destination.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                            <div class="relative h-64">
+                                {% if first_image %}
+                                                <img src="{{ first_image.image.url }}" 
+                                                     alt="{{ first_image.alt_text|default:destination.name }}" 
+                                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                     loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                            {% else %}
+                                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-image text-gray-300 text-4xl"></i>
+                                                </div>
+                                            {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                <div class="absolute top-4 right-4 bg-white text-gray-800 text-xs font-bold px-2.5 py-1 rounded-full">
+                                    {{ destination.distance|floatformat:1 }} km
+                                </div>
+                                <div class="absolute bottom-0 left-0 p-4 w-full">
+                                    <h5 class="text-lg font-bold text-white">{{ destination.name }}</h5>
+                                    <p class="text-blue-100 text-sm">
+                                        {% if destination.city %}{{ destination.city }}{% endif %}
+                                        {% if destination.region %}, {{ destination.region.name }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Popular Attractions -->
+                {% if has_attractions %}
+                <div class="mb-20">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Popular Attractions</h3>
+                        <a href="{% url 'destinations:attraction_list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center">
+                            View all <span class="ml-1">→</span>
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% for attraction in featured_attractions %}
+                        <a href="{% url 'destinations:attraction_detail' attraction.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                            <div class="relative h-64">
+                                {% if attraction.primary_images %}
+                                    {% with primary_image=attraction.primary_images.0 %}
+                                    <img src="{{ primary_image.image.url }}" 
+                                         alt="{{ primary_image.alt_text|default:attraction.name }}" 
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                         loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                    {% endwith %}
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80" 
+                                         alt="{{ attraction.name }}" 
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                         loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                <div class="absolute bottom-0 left-0 p-4 w-full">
+                                    <div class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-2">
+                                        {{ attraction.category }}
+                                    </div>
+                                    <h5 class="text-lg font-bold text-white">{{ attraction.name }}</h5>
+                                    <p class="text-blue-100 text-sm">
+                                        {{ attraction.destination.name }}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Trending Tours 
+     
+-->
+                <!-- Recently Added Destinations -->
+                {% if has_recent %}
+                <div class="mb-20">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Recently Added</h3>
+                        <a href="{% url 'destinations:destination_list' %}?sort=newest" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center">
+                            View all <span class="ml-1">→</span>
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% for destination in recent_destinations %}
+                        <a href="{% url 'destinations:destination_detail' destination.slug %}" class="group relative rounded-2xl overflow-hidden shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-2 block">
+                            <div class="relative h-64">
+                                {% if destination.primary_images %}
+                                    {% with primary_image=destination.primary_images.0 %}
+                                    <img src="{{ primary_image.image.url }}" 
+                                         alt="{{ primary_image.alt_text|default:destination.name }}" 
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                         loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                    {% endwith %}
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80" 
+                                         alt="{{ destination.name }}" 
+                                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                         loading="{% if forloop.counter <= 2 %}eager{% else %}lazy{% endif %}">
+                                {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                <div class="absolute top-4 right-4 bg-white/90 text-gray-800 text-xs font-bold px-2.5 py-1 rounded-full">
+                                    New
+                                </div>
+                                <div class="absolute bottom-0 left-0 p-4 w-full">
+                                    <h5 class="text-lg font-bold text-white">{{ destination.name }}</h5>
+                                    <p class="text-blue-100 text-sm">
+                                        {% if destination.city %}{{ destination.city }}{% endif %}
+                                        {% if destination.region %}, {{ destination.region.name }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Travel Gallery Section -->
+                
+                <!-- Call to action button at the bottom of the gallery -->
+                <div class="mt-16 text-center">
+                    <a href="{% url 'destinations:destination_list' %}" class="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                        View More Destinations
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        
+        <!-- Travel Gallery Section -->
+        <section class="py-20 bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 opacity-20">
+                <div class="absolute top-1/3 left-1/4 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+                <div class="absolute top-1/2 right-1/4 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+                <div class="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+            </div>
+            
+            <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+                <div class="text-center mb-12">
+                    <span class="inline-block px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm font-semibold tracking-wide uppercase rounded-full mb-4 shadow-lg">
+                        <span class="relative z-10">Visual Inspiration</span>
+                    </span>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                        Explore Our <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">Travel Gallery</span>
+                    </h2>
+                    <div class="w-24 h-1.5 bg-gradient-to-r from-indigo-400 to-purple-400 mx-auto rounded-full mb-6"></div>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-4xl w-full mx-auto leading-relaxed">
+                        Discover breathtaking destinations and get inspired for your next adventure through our curated collection of travel moments
+                    </p>
+                </div>
+
+                <!-- Include the gallery section -->
+                {% include 'core/gallery_section.html' %}
+
+                <div class="mt-12 text-center">
+                    <a href="{% url 'destinations:destination_list' %}" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-purple-500 hover:to-indigo-600 text-white font-medium py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-indigo-500/20">
+                        <span>View All Destinations</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Travel Experiences Section -->
+        <section class="py-20 bg-gradient-to-br from-white via-blue-50 to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 opacity-20">
+                <div class="absolute top-1/3 left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                <div class="absolute top-1/2 right-1/4 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+                <div class="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+            </div>
+            
+            <div class="max-w-screen-2xl w-full mx-auto px-4 relative z-10">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-5 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold tracking-wide uppercase rounded-full mb-4 shadow-lg">
+                        <span class="relative z-10">Exclusive Experiences</span>
+                    </span>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                        Unforgettable <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">Travel Moments</span>
+                    </h2>
+                    <div class="w-24 h-1.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full mb-6"></div>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-4xl w-full mx-auto leading-relaxed">
+                        Immerse yourself in extraordinary experiences that go beyond the ordinary and create lasting memories
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Experience 1 -->
+                    <div class="group relative rounded-2xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl">
+                        <div class="relative h-80">
+                            <img 
+                                src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80" 
+                                alt="Sunrise Hot Air Balloon Ride" 
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                loading="lazy"
+                            >
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-6 w-full">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-3 py-1 bg-blue-500/90 text-white text-xs font-semibold rounded-full">Adventure</span>
+                                    <span class="text-white/90 text-sm">4.9 ★ (128)</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Sunrise Hot Air Balloon Ride</h3>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-300 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-white/90 text-sm">Cappadocia, Turkey</span>
+                                    </div>
+                                    <span class="text-white font-bold">$199<span class="text-sm font-normal">/person</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience 2 -->
+                    <div class="group relative rounded-2xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl">
+                        <div class="relative h-80">
+                            <img 
+                                src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=800&q=80" 
+                                alt="Santorini Sunset Sailing" 
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                loading="lazy"
+                            >
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-6 w-full">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-3 py-1 bg-blue-500/90 text-white text-xs font-semibold rounded-full">Sailing</span>
+                                    <span class="text-white/90 text-sm">4.8 ★ (96)</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Santorini Sunset Sailing</h3>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-300 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-white/90 text-sm">Santorini, Greece</span>
+                                    </div>
+                                    <span class="text-white font-bold">$149<span class="text-sm font-normal">/person</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience 3 -->
+                    <div class="group relative rounded-2xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl md:col-span-2 lg:col-span-1">
+                        <div class="relative h-80">
+                            <img 
+                                src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=800&q=80" 
+                                alt="Kyoto Tea Ceremony Experience" 
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                loading="lazy"
+                            >
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-6 w-full">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="px-3 py-1 bg-blue-500/90 text-white text-xs font-semibold rounded-full">Culture</span>
+                                    <span class="text-white/90 text-sm">4.9 ★ (112)</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Kyoto Tea Ceremony Experience</h3>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-300 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-white/90 text-sm">Kyoto, Japan</span>
+                                    </div>
+                                    <span class="text-white font-bold">$89<span class="text-sm font-normal">/person</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 text-center">
+                    <a href="#" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-cyan-500 hover:to-emerald-600 text-white font-medium py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/20">
+                        <span>Explore All Experiences</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+    </section>
+            
+        <!-- JavaScript for Location and Nearby Destinations -->
+        <!-- Initialize server-side variable -->
+        <div id="server-data" data-has-destinations="{% if nearby_destinations %}true{% else %}false{% endif %}" style="display: none;"></div>
+        <script type="text/javascript">
+            // Get server-side data from data attribute
+            window.hasServerDestinations = document.getElementById('server-data').getAttribute('data-has-destinations') === 'true';
+        </script>
+        <script>
+            /**
+             * Handles the nearby destinations functionality
+             * - Requests user location
+             * - Sends coordinates to backend
+             * - Fetches and displays nearby destinations
+             */
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get DOM elements
+                const enableLocationBtn = document.getElementById('enable-location');
+                const locationRequest = document.getElementById('location-request');
+                const nearbyLoader = document.getElementById('nearby-loader');
+                const nearbyDestinations = document.getElementById('nearby-destinations');
+                
+                // Get server-side variable
+                const hasServerDestinations = window.hasServerDestinations || false;
+                
+                // Handle initial state
+                if (hasServerDestinations) {
+                    // Hide loader if we already have destinations
+                    nearbyLoader.classList.add('hidden');
+                } else {
+                    // Try to get location automatically if permission was previously granted
+                    tryGetLocation();
+                }
+                
+                // Handle enable location button click
+                function setupLocationButton() {
+                    const enableLocationBtn = document.getElementById('enable-location');
+                    if (enableLocationBtn) {
+                        // Remove any existing event listeners
+                        const newBtn = enableLocationBtn.cloneNode(true);
+                        enableLocationBtn.parentNode.replaceChild(newBtn, enableLocationBtn);
+                        
+                        // Add new event listener
+                        newBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            console.log('Location button clicked');
+                            // Show loader
+                            if (nearbyLoader) nearbyLoader.classList.remove('hidden');
+                            // Hide location request
+                            if (locationRequest) locationRequest.classList.add('hidden');
+                            // Get location
+                            getLocation();
+                        });
+                    }
+                }
+                
+                // Initial setup
+                setupLocationButton();
+                
+                /**
+                 * Try to get location without user interaction if permission was previously granted
+                 * This function attempts to silently get the user's location if they've already granted permission
+                 * Uses a short timeout to avoid blocking the UI if permission hasn't been decided yet
+                 */
+                function tryGetLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            function(position) {
+                                // Success - hide location request and show loader
+                                locationRequest.classList.add('hidden');
+                                nearbyLoader.classList.remove('hidden');
+                                // Process location
+                                handleLocationSuccess(position);
+                            },
+                            function(error) {
+                                // Error or permission denied - show location request button
+                                locationRequest.classList.remove('hidden');
+                                nearbyLoader.classList.add('hidden');
+                                console.log('Location error or permission not granted yet:', error);
+                            },
+                            {
+                                enableHighAccuracy: true,
+                                timeout: 10000, // 10 second timeout
+                                maximumAge: 0 // Force fresh location
+                            }
+                        );
+                    } else {
+                        // Geolocation not supported
+                        locationRequest.classList.add('hidden');
+                        console.log('Geolocation is not supported by this browser.');
+                    }
+                }
+                
+                /**
+                 * Get user location with full options
+                 * This function explicitly requests the user's location with a permission prompt
+                 * Uses high accuracy and longer timeout for better results
+                 */
+                function getLocation() {
+                    if (navigator.geolocation) {
+                        // Show loading state
+                        if (enableLocationBtn) {
+                            enableLocationBtn.disabled = true;
+                            enableLocationBtn.innerHTML = `
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Getting location...
+                            `;
+                        }
+                        
+                        navigator.geolocation.getCurrentPosition(
+                            handleLocationSuccess,
+                            handleLocationError,
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                        );
+                    } else {
+                        handleLocationError({ code: 0, message: 'Geolocation not supported' });
+                    }
+                }
+                
+                /**
+                 * Handle successful location acquisition
+                 * This function processes the user's location coordinates after permission is granted
+                 * It stores the location in the session and fetches nearby destinations
+                 * 
+                 * @param {GeolocationPosition} position - The position object containing coordinates
+                 */
+                function handleLocationSuccess(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Store location in session
+                    storeLocation(lat, lng);
+                    
+                    // Fetch nearby destinations
+                    fetchNearbyDestinations(lat, lng);
+                }
+                
+                /**
+                 * Handle location error
+                 * This function processes errors that occur during location acquisition
+                 * It displays appropriate error messages based on the error type
+                 * 
+                 * @param {GeolocationPositionError} error - The error object with code and message
+                 */
+                function handleLocationError(error) {
+                    // Hide loader
+                    nearbyLoader.classList.add('hidden');
+                    
+                    // Show location request again
+                    locationRequest.classList.remove('hidden');
+                    
+                    console.error('Error getting location:', error);
+                    
+                    // Show error message
+                    let errorMsg = 'Unable to determine your location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Please enable location access to see nearby destinations.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'The request to get your location timed out.';
+                            break;
+                        default:
+                            errorMsg += 'An unknown error occurred.';
+                            break;
+                    }
+                    
+                    // Update the location request message
+                    const locationMsg = locationRequest.querySelector('p');
+                    if (locationMsg) {
+                        locationMsg.textContent = errorMsg;
+                    }
+                }
+                
+                /**
+                 * Store user location in session via API
+                 * This function sends the user's coordinates to the server to be stored in the session
+                 * This allows the server to remember the user's location between page loads
+                 * 
+                 * @param {number} lat - Latitude coordinate
+                 * @param {number} lng - Longitude coordinate
+                 */
+                function storeLocation(lat, lng) {
+                    fetch('/api/set-location/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ lat, lng })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Location stored:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error storing location:', error);
+                    });
+                }
+                
+                /**
+                 * Fetch nearby destinations from API
+                 * This function calls the backend API to get destinations near the user's location
+                 * It handles the API response and displays the results or error messages
+                 * 
+                 * @param {number} lat - Latitude coordinate
+                 * @param {number} lng - Longitude coordinate
+                 */
+                function fetchNearbyDestinations(lat, lng) {
+                    // API endpoint for nearby destinations
+                    const apiUrl = `/api/nearby-destinations/?lat=${lat}&lng=${lng}&radius=20&limit=4`;
+                    
+                    fetch(apiUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.destinations && data.destinations.length > 0) {
+                                // Render destinations
+                                renderDestinations(data.destinations);
+                            } else {
+                                // No destinations found
+                                showNoDestinationsMessage();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching nearby destinations:', error);
+                            showNoDestinationsMessage();
+                        })
+                        .finally(() => {
+                            // Hide loader
+                            nearbyLoader.classList.add('hidden');
+                        });
+                }
+                
+                /**
+                 * Render destinations in the grid
+                 * This function creates and displays destination cards in the grid layout
+                 * It clears any existing content and creates new cards for each destination
+                 * 
+                 * @param {Array} destinations - Array of destination objects from the API
+                 */
+                function renderDestinations(destinations) {
+                    // Clear existing content
+                    nearbyDestinations.innerHTML = '';
+                                    // Create and append destination cards
+                    destinations.forEach(destination => {
+                        // Create card element
+                        const card = document.createElement('div');
+                        card.className = 'card group';
+                        
+                        // Get image URL or use placeholder
+                        const imageUrl = destination.image_url || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80';
+                        
+                        // Format distance with one decimal place
+                        const distance = parseFloat(destination.distance).toFixed(1);
+                        
+                        // Set card HTML content
+                        card.innerHTML = `
+                            <div class="card-image" style="background-image: url('${imageUrl}');">
+                                <div class="card-overlay"></div>
+                                <div class="card-content">
+                                    <h3 class="text-xl font-bold text-white">${destination.name}</h3>
+                                    <p class="text-gray-200">${distance} km away</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Add click event to navigate to destination detail page
+                        card.addEventListener('click', function() {
+                            window.location.href = `/destinations/${destination.slug}/`;
+                        });
+                        
+                        nearbyDestinations.appendChild(card);
+                    });
+                }
+                
+                /**
+                 * Show message when no destinations are found
+                 * This function displays a helpful message when no nearby destinations are available
+                 * It suggests alternatives to the user such as exploring featured destinations
+                 */
+                function showNoDestinationsMessage() {
+                    nearbyDestinations.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <p class="text-white text-lg">No destinations found nearby.</p>
+                            <p class="text-gray-400 mt-2">Try increasing the search radius or explore our featured destinations.</p>
+                        </div>
+                    `;
+                }
+                
+                /**
+                 * Get CSRF token from cookies
+                 * This function extracts the Django CSRF token from cookies for secure API requests
+                 * It's necessary for making POST requests to Django endpoints
+                 * 
+                 * @param {string} name - Cookie name to retrieve (typically 'csrftoken')
+                 * @returns {string} Cookie value or null if not found
+                 */
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+            });
+        </script>
+    </div>
+    
+    <style>
+        /* Card Styles */
+        .card {
+            width: 100%;
+            height: 254px;
+            border-radius: 30px;
+            background: #1a1a1a;
+            box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.3),
+                       -15px -15px 30px rgba(50, 50, 50, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.4),
+                       -20px -20px 40px rgba(50, 50, 50, 0.3);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .card-image {
+            transform: scale(1.05);
+        }
+        
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%);
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .card:hover .card-overlay {
+            opacity: 0.9;
+        }
+        
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover .card-content {
+            transform: translateY(0);
+        }
+        
+        /* Loader Animation */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .loader {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 20%;
+            background: linear-gradient(90deg, #8a2be2, #ff00ff, #00ffff, #ff00ff, #8a2be2);
+            background-size: 400% 400%;
+            border-radius: 5px;
+            animation: slide 2s ease infinite, gradient 3s ease infinite;
+            opacity: 0.8;
+            transform: translateX(calc(-100% + (var(--i) * 100%)));
+        }
+        
+        @keyframes slide {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(calc(400% - (var(--i) * 100%)));
+            }
+        }
+        
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        /* Animation Delays */
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+        
+        /* Blob Animation */
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        
+        @keyframes blob {
+            0% {
+                transform: translate(0px, 0px) scale(1);
+            }
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+            100% {
+                transform: translate(0px, 0px) scale(1);
+            }
+        }
+    </style>
+</section>
+{% endblock %}

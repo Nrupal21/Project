@@ -1,0 +1,525 @@
+{% extends 'destinations/guide_base.html' %}
+{% load static %}
+{% load form_utils %}
+
+<!-- 
+Attraction Form Template
+- Provides UI for creating and editing attraction entries
+- Uses Bootstrap 5 for form styling with indigo/violet color scheme
+- Includes file upload fields for cover and banner images
+- Supports multiple image uploads with drag and drop functionality
+- Form validation with error display
+-->
+
+{% block page_title %}
+    {% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add New Attraction{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    .form-section {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .form-section h5 {
+        color: #4f46e5;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #location-map {
+        height: 300px;
+        width: 100%;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .image-upload-container {
+        border: 2px dashed #d1d5db;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        background-color: #f9fafb;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .image-upload-container:hover {
+        border-color: #9ca3af;
+        background-color: #f3f4f6;
+    }
+    
+    .image-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .image-preview-item {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .image-actions {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        display: flex;
+        gap: 0.25rem;
+    }
+    
+    .btn-image-action {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .image-preview-item:hover .btn-image-action {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block guide_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">
+                        <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} me-2"></i>
+                        {% if form.instance.pk %}Edit Attraction{% else %}Add New Attraction{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="attraction-form">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                            <div class="row">
+                                <!-- Name field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                                        {{ form.name|add_class:"form-control" }}
+                                        {% if form.name.help_text %}
+                                            <div class="form-text text-muted">{{ form.name.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Destination field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.destination.id_for_label }}" class="form-label">{{ form.destination.label }}</label>
+                                        {{ form.destination|add_class:"form-control" }}
+                                        {% if form.destination.help_text %}
+                                            <div class="form-text text-muted">{{ form.destination.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.destination.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.destination.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Cover Image Upload -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="cover_image" class="form-label">Cover Image</label>
+                                    <input type="file" class="form-control" id="cover_image" name="cover_image" accept="image/*">
+                                    <div class="form-text">This will be the main image displayed for your attraction (recommended size: 1200x630px)</div>
+                                </div>
+                            </div>
+                            <!-- Banner Image Upload -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="banner_image" class="form-label">Banner Image</label>
+                                    <input type="file" class="form-control" id="banner_image" name="banner_image" accept="image/*">
+                                    <div class="form-text">This will be used as a banner for your attraction (recommended size: 1920x400px)</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Category field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                                        {{ form.category|add_class:"form-control" }}
+                                        {% if form.category.help_text %}
+                                            <div class="form-text text-muted">{{ form.category.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.category.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.category.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Is Featured field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.is_featured.id_for_label }}" class="form-label">{{ form.is_featured.label }}</label>
+                                        {{ form.is_featured|add_class:"form-control" }}
+                                        {% if form.is_featured.help_text %}
+                                            <div class="form-text text-muted">{{ form.is_featured.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.is_featured.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.is_featured.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Short description field with indigo/violet styling -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                                        {{ form.description|add_class:"form-control" }}
+                                        {% if form.description.help_text %}
+                                            <div class="form-text text-muted">{{ form.description.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.description.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Location Information -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-map-marker-alt me-2"></i>Location Information</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    {% with destination=form.destination.value %}
+                                    <div id="location-map" 
+                                         data-lat="{% if form.instance.latitude %}{{ form.instance.latitude }}{% elif destination and destination.latitude %}{{ destination.latitude }}{% else %}20.5937{% endif %}" 
+                                         data-lng="{% if form.instance.longitude %}{{ form.instance.longitude }}{% elif destination and destination.longitude %}{{ destination.longitude }}{% else %}78.9629{% endif %}"
+                                         data-zoom="15">
+                                    </div>
+                                    {% endwith %}
+                                    <small class="text-muted">Click on the map to set the attraction location or drag the marker</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Latitude field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.latitude.id_for_label }}" class="form-label">{{ form.latitude.label }}</label>
+                                        {{ form.latitude|add_class:"form-control" }}
+                                        {% if form.latitude.help_text %}
+                                            <div class="form-text text-muted">{{ form.latitude.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.latitude.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.latitude.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Longitude field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.longitude.id_for_label }}" class="form-label">{{ form.longitude.label }}</label>
+                                        {{ form.longitude|add_class:"form-control" }}
+                                        {% if form.longitude.help_text %}
+                                            <div class="form-text text-muted">{{ form.longitude.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.longitude.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.longitude.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Address field with indigo/violet styling -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
+                                        {{ form.address|add_class:"form-control" }}
+                                        {% if form.address.help_text %}
+                                            <div class="form-text text-muted">{{ form.address.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.address.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- City field with indigo/violet styling -->
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="{{ form.city.id_for_label }}" class="form-label">{{ form.city.label }}</label>
+                                        {{ form.city|add_class:"form-control" }}
+                                        {% if form.city.help_text %}
+                                            <div class="form-text text-muted">{{ form.city.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.city.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Country field with indigo/violet styling -->
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="{{ form.country.id_for_label }}" class="form-label">{{ form.country.label }}</label>
+                                        {{ form.country|add_class:"form-control" }}
+                                        {% if form.country.help_text %}
+                                            <div class="form-text text-muted">{{ form.country.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.country.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in form.country.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Images -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-images me-2"></i>Attraction Images</h5>
+                            <div class="image-upload-container" id="image-upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-gray-400 mb-2"></i>
+                                <h5>Drag & drop images here or click to browse</h5>
+                                <p class="text-muted">Upload high-quality images (JPG, PNG, max 5MB each)</p>
+                                <input type="file" name="images" id="id_images" multiple accept="image/*" 
+                                       class="d-none" data-preview="image-preview-container">
+                            </div>
+                            
+                            <div id="image-preview-container" class="image-preview">
+                                {% if form.instance.pk and form.instance.images.exists %}
+                                    {% for image in form.instance.images.all %}
+                                    <div class="image-preview-item" data-image-id="{{ image.id }}">
+                                        <img src="{{ image.image.url }}" alt="{{ form.instance.name|default:'Attraction image' }}">
+                                        <div class="image-actions">
+                                            <button type="button" class="btn-image-action delete-image" 
+                                                    data-bs-toggle="tooltip" title="Delete image">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% if form.instance.pk %}{% url 'destinations:attraction_detail' form.instance.slug %}{% else %}{% url 'destinations:attraction_list' %}{% endif %}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <div>
+                                <button type="submit" name="save_and_continue" class="btn btn-outline-primary">
+                                    <i class="fas fa-save me-1"></i> Save & Continue
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check me-1"></i> {% if form.instance.pk %}Update{% else %}Create{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map if the element exists
+    if (document.getElementById('location-map')) {
+        const mapElement = document.getElementById('location-map');
+        const defaultLat = parseFloat(mapElement.dataset.lat) || 20.5937;
+        const defaultLng = parseFloat(mapElement.dataset.lng) || 78.9629;
+        const zoom = parseInt(mapElement.dataset.zoom) || 15;
+        
+        const map = L.map('location-map').setView([defaultLat, defaultLng], zoom);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        let marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+        
+        // Update hidden fields when marker is moved
+        marker.on('dragend', function(e) {
+            const position = marker.getLatLng();
+            document.getElementById('id_latitude').value = position.lat.toFixed(6);
+            document.getElementById('id_longitude').value = position.lng.toFixed(6);
+        });
+        
+        // Update marker position when clicking on the map
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('id_latitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('id_longitude').value = e.latlng.lng.toFixed(6);
+        });
+    }
+    
+    // Image upload handling
+    const imageUploadArea = document.getElementById('image-upload-area');
+    const fileInput = document.getElementById('id_images');
+    const previewContainer = document.getElementById('image-preview-container');
+    
+    if (imageUploadArea && fileInput && previewContainer) {
+        // Click handler for the upload area
+        imageUploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="image-actions">
+                            <button type="button" class="btn-image-action delete-image" 
+                                    data-bs-toggle="tooltip" title="Remove image">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    previewContainer.appendChild(previewItem);
+                    
+                    // Initialize tooltips for the delete button
+                    const tooltipTriggerList = [].slice.call(previewItem.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Handle image deletion
+        previewContainer.addEventListener('click', function(e) {
+            const deleteBtn = e.target.closest('.delete-image');
+            if (deleteBtn) {
+                const previewItem = deleteBtn.closest('.image-preview-item');
+                if (previewItem) {
+                    previewItem.remove();
+                }
+            }
+        });
+    }
+    
+    // Update map when destination changes
+    // This function updates the map view and form fields when a different destination is selected
+    const destinationSelect = document.getElementById('id_destination');
+    if (destinationSelect && map) {
+        destinationSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const lat = parseFloat(selectedOption.dataset.lat);
+            const lng = parseFloat(selectedOption.dataset.lng);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // Center the map on the selected destination
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+                
+                // Update location fields with precise coordinates
+                document.getElementById('id_latitude').value = lat.toFixed(6);
+                document.getElementById('id_longitude').value = lng.toFixed(6);
+                
+                // Update address fields if they exist
+                const cityField = document.getElementById('id_city');
+                const countryField = document.getElementById('id_country');
+                
+                if (selectedOption.dataset.city && cityField) {
+                    cityField.value = selectedOption.dataset.city;
+                }
+                if (selectedOption.dataset.country && countryField) {
+                    countryField.value = selectedOption.dataset.country;
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

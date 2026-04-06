@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+<!--
+This template renders the form for local guides to submit new destinations for approval.
+It includes form fields for destination details, validation error display,
+and image upload instructions.
+The form is styled with Tailwind CSS for a clean and responsive interface.
+-->
+
+{% block title %}Submit Destination for Approval{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Header section with title and description -->
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-indigo-700 mb-2">{% if form.instance.id %}Update{% else %}Submit{% endif %} Destination</h1>
+        <p class="text-gray-600">
+            Submit your destination for review by our team. Approved destinations will be published on the site,
+            and you'll earn 50 reward points!
+        </p>
+        
+        <!-- Status indicator if this is an update of a previously rejected submission -->
+        {% if form.instance.id and form.instance.approval_status == 'REJECTED' %}
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <h3 class="text-yellow-700 font-medium mb-2">This submission was previously rejected</h3>
+            <p class="text-yellow-600">Rejection reason: {{ form.instance.rejection_reason }}</p>
+            <p class="text-sm text-yellow-500 mt-2">Please address the issues mentioned above before resubmitting.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Main form section -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Form errors section -->
+            {% if form.errors %}
+            <div class="p-4 mb-4 bg-red-50 border border-red-200 rounded-md">
+                <h3 class="text-red-700 font-medium mb-2">Please correct the errors below</h3>
+                <ul class="list-disc pl-5 text-red-600">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Form fields section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Destination name -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.name.help_text }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Region selection -->
+                <div>
+                    <label for="{{ form.region.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.region.label }}
+                    </label>
+                    {{ form.region }}
+                    {% if form.region.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.region.help_text }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- City field -->
+                <div>
+                    <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.city.label }}
+                    </label>
+                    {{ form.city }}
+                    {% if form.city.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.city.help_text }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Country field -->
+                <div>
+                    <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.country.label }}
+                    </label>
+                    {{ form.country }}
+                    {% if form.country.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.country.help_text }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Price field -->
+                <div>
+                    <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.price.label }}
+                    </label>
+                    {{ form.price }}
+                    {% if form.price.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ form.price.help_text }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Location coordinates section with map widget -->
+                <div class="col-span-1 md:col-span-2">
+                    <h3 class="text-md font-medium text-gray-800 mb-2">Location Coordinates</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.latitude.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.latitude.label }}
+                            </label>
+                            {{ form.latitude }}
+                        </div>
+                        <div>
+                            <label for="{{ form.longitude.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.longitude.label }}
+                            </label>
+                            {{ form.longitude }}
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">You can use a map service like Google Maps to find the exact coordinates.</p>
+                </div>
+            </div>
+            
+            <!-- Description fields section -->
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.short_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.short_description.label }}
+                    </label>
+                    {{ form.short_description }}
+                    <p class="text-xs text-gray-500 mt-1">A brief summary of the destination (max 150 characters)</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.description.label }}
+                    </label>
+                    {{ form.description }}
+                    <p class="text-xs text-gray-500 mt-1">Detailed description of the destination - include history, what to see, and special features</p>
+                </div>
+            </div>
+            
+            <!-- Submit button section -->
+            <div class="flex justify-between items-center pt-4">
+                <a href="{% url 'destinations:guide_dashboard' %}" class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    {% if form.instance.id %}Update{% else %}Submit{% endif %} for Review
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Image upload info section -->
+    <div class="mt-8 bg-blue-50 p-5 rounded-lg border border-blue-100">
+        <h3 class="text-blue-800 font-medium mb-2">What happens next?</h3>
+        <ol class="list-decimal pl-5 text-blue-700 space-y-2">
+            <li>Submit this form to create your destination submission.</li>
+            <li>After submission, you'll be able to add images to your destination.</li>
+            <li>Our team will review your submission within 48-72 hours.</li>
+            <li>If approved, your destination will be published and you'll earn 50 reward points!</li>
+            <li>If changes are needed, you'll receive feedback and can update your submission.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add any additional JavaScript needed for form handling -->
+<script>
+    // Add any custom form validation or interactive elements here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Example: Add form validation or enhance form interaction
+        const form = document.querySelector('form');
+        
+        // Add custom form submission handler if needed
+        /*
+        form.addEventListener('submit', function(e) {
+            // Custom validation logic could go here
+        });
+        */
+    });
+</script>
+{% endblock %}

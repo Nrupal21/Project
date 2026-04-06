@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}API Monitoring Dashboard{% endblock %}
+
+{% block content %}
+<!-- API Monitoring Dashboard Section -->
+<section class="py-8 bg-gray-50 dark:bg-gray-800">
+  <div class="container mx-auto px-4">
+    <!-- Dashboard Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">API Monitoring Dashboard</h1>
+      <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        Monitor and test API endpoints. All calls are logged in the server's log files and displayed here.
+      </p>
+    </div>
+
+    <!-- API Request Form -->
+    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Make API Request</h2>
+      
+      <!-- API Request Form -->
+      <form id="apiRequestForm" class="space-y-4">
+        <!-- Method Selection -->
+        <div>
+          <label for="method" class="block text-sm font-medium text-gray-700 dark:text-gray-200">HTTP Method</label>
+          <select id="method" name="method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </div>
+        
+        <!-- API Endpoint -->
+        <div>
+          <label for="endpoint" class="block text-sm font-medium text-gray-700 dark:text-gray-200">API Endpoint</label>
+          <div class="mt-1 flex rounded-md shadow-sm">
+            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+              /api/v1/
+            </span>
+            <input type="text" name="endpoint" id="endpoint" class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder="core/nearby-destinations/">
+          </div>
+        </div>
+        
+        <!-- Request Headers -->
+        <div>
+          <label for="headers" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Headers (JSON)</label>
+          <textarea id="headers" name="headers" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder='{"Content-Type": "application/json"}'></textarea>
+        </div>
+        
+        <!-- Request Body -->
+        <div>
+          <label for="body" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Request Body (JSON)</label>
+          <textarea id="body" name="body" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-600" placeholder='{"key": "value"}'></textarea>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="flex justify-end">
+          <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+            Send Request
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Quick Endpoints (v1) Section) -->
+    <!-- Renders server-provided suggestions to quickly test common API endpoints -->
+    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Quick Endpoints (v1)</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Click an endpoint to prefill the form.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for item in api_endpoints %}
+          <button type="button"
+                  class="quick-endpoint flex items-center justify-between w-full px-4 py-2 rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-left hover:bg-indigo-50 dark:hover:bg-gray-600 transition"
+                  data-endpoint="{{ item.endpoint }}"
+                  data-method="{{ item.method|default:'GET' }}">
+            <span class="text-sm text-gray-800 dark:text-gray-200">{{ item.name }}</span>
+            <span class="ml-3 inline-flex items-center rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 text-xs font-medium">{{ item.method|default:'GET' }}</span>
+          </button>
+        {% empty %}
+          <div class="text-sm text-gray-500 dark:text-gray-300">No suggestions configured.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- API Response Section -->
+    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Response</h2>
+      
+      <!-- Response Metadata -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</h3>
+          <p id="response-status" class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">-</p>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Time</h3>
+          <p id="response-time" class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">-</p>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Size</h3>
+          <p id="response-size" class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">-</p>
+        </div>
+      </div>
+      
+      <!-- Response Headers -->
+      <div class="mb-4">
+        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Headers</h3>
+        <pre id="response-headers" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md overflow-auto max-h-40 text-sm text-gray-800 dark:text-gray-200">-</pre>
+      </div>
+      
+      <!-- Response Body -->
+      <div>
+        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Body</h3>
+        <pre id="response-body" class="bg-gray-50 dark:bg-gray-800 p-4 rounded-md overflow-auto max-h-96 text-sm text-gray-800 dark:text-gray-200">-</pre>
+      </div>
+    </div>
+    
+    <!-- Recent API Calls -->
+    <div class="mt-8 bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Recent API Calls</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Method</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Endpoint</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Duration</th>
+            </tr>
+          </thead>
+          <tbody id="api-calls-table" class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
+            <tr class="text-center">
+              <td colspan="5" class="px-6 py-4 text-gray-500 dark:text-gray-300">No API calls recorded yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JavaScript for API testing -->
+<script>
+  /**
+   * Wait for DOM content to be fully loaded before initializing
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Cache DOM elements for better performance
+    const apiForm = document.getElementById('apiRequestForm');
+    const methodSelect = document.getElementById('method');
+    const endpointInput = document.getElementById('endpoint');
+    const headersTextarea = document.getElementById('headers');
+    const bodyTextarea = document.getElementById('body');
+    
+    const responseStatus = document.getElementById('response-status');
+    const responseTime = document.getElementById('response-time');
+    const responseSize = document.getElementById('response-size');
+    const responseHeaders = document.getElementById('response-headers');
+    const responseBody = document.getElementById('response-body');
+    const apiCallsTable = document.getElementById('api-calls-table');
+    
+    // Recent API calls storage
+    let recentCalls = [];
+
+    /**
+     * Apply a quick endpoint selection to the form fields
+     * Sets the HTTP method and endpoint path
+     * Optionally pre-fills a sample JSON body for known POST endpoints
+     * @param {string} method - HTTP method like GET/POST
+     * @param {string} endpoint - Path after /api/v1/
+     */
+    function applyQuickEndpoint(method, endpoint) {
+      methodSelect.value = method || 'GET';
+      endpointInput.value = endpoint || '';
+      // Provide example JSON for known POST endpoints
+      if (method === 'POST') {
+        // Example: set user location endpoint expects lat/lng
+        if (endpoint && endpoint.indexOf('core/user-location') === 0) {
+          headersTextarea.value = JSON.stringify({ 'Content-Type': 'application/json' }, null, 2);
+          bodyTextarea.value = JSON.stringify({ lat: 35.6762, lng: 139.6503 }, null, 2);
+        }
+      }
+    }
+
+    /**
+     * Bind click handlers for quick endpoint buttons
+     */
+    function bindQuickEndpoints() {
+      const buttons = document.querySelectorAll('.quick-endpoint');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const method = btn.getAttribute('data-method') || 'GET';
+          const endpoint = btn.getAttribute('data-endpoint') || '';
+          applyQuickEndpoint(method, endpoint);
+        });
+      });
+    }
+    
+    /**
+     * Format bytes to human-readable format
+     * @param {number} bytes - The size in bytes
+     * @returns {string} - Formatted size with unit
+     */
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    /**
+     * Add a new API call to the recent calls table
+     * @param {Object} call - API call details
+     */
+    function addApiCall(call) {
+      // Add to recent calls array (limit to 10)
+      recentCalls.unshift(call);
+      if (recentCalls.length > 10) {
+        recentCalls.pop();
+      }
+      
+      // Rebuild the table
+      updateApiCallsTable();
+    }
+    
+    /**
+     * Update the API calls table with current data
+     */
+    function updateApiCallsTable() {
+      if (recentCalls.length === 0) {
+        apiCallsTable.innerHTML = `
+          <tr class="text-center">
+            <td colspan="5" class="px-6 py-4 text-gray-500 dark:text-gray-300">No API calls recorded yet</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      apiCallsTable.innerHTML = '';
+      recentCalls.forEach(call => {
+        // Determine status class for coloring
+        let statusClass = 'text-gray-800 dark:text-gray-200';
+        if (call.status >= 200 && call.status < 300) {
+          statusClass = 'text-green-600 dark:text-green-400';
+        } else if (call.status >= 400) {
+          statusClass = 'text-red-600 dark:text-red-400';
+        }
+        
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-600';
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${call.time}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400">${call.method}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${call.endpoint}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${statusClass}">${call.status}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">${call.duration}ms</td>
+        `;
+        apiCallsTable.appendChild(row);
+      });
+    }
+    
+    /**
+     * Handle form submission to make API request
+     * @param {Event} event - Form submission event
+     */
+    // Initialize quick endpoints handlers on load
+    bindQuickEndpoints();
+
+    apiForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      // Get form values
+      const method = methodSelect.value;
+      const endpoint = endpointInput.value.trim();
+      let headers = {};
+      let body = null;
+      
+      // Parse headers if provided
+      if (headersTextarea.value.trim()) {
+        try {
+          headers = JSON.parse(headersTextarea.value);
+        } catch (error) {
+          alert('Invalid JSON in headers field');
+          return;
+        }
+      }
+      
+      // Parse body if provided and not GET request
+      if (bodyTextarea.value.trim() && method !== 'GET') {
+        try {
+          body = JSON.parse(bodyTextarea.value);
+        } catch (error) {
+          alert('Invalid JSON in body field');
+          return;
+        }
+      }
+      
+      // Set request options
+      const options = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        credentials: 'same-origin',
+      };
+      
+      // Add body for non-GET requests
+      if (method !== 'GET' && body) {
+        options.body = JSON.stringify(body);
+      }
+      
+      // Update UI to show loading state
+      responseStatus.textContent = 'Loading...';
+      responseTime.textContent = '-';
+      responseSize.textContent = '-';
+      responseHeaders.textContent = '-';
+      responseBody.textContent = 'Loading...';
+      
+      // Record start time
+      const startTime = performance.now();
+      
+      // Make the API request
+      fetch(`/api/v1/${endpoint}`, options)
+        .then(response => {
+          // Calculate request duration
+          const duration = Math.round(performance.now() - startTime);
+          
+          // Clone the response to get both body text and headers
+          const clone = response.clone();
+          
+          // Format headers for display
+          const headersObj = {};
+          response.headers.forEach((value, key) => {
+            headersObj[key] = value;
+          });
+          
+          // Update response metadata
+          responseStatus.textContent = `${response.status} ${response.statusText}`;
+          responseTime.textContent = `${duration}ms`;
+          responseHeaders.textContent = JSON.stringify(headersObj, null, 2);
+          
+          // Update status color
+          if (response.ok) {
+            responseStatus.className = 'mt-1 text-lg font-semibold text-green-600 dark:text-green-400';
+          } else {
+            responseStatus.className = 'mt-1 text-lg font-semibold text-red-600 dark:text-red-400';
+          }
+          
+          // Add to recent calls
+          addApiCall({
+            time: new Date().toLocaleTimeString(),
+            method: method,
+            endpoint: endpoint,
+            status: response.status,
+            duration: duration
+          });
+          
+          // Return the response body as text
+          return clone.text();
+        })
+        .then(text => {
+          // Update response size
+          responseSize.textContent = formatBytes(new Blob([text]).size);
+          
+          // Try to parse as JSON for pretty-printing
+          try {
+            const json = JSON.parse(text);
+            responseBody.textContent = JSON.stringify(json, null, 2);
+          } catch (e) {
+            // If not JSON, show as plain text
+            responseBody.textContent = text;
+          }
+        })
+        .catch(error => {
+          // Handle network errors
+          responseStatus.textContent = 'Network Error';
+          responseStatus.className = 'mt-1 text-lg font-semibold text-red-600 dark:text-red-400';
+          responseBody.textContent = error.message;
+          
+          // Add to recent calls
+          addApiCall({
+            time: new Date().toLocaleTimeString(),
+            method: method,
+            endpoint: endpoint,
+            status: 'Error',
+            duration: Math.round(performance.now() - startTime)
+          });
+        });
+    });
+  });
+</script>
+{% endblock %}

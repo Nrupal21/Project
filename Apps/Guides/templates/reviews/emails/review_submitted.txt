@@ -1,0 +1,28 @@
+Subject: Thank You for Your Review on TravelGuide
+
+Hello {{ user.first_name|default:"there" }},
+
+Thank you for taking the time to write a review on TravelGuide! We appreciate your feedback and have received your review for "{{ content_object.name }}".
+
+{% if review.status == 'pending' %}
+Your review is currently pending approval and will be visible to others once it has been moderated by our team. This process usually takes 24-48 hours.
+{% else %}
+Your review has been approved and is now visible to other travelers.
+{% endif %}
+
+Review Details:
+- Rating: {{ review.rating }}/5
+- Title: {{ review.title }}
+- Review: {{ review.content|truncatewords:30 }}
+
+{% if review.status == 'pending' %}
+You can check the status of your review at any time by visiting your account dashboard: {{ dashboard_url }}
+{% endif %}
+
+Thank you for being a valued member of the TravelGuide community!
+
+Best regards,
+The TravelGuide Team
+
+---
+This is an automated message. Please do not reply to this email.

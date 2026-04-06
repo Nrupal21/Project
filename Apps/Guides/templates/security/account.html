@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Security - TravelGuide{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Account Security</h1>
+            
+            <!-- Security Status Overview Card -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Security Status Overview</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <!-- 2FA Status -->
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center py-4">
+                                    {% if twofa_enabled %}
+                                        <i class="fas fa-shield-check fa-3x text-success mb-3"></i>
+                                        <h3 class="h5">Two-Factor Authentication</h3>
+                                        <p class="text-success mb-0">Enabled</p>
+                                    {% else %}
+                                        <i class="fas fa-shield-exclamation fa-3x text-danger mb-3"></i>
+                                        <h3 class="h5">Two-Factor Authentication</h3>
+                                        <p class="text-danger mb-0">Not Enabled</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white border-0 text-center">
+                                    {% if twofa_enabled %}
+                                        <a href="{% url 'security:twofa_manage' %}" class="btn btn-sm btn-outline-primary">Manage</a>
+                                    {% else %}
+                                        <a href="{% url 'security:twofa_setup' %}" class="btn btn-sm btn-primary">Enable Now</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Last Login -->
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                                    <h3 class="h5">Last Successful Login</h3>
+                                    {% if last_login %}
+                                        <p class="mb-0">{{ last_login.timestamp|date:"M d, Y" }}</p>
+                                        <small class="text-muted">{{ last_login.timestamp|date:"H:i" }} from {{ last_login.ip_address }}</small>
+                                    {% else %}
+                                        <p class="text-muted mb-0">No data available</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white border-0 text-center">
+                                    <a href="{% url 'security:logs' %}?event_type=login_success" class="btn btn-sm btn-outline-primary">View History</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Security Score -->
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center py-4">
+                                    <!-- Security Score Visualization -->
+                                    <div class="position-relative mb-3" style="width: 100px; height: 100px; margin: 0 auto;">
+                                        <!-- Circular progress indicator -->
+                                        <svg width="100" height="100" viewBox="0 0 36 36" class="circular-chart">
+                                            <path class="circle-bg"
+                                                d="M18 2.0845
+                                                a 15.9155 15.9155 0 0 1 0 31.831
+                                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                fill="none"
+                                                stroke="#eee"
+                                                stroke-width="3"/>
+                                            <path class="circle"
+                                                d="M18 2.0845
+                                                a 15.9155 15.9155 0 0 1 0 31.831
+                                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                fill="none"
+                                                stroke="{{ security_score_color }}"
+                                                stroke-width="3"
+                                                stroke-dasharray="{{ security_score }}, 100"/>
+                                            <text x="18" y="21" class="score">{{ security_score }}%</text>
+                                        </svg>
+                                    </div>
+                                    <h3 class="h5">Security Score</h3>
+                                    <p class="mb-0">{{ security_rating }}</p>
+                                </div>
+                                <div class="card-footer bg-white border-0 text-center">
+                                    <a href="{% url 'security:dashboard' %}" class="btn btn-sm btn-outline-primary">View Recommendations</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Logins -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h2 class="h5 mb-0">Recent Logins</h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>IP Address</th>
+                                    <th>Location</th>
+                                    <th>Device</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for login in recent_logins %}
+                                <tr>
+                                    <td>{{ login.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>{{ login.ip_address }}</td>
+                                    <td>
+                                        {% if login.location %}
+                                            {{ login.location }}
+                                        {% else %}
+                                            <span class="text-muted">Unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ login.user_agent|truncatechars:50 }}</small>
+                                    </td>
+                                    <td>
+                                        {% if login.event_type == 'login_success' %}
+                                            <span class="badge bg-success">Success</span>
+                                        {% elif login.event_type == '2fa_verified' %}
+                                            <span class="badge bg-success">2FA Verified</span>
+                                        {% elif login.event_type == 'login_failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ login.get_event_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-3">No login activity found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'security:logs' %}" class="btn btn-sm btn-outline-primary">View All Activity</a>
+                </div>
+            </div>
+            
+            <!-- Failed Login Attempts -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h5 mb-0">Failed Login Attempts</h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>IP Address</th>
+                                    <th>Location</th>
+                                    <th>User Agent</th>
+                                    <th>Attempts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attempt in failed_attempts %}
+                                <tr>
+                                    <td>{{ attempt.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if attempt.is_blocked %}
+                                            <span class="text-danger">{{ attempt.ip_address }}</span>
+                                            <span class="badge bg-danger ms-1">Blocked</span>
+                                        {% else %}
+                                            {{ attempt.ip_address }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.location %}
+                                            {{ attempt.location }}
+                                        {% else %}
+                                            <span class="text-muted">Unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ attempt.user_agent|truncatechars:50 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if attempt.attempt_count > 3 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ attempt.attempt_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-3">No failed login attempts</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Password and Security Tips -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-info text-dark">
+                    <h2 class="h5 mb-0">Password & Security Tips</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="h6">Strong Password Tips</h3>
+                            <ul class="mb-4">
+                                <li>Use at least 12 characters with a mix of letters, numbers, and symbols</li>
+                                <li>Avoid using dictionary words or personal information</li>
+                                <li>Use a unique password for each important account</li>
+                                <li>Consider using a password manager to generate and store strong passwords</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="h6">Account Security Best Practices</h3>
+                            <ul class="mb-0">
+                                <li>Enable two-factor authentication for all your important accounts</li>
+                                <li>Regularly check your account activity for any suspicious logins</li>
+                                <li>Update your password every 6-12 months</li>
+                                <li>Log out completely when using shared or public computers</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="#" class="btn btn-sm btn-outline-primary">Change Password</a>
+                    <a href="{% url 'security:dashboard' %}" class="btn btn-sm btn-primary ms-2">Security Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+<style>
+    /* Circular chart styles for security score */
+    .circular-chart {
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .circle-bg {
+        fill: none;
+        stroke-width: 3;
+    }
+    
+    .circle {
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        animation: progress 1s ease-out forwards;
+    }
+    
+    .score {
+        fill: #666;
+        font-family: sans-serif;
+        font-size: 8px;
+        font-weight: bold;
+        text-anchor: middle;
+    }
+    
+    @keyframes progress {
+        0% {
+            stroke-dasharray: 0 100;
+        }
+    }
+</style>
+{% endblock %}

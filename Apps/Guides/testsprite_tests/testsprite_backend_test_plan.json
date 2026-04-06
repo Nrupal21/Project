@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "user authentication and profile management",
+    "description": "Test user registration, login, social authentication, and profile management including role-based access control to ensure secure and seamless user authentication."
+  },
+  {
+    "id": "TC002",
+    "title": "destination management with approval workflow",
+    "description": "Verify CRUD operations on travel destinations with hierarchical categorization, detailed descriptions, photo galleries, and approval workflows to ensure data accuracy and quality."
+  },
+  {
+    "id": "TC003",
+    "title": "tour management and booking process",
+    "description": "Test tour package details, availability checks, guide information, and booking capabilities including payment gateway integrations and group booking support."
+  },
+  {
+    "id": "TC004",
+    "title": "personalized itinerary planning and sharing",
+    "description": "Validate itinerary creation with day-by-day schedules, activity optimization, resource allocation, budgeting, and public/private sharing including social media integration."
+  },
+  {
+    "id": "TC005",
+    "title": "user review and rating submission",
+    "description": "Test review and rating submission for destinations and tours with multi-criteria evaluation, media uploads, moderation, and response handling to maintain quality and trust."
+  },
+  {
+    "id": "TC006",
+    "title": "rewards points calculation and redemption",
+    "description": "Verify the rewards system for accurate user points calculation, redemption processes, and loyalty benefits management."
+  },
+  {
+    "id": "TC007",
+    "title": "emergency services information and alerts",
+    "description": "Test access to emergency contacts, interactive maps, safety guidelines, real-time alerts, and SOS functionalities including offline access."
+  },
+  {
+    "id": "TC008",
+    "title": "transportation management and booking",
+    "description": "Validate transportation schedule information, booking, route planning, price comparison, and environmental impact awareness features."
+  },
+  {
+    "id": "TC009",
+    "title": "rest api authentication and data retrieval",
+    "description": "Test REST API endpoints for secure token-based authentication, data retrieval, and management for destinations, tours, itineraries, and reviews."
+  },
+  {
+    "id": "TC010",
+    "title": "responsive ui and theme toggle",
+    "description": "Verify the responsive UI behavior on various devices and orientations including landscape special handling and dark mode toggling."
+  }
+]

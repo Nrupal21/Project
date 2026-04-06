@@ -1,0 +1,686 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load review_filters %}
+{% load content_type_tags %}
+
+{% block title %}{{ destination.name }} - Travel Guide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Content Block for Destination Detail Page -->
+<!-- Blank div for top spacing -->
+<div class="h-20"></div>
+
+<!-- Hero Section with Image Gallery -->
+<div class="relative bg-gray-900">
+    {% if destination.images.all %}
+    <div class="h-96 overflow-hidden">
+        <img src="{{ destination.images.first.image.url }}" 
+             alt="{{ destination.name }}" 
+             class="w-full h-full object-cover">
+    </div>
+    {% else %}
+    <div class="h-96 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+        <h1 class="text-4xl font-bold text-white">{{ destination.name }}</h1>
+    </div>
+    {% endif %}
+    
+    <!-- Back Button -->
+    <a href="{% url 'destinations:destination_list' %}" 
+       class="absolute top-4 left-4 bg-white/90 text-gray-800 px-4 py-2 rounded-full flex items-center hover:bg-white transition-all">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Destinations
+    </a>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-screen-2xl w-full mx-auto px-6 sm:px-8 lg:px-12 py-12">
+    <div class="lg:flex lg:space-x-8">
+        <!-- Left Column -->
+        <div class="lg:w-2/3">
+            <!-- Destination Header -->
+            <div class="mb-8">
+                <div class="flex items-center mb-2">
+                    <h1 class="text-4xl font-bold text-gray-900">{{ destination.name }}</h1>
+                    {% if destination.is_featured %}
+                    <span class="ml-3 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                        Featured
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center text-gray-600 mb-4">
+                    <svg class="w-5 h-5 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>{{ destination.city }}, {{ destination.country }}</span>
+                </div>
+                
+                {% if destination.rating %}
+                <div class="flex items-center mb-4">
+                    <div class="flex text-yellow-400">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= destination.rating|floatformat:0|add:0 %}
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="ml-2 text-gray-600">{{ destination.rating|floatformat:1 }} ({{ destination.views|default:0 }} views)</span>
+                </div>
+                {% endif %}
+                
+                {% if destination.price %}
+                <div class="text-2xl font-bold text-gray-900 mb-4">
+                    Rs. {{ destination.price|floatformat:2 }} <span class="text-base font-normal text-gray-600">per person</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div class="prose max-w-screen-xl w-full mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">About {{ destination.name }}</h2>
+                <p class="text-gray-700">{{ destination.description|default:destination.short_description|linebreaksbr }}</p>
+            </div>
+            
+            <!-- Gallery -->
+            {% if destination.images.count > 1 %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Gallery</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for image in destination.images.all|slice:"1:7" %}
+                    <div class="overflow-hidden rounded-lg">
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ image.alt_text|default:destination.name }}" 
+                             class="w-full h-40 object-cover hover:scale-105 transition-transform duration-300">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Attractions -->
+            {% if attractions %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Top Attractions</h2>
+                <div class="space-y-4">
+                    {% for attraction in attractions %}
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ attraction.name }}</h3>
+                            {% if attraction.description %}
+                            <p class="mt-1 text-gray-600">{{ attraction.description|truncatewords:30 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Reviews Section -->
+            <div class="mt-12" id="reviews">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Traveler Reviews</h2>
+                    <button onclick="document.getElementById('review-form').scrollIntoView({ behavior: 'smooth' })" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        Write a Review
+                    </button>
+                </div>
+                
+                <!-- Average Rating -->
+                {% if destination.average_rating %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div class="flex items-center">
+                        <div class="text-5xl font-bold text-gray-900 mr-6">{{ destination.average_rating|floatformat:1 }}</div>
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <div class="flex text-yellow-400">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= destination.average_rating|floatformat:0|add:0 %}
+                                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-gray-600">Based on {{ destination.review_count }} reviews</span>
+                            </div>
+                            
+                            <!-- Rating Breakdown -->
+                            <div class="space-y-2 mt-4">
+                                {% for i in "54321"|make_list %}
+                                <div class="flex items-center">
+                                    <span class="w-8 text-sm text-gray-600">{{ i }} star</span>
+                                    <div class="w-48 h-2 bg-gray-200 rounded-full mx-2 overflow-hidden">
+                                        <div class="h-full bg-yellow-400 rounded-full" 
+                                             data-rating-percent="{% widthratio destination.rating_breakdown|get_item:i|default:0 1 100 %}">
+                                        </div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ destination.rating_breakdown|get_item:i|default:0 }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Reviews List -->
+                <div class="space-y-6 mb-12">
+                    {% for review in destination.reviews.all|slice:":5" %}
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-semibold text-lg">{{ review.user.get_full_name|default:review.user.username }}</h3>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <span>{{ review.created_at|date:"F Y" }}</span>
+                                    <span class="mx-2">•</span>
+                                    <span>{{ review.get_status_display }}</span>
+                                </div>
+                            </div>
+                            <div class="flex text-yellow-400">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <h4 class="font-semibold mb-2">{{ review.title }}</h4>
+                        <p class="text-gray-700 mb-4">{{ review.content|linebreaksbr }}</p>
+                        
+                        <!-- Review Images -->
+                        {% if review.images.all %}
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% for image in review.images.all %}
+                            <a href="{{ image.image.url }}" data-lightbox="review-{{ review.id }}" class="block w-20 h-20 rounded overflow-hidden">
+                                <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover">
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Helpful Votes -->
+                        <div class="flex items-center text-sm text-gray-500 pt-3 border-t border-gray-100">
+                            <button class="flex items-center hover:text-blue-600 mr-4">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                </svg>
+                                <span>Helpful ({{ review.helpful_votes.count }})</span>
+                            </button>
+                            <button class="flex items-center hover:text-blue-600">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span>Comment</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Comments Section (Collapsed by default) -->
+                        {% if review.comments.exists %}
+                        <div class="mt-4 pl-4 border-l-2 border-gray-200">
+                            <div class="space-y-4">
+                                {% for comment in review.comments.all|slice:":3" %}
+                                <div class="text-sm">
+                                    <div class="font-medium">{{ comment.user.get_full_name|default:comment.user.username }}</div>
+                                    <p class="text-gray-700">{{ comment.content }}</p>
+                                    <div class="text-xs text-gray-500 mt-1">{{ comment.created_at|timesince }} ago</div>
+                                </div>
+                                {% endfor %}
+                                
+                                {% if review.comments.count > 3 %}
+                                <button class="text-sm text-blue-600 hover:underline">
+                                    View all {{ review.comments.count }} comments
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">
+                        No reviews yet. Be the first to review!
+                    </div>
+                    {% endfor %}
+                    
+                    {% if destination.reviews.count > 5 %}
+                    <div class="text-center">
+                        <a href="#" class="inline-block px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Load More Reviews
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Leave a Review Form -->
+                {% if user.is_authenticated %}
+                <div id="review-form" class="bg-white rounded-lg shadow-md p-6 mb-12">
+                    <h3 class="text-xl font-bold mb-4">Write a Review</h3>
+                    {% get_content_type_id destination as content_type_id %}
+                    <form id="review-form-element" method="post" action="{% url 'reviews:create_review' content_type_id=content_type_id object_id=destination.id %}" enctype="multipart/form-data" onsubmit="return validateReviewForm(event)">
+                        {% csrf_token %}
+                        <input type="hidden" name="content_type_id" value="{{ content_type_id }}">
+                        <input type="hidden" name="object_id" value="{{ destination.id }}">
+                        
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Your Rating</label>
+                            <div class="flex items-center" id="rating-stars">
+                                {% for i in "12345"|make_list %}
+                                <button type="button" class="text-3xl text-gray-300 hover:text-yellow-400 focus:outline-none star-rating" 
+                                        data-rating="{{ i }}">
+                                    ★
+                                </button>
+                                {% endfor %}
+                                <input type="hidden" name="rating" id="rating-input" value="5" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label for="title" class="block text-gray-700 font-medium mb-2">Review Title</label>
+                            <input type="text" id="title" name="title" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   placeholder="Summarize your experience" required>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="mb-4">
+                            <label for="content" class="block text-gray-700 font-medium mb-2">Your Review</label>
+                            <textarea id="content" name="content" rows="4" 
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                      placeholder="Share your experience to help other travelers" required></textarea>
+                        </div>
+                        
+                        <!-- Photos -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Add Photos (Optional)</label>
+                            <div class="flex items-center justify-center w-full">
+                                <label class="flex flex-col w-full h-32 border-2 border-dashed hover:border-blue-500 hover:bg-gray-100 rounded-md cursor-pointer">
+                                    <div class="flex flex-col items-center justify-center pt-7">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400 group-hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                        <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+                                            Upload photos
+                                        </p>
+                                    </div>
+                                    <input type="file" name="images" id="review-images" class="opacity-0" multiple accept="image/*">
+                                </label>
+                            </div>
+                            <div id="file-upload-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button type="button" class="mr-3 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" onclick="resetReviewForm()">
+                                Cancel
+                            </button>
+                            <button type="submit" id="submit-review-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                                <span class="submit-text">Submit Review</span>
+                                <svg id="submit-spinner" class="hidden animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Debug Info (remove in production) -->
+                        <div id="form-debug" class="mt-4 p-3 bg-gray-100 rounded-md text-sm text-gray-600 hidden">
+                            <h4 class="font-medium mb-2">Form Data (Debug):</h4>
+                            <pre id="form-data-preview" class="bg-white p-2 rounded border border-gray-200 overflow-auto max-h-40"></pre>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                    <p class="text-gray-600 mb-4">Please <a href="{% url 'account_login' %}?next={{ request.path }}#reviews" class="text-blue-600 hover:underline">sign in</a> to leave a review.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="lg:w-1/3 mt-8 lg:mt-0">
+            <!-- Map -->
+            {% if destination.latitude and destination.longitude %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Location</h3>
+                </div>
+                <div class="h-64 bg-gray-100" id="map"></div>
+                <div class="p-4 text-sm text-gray-600">
+                    <p>{{ destination.address|default:'' }}</p>
+                    <p>{{ destination.city }}, {{ destination.country }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Facts -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Quick Facts</h3>
+                </div>
+                <div class="p-4">
+                    <ul class="space-y-3">
+                        {% if destination.region %}
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <span class="font-medium text-gray-900">Region:</span>
+                                <span class="text-gray-600 ml-1">{{ destination.region.name }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if destination.best_time_to_visit %}
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <div>
+                                <span class="font-medium text-gray-900">Best Time to Visit:</span>
+                                <span class="text-gray-600 ml-1">{{ destination.best_time_to_visit }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if destination.currency %}
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <span class="font-medium text-gray-900">Currency:</span>
+                                <span class="text-gray-600 ml-1">{{ destination.currency }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                        
+                        {% if destination.language %}
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                            </svg>
+                            <div>
+                                <span class="font-medium text-gray-900">Language:</span>
+                                <span class="text-gray-600 ml-1">{{ destination.language }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Contact/Book Now CTA -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-md overflow-hidden text-white p-6">
+                <h3 class="text-xl font-bold mb-2">Plan Your Trip</h3>
+                <p class="text-blue-100 mb-4">Ready to explore {{ destination.name }}? Contact us to book your adventure today!</p>
+                <a href="{% url 'core:contact' %}" class="inline-block bg-white text-blue-700 font-semibold px-6 py-2 rounded-md hover:bg-blue-50 transition-colors">
+                    Contact Us
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!-- Map Data -->
+{% if destination.latitude and destination.longitude %}
+{{ destination.latitude|json_script:"latitude-data" }}
+{{ destination.longitude|json_script:"longitude-data" }}
+{{ destination.name|json_script:"destination-name" }}
+{% endif %}
+
+{% block extra_js %}
+<script>
+    // Google Maps Initialization
+    function initMap() {
+        const location = { lat: {{ destination.latitude|default:0 }}, lng: {{ destination.longitude|default:0 }} };
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: location,
+        });
+        new google.maps.Marker({
+            position: location,
+            map: map,
+            title: "{{ destination.name|escapejs }}"
+        });
+    }
+
+    /**
+     * Destination Detail Page JavaScript
+     * Handles interactive elements like star ratings and image previews
+     */
+    (function() {
+        'use strict';
+        
+        let currentRating = 5; // Default rating
+        
+        /**
+         * Highlights stars up to the specified rating
+         * @param {number} rating - The rating to highlight up to (1-5)
+         */
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star-rating');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('text-yellow-400');
+                    star.classList.remove('text-gray-300');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        }
+        
+        /**
+         * Resets stars to the current rating
+         */
+        function resetStars() {
+            highlightStars(currentRating);
+        }
+        
+        /**
+         * Sets the current rating and updates the hidden input
+         * @param {number} rating - The rating to set (1-5)
+         */
+        function setRating(rating) {
+            currentRating = rating;
+            const ratingInput = document.getElementById('rating-input');
+            if (ratingInput) {
+                ratingInput.value = rating;
+            } else {
+                console.error('Rating input element not found');
+            }
+            highlightStars(rating);
+        }
+
+        /**
+         * Previews selected images
+         * @param {HTMLInputElement} input - The file input element
+         */
+        function previewImage(input) {
+            const preview = document.getElementById('image-preview');
+            if (!preview) return;
+            
+            preview.innerHTML = '';
+            
+            if (input.files && input.files.length > 0) {
+                const maxFiles = 4;
+                const fileCount = Math.min(input.files.length, maxFiles);
+                
+                for (let i = 0; i < fileCount; i++) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (function(file) {
+                        return function(e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'h-20 w-20 object-cover rounded mr-2 mb-2';
+                            img.alt = 'Preview ' + (i + 1);
+                            preview.appendChild(img);
+                        };
+                    })(input.files[i]);
+                    
+                    reader.readAsDataURL(input.files[i]);
+                }
+            }
+        }
+
+        /**
+         * Validates the review form before submission
+         * @param {Event} event - The form submission event
+         * @returns {boolean} - Returns false if validation fails
+         */
+        function validateReviewForm(event) {
+            const form = document.getElementById('review-form-element');
+            const submitBtn = document.getElementById('submit-review-btn');
+            const submitText = submitBtn.querySelector('.submit-text');
+            const spinner = document.getElementById('submit-spinner');
+            
+            // Get form data for debugging
+            const formData = new FormData(form);
+            const formDataObj = {};
+            formData.forEach((value, key) => {
+                if (key === 'images') return; // Skip file data for preview
+                formDataObj[key] = value;
+            });
+            
+            // Show debug info
+            const debugInfo = document.getElementById('form-debug');
+            const formDataPreview = document.getElementById('form-data-preview');
+            formDataPreview.textContent = JSON.stringify(formDataObj, null, 2);
+            debugInfo.classList.remove('hidden');
+            
+            // Basic validation
+            const title = formData.get('title');
+            const content = formData.get('content');
+            const rating = formData.get('rating');
+            
+            if (!title || !content || !rating) {
+                alert('Please fill in all required fields');
+                return false;
+            }
+            
+            // Disable submit button and show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Submitting...';
+            spinner.classList.remove('hidden');
+            
+            // Allow form submission to proceed
+            return true;
+        }
+        
+        /**
+         * Resets the review form
+         */
+        function resetReviewForm() {
+            const form = document.getElementById('review-form-element');
+            form.reset();
+            setRating(5); // Reset to default rating
+            
+            // Clear image preview
+            const preview = document.getElementById('image-preview');
+            if (preview) {
+                preview.innerHTML = '';
+            }
+            
+            // Hide debug info
+            const debugInfo = document.getElementById('form-debug');
+            if (debugInfo) {
+                debugInfo.classList.add('hidden');
+            }
+        }
+
+        // Initialize when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set rating bar widths
+            document.querySelectorAll('[data-rating-percent]').forEach(bar => {
+                const percent = bar.getAttribute('data-rating-percent');
+                if (percent) {
+                    bar.style.width = percent + '%';
+                }
+            });
+
+            // Add event listeners for star ratings
+            document.querySelectorAll('.star-rating').forEach(star => {
+                const rating = parseInt(star.getAttribute('data-rating'), 10);
+                
+                if (isNaN(rating)) return;
+                
+                star.addEventListener('mouseover', () => {
+                    highlightStars(rating);
+                });
+                
+                star.addEventListener('mouseout', resetStars);
+                
+                star.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setRating(rating);
+                });
+            });
+            
+            // Initialize with default rating
+            setRating(currentRating);
+
+            // Initialize Google Maps if needed
+            if (typeof initMap === 'function') {
+                initMap();
+            }
+        });
+    })();
+</script>
+
+<!-- Load Google Maps API -->
+{% if destination.latitude and destination.longitude and GOOGLE_MAPS_API_KEY %}
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=places">
+</script>
+{% endif %}
+{% endblock %}

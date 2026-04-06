@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{# Page title block #}
+{% block title %}Review Guide Application - TravelGuide Admin{% endblock %}
+
+{# Main content block #}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Back to Applications Link -->
+    <div class="mb-4">
+        <a href="{% url 'accounts:guide_applications_list' %}{% if request.GET.status %}?status={{ request.GET.status }}{% endif %}" 
+           class="text-indigo-600 hover:text-indigo-900 text-sm font-medium inline-flex items-center">
+            <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Applications
+        </a>
+    </div>
+
+    <!-- Application Header -->
+    <div class="md:flex md:items-center md:justify-between mb-6">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                Guide Application
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Review and manage this guide application
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            {% if application.status == 'PENDING' or application.status == 'UNDER_REVIEW' %}
+            <button 
+                type="button"
+                data-action="reject"
+                class="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <svg class="-ml-1 mr-2 h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                Reject
+            </button>
+            
+            <button 
+                type="button"
+                data-action="approve"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Approve
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Application Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Application Status Card -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            Application Status
+                        </h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ application.status_badge_class }}">
+                            {{ application.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Application Date
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.application_date|date:"F j, Y" }}
+                            </dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Last Updated
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.updated_at|date:"F j, Y" }}
+                            </dd>
+                        </div>
+                        {% if application.reviewed_by %}
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Reviewed By
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.reviewed_by.get_full_name|default:application.reviewed_by.username }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if application.reviewed_at %}
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Reviewed On
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.reviewed_at|date:"F j, Y" }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if application.rejection_reason %}
+                        <div class="sm:col-span-2">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Rejection Reason
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.rejection_reason }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Applicant Information -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Applicant Information
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span class="text-2xl font-medium text-indigo-800">{{ application.user.get_initials }}</span>
+                        </div>
+                        <div class="ml-6 [&>div:not(:last-child)]:mb-4">
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900">
+                                    {{ application.user.get_full_name|default:application.user.username }}
+                                </h4>
+                                <p class="text-sm text-gray-500">
+                                    @{{ application.user.username }}
+                                </p>
+                            </div>
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                </svg>
+                                {{ application.user.email }}
+                            </div>
+                            {% if application.user.phone_number %}
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                </svg>
+                                {{ application.user.phone_number }}
+                            </div>
+                            {% endif %}
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                                Member since {{ application.user.date_joined|date:"F j, Y" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Details -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Application Details
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                ID Type
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.id_type }}
+                            </dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                ID Verification
+                            </dt>
+                            <dd class="mt-1">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ application.id_verification_status|yesno:'bg-green-100 text-green-800,bg-red-100 text-red-800' }}">
+                                    {{ application.id_verification_status|yesno:"Verified,Not Verified" }}
+                                </span>
+                            </dd>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Background Check
+                            </dt>
+                            <dd class="mt-1">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ application.background_check_status|yesno:'bg-green-100 text-green-800,bg-red-100 text-red-800' }}">
+                                    {{ application.background_check_status|yesno:"Completed,Pending" }}
+                                </span>
+                            </dd>
+                        </div>
+                        {% if application.languages %}
+                        <div class="sm:col-span-2">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Languages Spoken
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <div class="flex flex-wrap gap-2">
+                                    {% for language in application.languages %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                        {{ language }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if application.areas_of_expertise %}
+                        <div class="sm:col-span-2">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Areas of Expertise
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.areas_of_expertise|linebreaks }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if application.experience %}
+                        <div class="sm:col-span-2">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Experience
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ application.experience|linebreaks }}
+                            </dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Additional Information -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Quick Actions -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Quick Actions
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6 space-y-4">
+                    <a href="{% url 'accounts:user_profile' application.user.id %}" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                        View User Profile
+                    </a>
+                    
+                    {% if application.status == 'APPROVED' %}
+                    <a href="{% url 'accounts:guide_profile' application.user.id %}" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                        </svg>
+                        View Guide Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Application Notes -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Application Notes
+                    </h3>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    {% if application.notes %}
+                        <p class="text-sm text-gray-600">{{ application.notes|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-sm text-gray-500 italic">No notes have been added to this application.</p>
+                    {% endif %}
+                    
+                    {% if perms.accounts.change_guideapplication %}
+                    <form method="post" action="{% url 'accounts:add_application_note' application.id %}" class="mt-4">
+                        {% csrf_token %}
+                        <div>
+                            <label for="note" class="block text-sm font-medium text-gray-700">Add Note</label>
+                            <div class="mt-1">
+                                <textarea id="note" name="note" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Save Note
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Approve/Reject Actions -->
+{# Approve Modal - Displays confirmation dialog before approving a guide application #}
+<div id="approveModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Approve Application</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">Are you sure you want to approve this guide application? This will create a guide account for the user.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <form id="approveForm" method="post" action="{% url 'accounts:review_guide_application' application.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">Approve</button>
+                </form>
+                <button type="button" onclick="closeModal('approveModal')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Reject Modal - Displays confirmation dialog with reason field before rejecting a guide application #}
+<div id="rejectModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Reject Application</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">Are you sure you want to reject this guide application?</p>
+                        <div class="mt-4">
+                            <label for="rejection_reason" class="block text-sm font-medium text-gray-700">Reason for rejection</label>
+                            <div class="mt-1">
+                                <textarea id="rejection_reason" name="rejection_reason" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <form id="rejectForm" method="post" action="{% url 'accounts:review_guide_application' application.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" id="rejection_reason_hidden" name="rejection_reason">
+                    <button type="button" onclick="submitRejectForm()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">Reject</button>
+                </form>
+                <button type="button" onclick="closeModal('rejectModal')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * JavaScript to handle modal interactions for guide application approval/rejection
+     * - Shows/hides modals for approve and reject actions
+     * - Handles form submission with rejection reason
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the buttons and modals
+        const approveBtn = document.querySelector('button[data-action="approve"]');
+        const rejectBtn = document.querySelector('button[data-action="reject"]');
+        const approveModal = document.getElementById('approveModal');
+        const rejectModal = document.getElementById('rejectModal');
+        
+        // Add click event listeners to buttons
+        if (approveBtn) {
+            approveBtn.addEventListener('click', function() {
+                // Show the approve confirmation modal
+                approveModal.classList.remove('hidden');
+            });
+        }
+        
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+                // Show the reject confirmation modal with reason field
+                rejectModal.classList.remove('hidden');
+            });
+        }
+    });
+    
+    /**
+     * Closes the specified modal by adding the 'hidden' class
+     * @param {string} modalId - The ID of the modal to close
+     */
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+    
+    /**
+     * Submits the reject form with the reason from the textarea
+     * Transfers the rejection reason from the visible textarea to the hidden input
+     * before submitting the form
+     */
+    function submitRejectForm() {
+        const reasonInput = document.getElementById('rejection_reason');
+        const reasonHidden = document.getElementById('rejection_reason_hidden');
+        reasonHidden.value = reasonInput.value;
+        document.getElementById('rejectForm').submit();
+    }
+</script>
+{% endblock %}

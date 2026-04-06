@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Rewards - TravelGuide{% endblock %}
+
+{% block content %}
+<!-- Main rewards dashboard container with responsive padding -->
+<!-- Uses container class for proper width constraints across different screen sizes -->
+<div class="max-w-screen-2xl w-full mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-indigo-900 dark:text-white mb-2">Your Rewards</h1>
+        <p class="text-gray-600 dark:text-gray-300">Earn points and unlock amazing benefits</p>
+    </div>
+
+    <!-- Points Balance Card - Main display of user's current reward points -->
+    <!-- Card uses white background in light mode and dark gray in dark mode with consistent shadow and rounded corners -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+        <!-- Responsive layout: stacked on mobile, side-by-side on larger screens -->
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <!-- Points display section with large, bold text for emphasis -->
+            <div class="mb-4 md:mb-0">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Available Points</h2>
+                <!-- Using indigo color for points to match site's color scheme -->
+                <div class="text-4xl font-bold text-indigo-600 dark:text-indigo-400">{{ points_balance|default:0 }}</div>
+            </div>
+            <!-- History button with hover effect using indigo/violet color palette -->
+            <a href="{% url 'rewards:points_history' %}" 
+               class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                View History
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress to Next Tier - Visual representation of user's progress toward next reward tier -->
+    {% if next_tier %}
+    <!-- Card container with consistent styling matching the points balance card above -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+        <!-- Section heading with tier name dynamically inserted -->
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Progress to {{ next_tier.name }} Tier</h2>
+        
+        <!-- Progress bar background - light gray in light mode -->
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+            <!-- Progress bar fill with indigo-violet gradient matching site color scheme -->
+            <!-- Width is dynamically set based on percentage progress to next tier -->
+            <!-- Using Tailwind's gradient classes with indigo/violet colors for consistent theme -->
+            <!-- We'll use a custom progress-bar-fill class and set its width via JavaScript -->
+            <!-- This avoids CSS linting issues with inline styles -->
+            <div id="progress-bar-fill" 
+                 class="bg-gradient-to-r from-indigo-400 to-violet-600 h-4 rounded-full progress-bar-fill"
+                 data-progress="{{ progress_percentage|default:0 }}"></div>
+        </div>
+        
+        <!-- Progress bar labels showing current tier, points ratio, and next tier -->
+        <!-- Uses flex layout to distribute labels evenly across the progress bar -->
+        <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+            <!-- Current tier label on the left -->
+            <span>Current: {{ current_tier.name }}</span>
+            <!-- Points ratio in the middle (current/required) -->
+            <span>{{ points_balance|default:0 }} / {{ next_tier.min_points }} points</span>
+            <!-- Next tier label on the right -->
+            <span>{{ next_tier.name }} Tier</span>
+        </div>
+        
+        <!-- Additional motivational text showing exact points needed for next tier -->
+        <p class="mt-4 text-center text-gray-600 dark:text-gray-300">
+            {{ points_to_next_tier }} more points to reach {{ next_tier.name }} Tier
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activities Section - Two-column grid on larger screens, single column on mobile -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Recent Points Card - Shows the user's most recent point-earning activities -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <!-- Section heading with consistent text styling -->
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Recent Activities</h2>
+            
+            <!-- Conditional display based on whether activities exist -->
+            {% if recent_activities %}
+            <!-- Container for activity items with vertical spacing between items -->
+            <div class="space-y-4">
+                <!-- Loop through each activity and display in a list format -->
+                {% for activity in recent_activities %}
+                <!-- Activity item with flex layout to place description on left and points on right -->
+                <!-- Bottom border provides visual separation between items -->
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                    <!-- Activity description and date container -->
+                    <div>
+                        <!-- Activity type with medium font weight for emphasis -->
+                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ activity.get_activity_display }}</p>
+                        <!-- Date in smaller, lighter text for secondary information -->
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ activity.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    <!-- Points display with conditional color: green for positive, red for negative -->
+                    <span class="font-semibold {% if activity.points > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        <!-- Add plus sign for positive points -->
+                        {% if activity.points > 0 %}+{% endif %}{{ activity.points }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty state message when no activities exist -->
+            <p class="text-gray-500 dark:text-gray-400 text-center py-4">No recent activities found.</p>
+            {% endif %}
+            
+            <!-- Link to full history page with indigo color matching site theme -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'rewards:points_history' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                    View all activities →
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Redemptions Card - Shows the user's most recent reward redemptions -->
+        <!-- Uses identical styling to the Recent Activities card for visual consistency -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <!-- Section heading with consistent text styling -->
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Recent Redemptions</h2>
+            
+            <!-- Conditional display based on whether redemptions exist -->
+            {% if recent_redemptions %}
+            <!-- Container for redemption items with vertical spacing between items -->
+            <div class="space-y-4">
+                <!-- Loop through each redemption and display in a list format -->
+                {% for redemption in recent_redemptions %}
+                <!-- Redemption item with flex layout to place description on left and points on right -->
+                <!-- Bottom border provides visual separation between items -->
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                    <!-- Redemption description, date, and status container -->
+                    <div>
+                        <!-- Redemption type with medium font weight for emphasis -->
+                        <p class="font-medium text-gray-800 dark:text-gray-200">{{ redemption.get_redemption_type_display }}</p>
+                        <!-- Date and status with smaller, lighter text for secondary information -->
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ redemption.created_at|date:"M d, Y" }} • 
+                            <!-- Status indicator with conditional color: green for completed, yellow for pending -->
+                            <span class="{% if redemption.status == 'COMPLETED' %}text-green-600{% else %}text-yellow-600{% endif %}">
+                                {{ redemption.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <!-- Points used display in red with minus sign to indicate points spent -->
+                    <span class="font-semibold text-red-600">-{{ redemption.points_used }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty state message when no redemptions exist -->
+            <p class="text-gray-500 dark:text-gray-400 text-center py-4">No recent redemptions found.</p>
+            {% endif %}
+            
+            <!-- Link to full redemption history page with indigo color matching site theme -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'rewards:redemption_history' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                    View all redemptions →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Rewards Section - Shows rewards the user can redeem with their current points -->
+    <div class="mt-8">  <!-- Top margin to separate from the previous sections -->
+        <!-- Section heading with larger text size for visual hierarchy -->
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Available Rewards</h2>
+        
+        <!-- Conditional display based on whether redemption options exist -->
+        {% if available_redemptions %}
+        <!-- Responsive grid layout: 1 column on mobile, 2 on tablet, 3 on desktop -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loop through each available redemption option -->
+            {% for redemption in available_redemptions %}
+            <!-- Individual reward card with consistent styling and subtle border -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+                <!-- Card content container with uniform padding -->
+                <div class="p-6">
+                    <!-- Header section with reward name and points cost -->
+                    <div class="flex justify-between items-start mb-4">
+                        <!-- Reward title and type information -->
+                        <div>
+                            <!-- Reward name with emphasis -->
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">{{ redemption.name }}</h3>
+                            <!-- Reward type in smaller, lighter text -->
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ redemption.get_type_display }}</p>
+                        </div>
+                        <!-- Points badge with indigo background matching site color scheme -->
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 text-xs font-medium rounded-full">
+                            {{ redemption.points_required }} pts
+                        </span>
+                    </div>
+                    
+                    <!-- Reward description with appropriate text color for readability -->
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        {{ redemption.description }}
+                    </p>
+                    
+                    <!-- Footer section with expiry date and redemption button -->
+                    <div class="flex justify-between items-center">
+                        <!-- Expiry date in smaller, lighter text -->
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            Expires: {{ redemption.expiry_date|date:"M d, Y" }}
+                        </span>
+                        <!-- Redemption button with indigo background matching site color scheme -->
+                        <!-- Includes hover effect for better user interaction feedback -->
+                        <a href="{% url 'rewards:redeem_points' %}" 
+                           class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
+                            Redeem Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty state container for when no rewards are available -->
+        <!-- Uses the same card styling as other sections for visual consistency -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+            <!-- Gift box icon in indigo color to match site theme -->
+            <!-- SVG icon centered with appropriate size and color -->
+            <div class="text-indigo-400 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+            </div>
+            <!-- Empty state heading with appropriate text size and weight -->
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No rewards available</h3>
+            <!-- Explanatory message with lighter text color -->
+            <p class="text-gray-500 dark:text-gray-400">Check back later for new reward options.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Rewards page initialization script
+     * 
+     * This script handles the initialization of interactive elements on the rewards page,
+     * including progress bars, tooltips, and any dynamic content updates.
+     * 
+     * The script runs after the DOM is fully loaded to ensure all elements are available
+     * for manipulation. It follows the indigo/violet color scheme for any dynamically
+     * generated UI elements to maintain visual consistency with the site theme.
+     * 
+     * Features:
+     * - Initializes progress bars for tier advancement visualization
+     * - Sets up event listeners for interactive elements
+     * - Provides console logging for debugging purposes
+     * - Ensures responsive behavior across different screen sizes
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Log page load for debugging and performance monitoring
+        console.log('Rewards page loaded successfully');
+        
+        /**
+         * Initialize progress bars with proper styling and animations
+         * Progress bars use the indigo-to-violet gradient defined in the CSS
+         * to maintain visual consistency with the site's color scheme
+         * 
+         * This function sets the width of the progress bar fill element based on
+         * the data-progress attribute value, which contains the percentage progress
+         * calculated in the Django view.
+         */
+        function initializeProgressBars() {
+            // Get the progress bar fill element
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            
+            // If the element exists, set its width based on the data-progress attribute
+            if (progressBarFill) {
+                console.log('Initializing progress bar');
+                const progressPercentage = progressBarFill.getAttribute('data-progress');
+                
+                // Set the width using JavaScript to avoid CSS linting issues with inline styles
+                progressBarFill.style.width = progressPercentage + '%';
+                
+                // Add a subtle animation effect for better user experience
+                progressBarFill.style.transition = 'width 1s ease-in-out';
+            }
+        }
+        
+        // Call the function to initialize progress bars
+        initializeProgressBars();
+        
+        /**
+         * Set up responsive behavior for rewards cards
+         * Ensures proper display on both desktop and mobile devices,
+         * including special handling for landscape orientation on mobile
+         */
+        function setupResponsiveLayout() {
+            // Responsive layout code would go here
+            // This would handle any dynamic resizing or layout adjustments
+        }
+        
+        // Initialize responsive layout features
+        setupResponsiveLayout();
+        
+        // Set up window resize listener for responsive adjustments
+        window.addEventListener('resize', function() {
+            // Throttled resize handler would go here
+        });
+    });
+</script>
+{% endblock %}

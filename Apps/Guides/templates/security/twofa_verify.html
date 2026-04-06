@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Two-Factor Verification - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">Two-Factor Verification</h1>
+                </div>
+                
+                <div class="card-body p-4">
+                    <p class="mb-4">
+                        Please enter the verification code from your authenticator app to continue.
+                    </p>
+                    
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">
+                                {{ form.code.label }}
+                            </label>
+                            <div class="input-group">
+                                {{ form.code }}
+                                <div class="countdown-timer input-group-text bg-light">30s</div>
+                            </div>
+                            
+                            {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.code.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="form-text">
+                                {{ form.code.help_text }}
+                            </div>
+                        </div>
+                        
+                        {% if form.use_backup %}
+                        <div class="form-check form-switch mb-3">
+                            {{ form.use_backup }}
+                            <label class="form-check-label" for="{{ form.use_backup.id_for_label }}">
+                                {{ form.use_backup.label }}
+                            </label>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">Verify</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer bg-white text-center py-3">
+                    <p class="mb-1">Having trouble?</p>
+                    <a href="#" class="link-secondary" data-bs-toggle="collapse" data-bs-target="#troubleshooting">
+                        <small>Get help with verification</small>
+                    </a>
+                    
+                    <div class="collapse mt-3" id="troubleshooting">
+                        <div class="card card-body bg-light">
+                            <h5 class="h6">Troubleshooting Tips</h5>
+                            <ul class="text-start small mb-0">
+                                <li>Make sure your device's time is correct and properly synchronized</li>
+                                <li>Verify you're using the correct authenticator app</li>
+                                <li>Try entering the code again - codes refresh every 30 seconds</li>
+                                <li>If you've lost access to your device, use a backup code</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Countdown timer for TOTP code expiration
+    document.addEventListener('DOMContentLoaded', function() {
+        // TOTP codes typically refresh every 30 seconds
+        let timeLeft = 30;
+        const timerElement = document.querySelector('.countdown-timer');
+        
+        // Get current time to determine seconds left until next 30 second interval
+        const now = new Date();
+        const seconds = now.getSeconds();
+        timeLeft = 30 - (seconds % 30);
+        
+        // Update the timer display
+        timerElement.textContent = timeLeft + 's';
+        
+        // Update the timer every second
+        const timer = setInterval(function() {
+            timeLeft -= 1;
+            
+            if (timeLeft <= 0) {
+                // Reset to 30 when we reach zero
+                timeLeft = 30;
+            }
+            
+            // Update the display
+            timerElement.textContent = timeLeft + 's';
+            
+            // Flash the timer when close to expiration
+            if (timeLeft <= 5) {
+                timerElement.classList.add('text-danger');
+            } else {
+                timerElement.classList.remove('text-danger');
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}

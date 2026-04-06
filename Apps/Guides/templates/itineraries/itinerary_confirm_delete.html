@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Itinerary" %}{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container my-4">
+    <!-- Deletion confirmation page header -->
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h1 class="display-5 mb-4">{% trans "Delete Itinerary" %}</h1>
+            
+            <!-- Confirmation card with warning and form -->
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% trans "Warning: This action cannot be undone" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Confirmation message with itinerary details -->
+                    <p>{% trans "Are you sure you want to delete the following itinerary?" %}</p>
+                    
+                    <div class="alert alert-light mb-4">
+                        <h4>{{ itinerary.title }}</h4>
+                        <p class="text-muted mb-1">
+                            {{ itinerary.start_date|date:"F j, Y" }} - {{ itinerary.end_date|date:"F j, Y" }}
+                        </p>
+                        <p class="mb-0">{{ itinerary.description|truncatewords:30 }}</p>
+                    </div>
+                    
+                    <!-- Warning about what will be deleted -->
+                    <div class="alert alert-warning">
+                        <p class="mb-0">
+                            <strong>{% trans "The following will be permanently deleted:" %}</strong>
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            <li>{% trans "All itinerary details and descriptions" %}</li>
+                            <li>{% trans "All day-by-day schedules" %}</li>
+                            <li>{% trans "All activities and their details" %}</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Deletion form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <!-- Cancel button returns to itinerary detail -->
+                            <a href="{% url 'itineraries:itinerary_detail' itinerary.pk %}" 
+                               class="btn btn-outline-secondary me-md-2">
+                                {% trans "Cancel" %}
+                            </a>
+                            
+                            <!-- Delete button with danger styling -->
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>{% trans "Delete Permanently" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

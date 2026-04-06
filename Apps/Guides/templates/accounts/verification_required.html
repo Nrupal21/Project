@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# Page title for browser tab #}
+{% block title %}Email Verification Required - TravelGuide{% endblock %}
+
+{# Main content block #}
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        {# TravelGuide Logo #}
+        <div class="flex justify-center">
+            <img class="h-16 w-auto" src="{% static 'images/logo.png' %}" alt="TravelGuide Logo">
+        </div>
+        
+        {# Page heading #}
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Email Verification Required
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Please verify your email address to access this feature
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            {# Success and error messages display #}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-4 {% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {# Main content explaining verification requirement #}
+            <div class="text-gray-700">
+                <div class="flex items-center mb-6">
+                    {# Email icon #}
+                    <div class="rounded-full bg-indigo-100 p-3 mr-4">
+                        <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-lg">Check Your Inbox</h3>
+                        <p class="text-sm text-gray-600">We sent a verification email to <strong>{{ user.email }}</strong></p>
+                    </div>
+                </div>
+                
+                {# Instructions for user #}
+                <div class="space-y-4 text-sm">
+                    <p>To continue using TravelGuide features, you need to verify your email address first. This helps us:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Ensure we can contact you about your bookings</li>
+                        <li>Protect your account from unauthorized access</li>
+                        <li>Send you important travel updates and alerts</li>
+                    </ul>
+                    
+                    {# Verification instructions #}
+                    <div class="bg-gray-50 p-4 rounded-md mt-4 border border-gray-200">
+                        <h4 class="font-medium mb-2">How to verify your email:</h4>
+                        <ol class="list-decimal pl-5 space-y-2">
+                            <li>Check your email inbox for a message from TravelGuide</li>
+                            <li>Open the email and click on the "Verify Email Address" button</li>
+                            <li>You'll be redirected back to TravelGuide with full access</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                {# Didn't receive email section #}
+                <div class="mt-8 border-t pt-6 border-gray-200">
+                    <h3 class="font-medium text-lg">Didn't receive the email?</h3>
+                    <p class="text-sm text-gray-600 mb-4">Check your spam folder or try the following:</p>
+                    
+                    {# Resend verification button #}
+                    <div class="flex justify-center">
+                        <button id="resend-verification-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Resend Verification Email
+                        </button>
+                    </div>
+                    
+                    {# Note about rate limiting #}
+                    <p class="text-xs text-gray-500 mt-3 text-center">
+                        You can resend the verification email once every 5 minutes.
+                    </p>
+                </div>
+            </div>
+            
+            {# Return to home link #}
+            <div class="mt-6 text-center">
+                <a href="{% url 'core:home' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    Return to Home Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{# JavaScript for email verification resending #}
+{% block extra_js %}
+<script src="{% static 'js/account_validation.js' %}"></script>
+<script>
+    // Initialize the resend verification functionality when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // This will connect to the initEmailVerificationHandler function in account_validation.js
+        initEmailVerificationHandler();
+    });
+</script>
+{% endblock %}

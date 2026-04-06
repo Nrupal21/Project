@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Itineraries" %}{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="container my-4">
+    <!-- Page header with title and action button -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">{% trans "My Itineraries" %}</h1>
+            <p class="lead text-secondary">
+                {% trans "Manage all your travel plans in one place" %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            <!-- Create new itinerary button -->
+            <a href="{% url 'itineraries:itinerary_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>{% trans "Create New Itinerary" %}
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filtering options -->
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Future implementation could add more filters here -->
+                <div class="col-md-4">
+                    <a href="{% url 'itineraries:itinerary_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-globe me-2"></i>{% trans "View Public Itineraries" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Display itineraries or a message if none found -->
+    {% if itineraries %}
+        <!-- Different section for upcoming and past itineraries -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2>{% trans "Upcoming Trips" %}</h2>
+                <hr>
+            </div>
+        </div>
+        
+        <!-- Itinerary cards in a grid layout -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for itinerary in itineraries %}
+                {% if itinerary.end_date >= today %}
+                    <div class="col">
+                        <!-- Itinerary card with details and management buttons -->
+                        <div class="card h-100 shadow-sm hover-shadow">
+                            <!-- Card header with dates and visibility badge -->
+                            <div class="card-header bg-light d-flex justify-content-between">
+                                <span>{{ itinerary.start_date|date:"M j, Y" }} - {{ itinerary.end_date|date:"M j, Y" }}</span>
+                                <span class="badge {% if itinerary.is_public %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if itinerary.is_public %}{% trans "Public" %}{% else %}{% trans "Private" %}{% endif %}
+                                </span>
+                            </div>
+                            
+                            <!-- Card body with title and description -->
+                            <div class="card-body">
+                                <h5 class="card-title">{{ itinerary.title }}</h5>
+                                <p class="card-text text-truncate">{{ itinerary.description }}</p>
+                                
+                                <!-- Additional metadata -->
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>{{ itinerary.get_duration }} {% trans "days" %}
+                                    </small>
+                                    {% if itinerary.tour %}
+                                        <small class="text-muted ms-3">
+                                            <i class="bi bi-signpost-split me-1"></i>{{ itinerary.tour.name }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Card footer with action buttons -->
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <!-- View button -->
+                                    <a href="{% url 'itineraries:itinerary_detail' itinerary.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye me-1"></i>{% trans "View" %}
+                                    </a>
+                                    
+                                    <!-- Action dropdown for edit/share/delete -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                type="button" 
+                                                id="actionDropdown{{ itinerary.pk }}" 
+                                                data-bs-toggle="dropdown" 
+                                                aria-expanded="false">
+                                            {% trans "Actions" %}
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown{{ itinerary.pk }}">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'itineraries:itinerary_update' itinerary.pk %}">
+                                                    <i class="bi bi-pencil-square me-2"></i>{% trans "Edit" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'itineraries:itinerary_share' itinerary.pk %}">
+                                                    <i class="bi bi-share me-2"></i>{% trans "Share" %}
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="{% url 'itineraries:itinerary_delete' itinerary.pk %}">
+                                                    <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Past trips section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2>{% trans "Past Trips" %}</h2>
+                <hr>
+            </div>
+        </div>
+        
+        <!-- Past itinerary cards with slightly muted styling -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for itinerary in itineraries %}
+                {% if itinerary.end_date < today %}
+                    <div class="col">
+                        <!-- Itinerary card with details and management buttons -->
+                        <div class="card h-100 shadow-sm hover-shadow opacity-75">
+                            <!-- Card header with dates and visibility badge -->
+                            <div class="card-header bg-light d-flex justify-content-between">
+                                <span>{{ itinerary.start_date|date:"M j, Y" }} - {{ itinerary.end_date|date:"M j, Y" }}</span>
+                                <span class="badge {% if itinerary.is_public %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if itinerary.is_public %}{% trans "Public" %}{% else %}{% trans "Private" %}{% endif %}
+                                </span>
+                            </div>
+                            
+                            <!-- Card body with title and description -->
+                            <div class="card-body">
+                                <h5 class="card-title">{{ itinerary.title }}</h5>
+                                <p class="card-text text-truncate">{{ itinerary.description }}</p>
+                                
+                                <!-- Additional metadata -->
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>{{ itinerary.get_duration }} {% trans "days" %}
+                                    </small>
+                                    {% if itinerary.tour %}
+                                        <small class="text-muted ms-3">
+                                            <i class="bi bi-signpost-split me-1"></i>{{ itinerary.tour.name }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Card footer with action buttons -->
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <!-- View button -->
+                                    <a href="{% url 'itineraries:itinerary_detail' itinerary.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye me-1"></i>{% trans "View" %}
+                                    </a>
+                                    
+                                    <!-- Action dropdown for edit/share/delete -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                type="button" 
+                                                id="actionDropdown{{ itinerary.pk }}" 
+                                                data-bs-toggle="dropdown" 
+                                                aria-expanded="false">
+                                            {% trans "Actions" %}
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown{{ itinerary.pk }}">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'itineraries:itinerary_update' itinerary.pk %}">
+                                                    <i class="bi bi-pencil-square me-2"></i>{% trans "Edit" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'itineraries:itinerary_share' itinerary.pk %}">
+                                                    <i class="bi bi-share me-2"></i>{% trans "Share" %}
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="{% url 'itineraries:itinerary_delete' itinerary.pk %}">
+                                                    <i class="bi bi-trash me-2"></i>{% trans "Delete" %}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination controls -->
+        {% if is_paginated %}
+            <nav aria-label="Pagination" class="my-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                {% trans "Previous" %}
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                {% trans "Next" %}
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                {% trans "Last" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <!-- Empty state if no itineraries found -->
+        <div class="text-center py-5">
+            <div class="display-1 text-muted mb-4">
+                <i class="bi bi-map"></i>
+            </div>
+            <h2>{% trans "No Itineraries Yet" %}</h2>
+            <p class="lead text-muted">
+                {% trans "You haven't created any travel itineraries yet." %}<br>
+                {% trans "Start planning your first adventure now!" %}
+            </p>
+            <div class="mt-4">
+                <a href="{% url 'itineraries:itinerary_create' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>{% trans "Create Your First Itinerary" %}
+                </a>
+            </div>
+            <div class="mt-3">
+                <a href="{% url 'itineraries:itinerary_list' %}" class="btn btn-outline-secondary">
+                    {% trans "Browse Public Itineraries" %}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Custom CSS for hover effect -->
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+<style>
+    /* Card hover effect for better interaction feedback */
+    .hover-shadow:hover {
+        transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+<!-- JavaScript to add today's date for filtering past/upcoming trips -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dynamically add today's date to the template context
+        // In a real implementation, this would be done in the view
+        window.today = new Date();
+    });
+</script>
+{% endblock %}
+{% endblock %}

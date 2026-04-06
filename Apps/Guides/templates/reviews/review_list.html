@@ -1,0 +1,346 @@
+{% extends 'reviews/base_reviews.html' %}
+{% load static %}
+{% load review_filters %}
+
+{# 
+  Review list template
+  Displays a paginated list of reviews with filtering options and sorting controls.
+  Shows average rating and review count statistics.
+  Uses indigo/violet color scheme for all interactive elements and highlights.
+#}
+
+{% block reviews_title %}
+  {% if content_object %}{{ content_object.name }} - {% endif %}Reviews
+{% endblock %}
+
+{% block reviews_breadcrumb %}
+  {% if content_object %}
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ content_object.name }}</span>
+    </div>
+  </li>
+  {% endif %}
+{% endblock %}
+
+{% block reviews_header %}
+  {% if content_object %}
+    Reviews for {{ content_object.name }}
+  {% else %}
+    All Reviews
+  {% endif %}
+{% endblock %}
+
+{% block reviews_subheader %}
+  {% if content_object and review_count > 0 %}
+    <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
+      {# Average rating display with star visualization #}
+      <div class="flex items-center">
+        <div class="star-rating-display mr-2" data-rating="{{ avg_rating|floatformat:0 }}"></div>
+        <span class="text-lg font-medium text-gray-900 dark:text-gray-200">{{ avg_rating|floatformat:1 }}</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">
+          ({{ review_count }} review{% if review_count != 1 %}s{% endif %})
+        </span>
+      </div>
+      
+      {# Rating breakdown with visual bars for each star level #}
+      <div class="flex flex-col gap-1 mt-2 sm:mt-0">
+        {# Rating distribution bars - Shows 5 to 1 star counts with visual bars #}
+        {% for i in "54321"|make_list %}
+          {% with count=rating_counts|get_item:i %}
+          <div class="flex items-center">
+            {# Star rating label #}
+            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 w-6">{{ i }}★</span>
+            
+            {# Rating bar background #}
+            <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2 ml-2">
+              {% if review_count > 0 %}
+                {# Calculate percentage width for rating bar #}
+                {% with count_value=count|default:0 %}
+                {% with percentage=count_value|multiply:100|divide:review_count %}
+                {# Colored rating bar showing proportion of reviews with this rating #}
+                <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ percentage }}%"></div>
+                {% endwith %}
+                {% endwith %}
+              {% endif %}
+            </div>
+            
+            {# Count of reviews with this rating #}
+            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ count|default:0 }}</span>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block reviews_content %}
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    {# Filter sidebar with interactive controls for refining review list #}
+    <div class="lg:col-span-1">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 sticky top-24">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filter Reviews</h2>
+        
+        <form method="get" class="space-y-6">
+          {# Preserve content type and object ID in form submission #}
+          {% if content_type_id and object_id %}
+          <input type="hidden" name="content_type_id" value="{{ content_type_id }}">
+          <input type="hidden" name="object_id" value="{{ object_id }}">
+          {% endif %}
+          
+          {# Rating filter with checkboxes #}
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</h3>
+            <div class="space-y-2">
+              {% for value, label in filter_form.fields.rating.choices %}
+              <div class="flex items-center">
+                {% comment %}
+                  Check if this rating value is in the list of selected ratings.
+                  Using a simple check for the rating value in the GET parameters.
+                {% endcomment %}
+                <input type="checkbox" name="rating" value="{{ value }}" 
+                       id="rating_{{ value }}" 
+                       class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                       {% if value|stringformat:'s' in request.GET.rating or value == request.GET.rating|add:0 %}checked{% endif %}>
+                <label for="rating_{{ value }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  {{ label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+          {# Date range filter dropdown #}
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date Range</h3>
+            <select name="date_range" 
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+              {% for value, label in filter_form.fields.date_range.choices %}
+              <option value="{{ value }}" {% if filter_form.data.date_range == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          {# Sort options dropdown #}
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort By</h3>
+            <select name="sort_by" 
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+              {% for value, label in filter_form.fields.sort_by.choices %}
+              <option value="{{ value }}" {% if filter_form.data.sort_by == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          {# Filter submission button #}
+          <div>
+            <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+              Apply Filters
+            </button>
+          </div>
+          
+          {# Clear filters link #}
+          <div class="text-center">
+            <a href="?{% if content_type_id and object_id %}content_type_id={{ content_type_id }}&object_id={{ object_id }}{% endif %}" 
+               class="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+              Clear all filters
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    {# Reviews list section #}
+    <div class="lg:col-span-3">
+      {% if reviews %}
+        {# Write a review button if viewing content object reviews #}
+        {% if content_object %}
+          <div class="mb-6">
+            <a href="{% url 'reviews:create_review' content_type_id=content_type.id object_id=content_object.id %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+              </svg>
+              Write a Review
+            </a>
+          </div>
+        {% endif %}
+        
+        {# Individual review cards #}
+        <div class="space-y-6">
+          {% for review in reviews %}
+            <div class="review-card">
+              {# Review header with user info and rating #}
+              <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    {% if review.user.profile.avatar %}
+                      <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.username }}" class="h-10 w-10 rounded-full">
+                    {% else %}
+                      <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300">
+                        {{ review.user.username|first|upper }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ review.user.get_full_name|default:review.user.username }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ review.created_at|date:"M d, Y" }}</p>
+                  </div>
+                </div>
+                <div class="star-rating-display" data-rating="{{ review.rating }}"></div>
+              </div>
+              
+              {# Review title and content #}
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ review.title }}</h3>
+              <div class="text-gray-600 dark:text-gray-300 mb-4">
+                {{ review.content|linebreaks }}
+              </div>
+              
+              {# Review images gallery (if any) #}
+              {% if review.images.exists %}
+                <div class="flex gap-2 overflow-x-auto mb-4">
+                  {% for image in review.images.all %}
+                    <div class="flex-shrink-0">
+                      <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Review image' }}" 
+                           class="h-24 w-24 object-cover rounded-md">
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
+              {# Review actions - helpful votes and comments #}
+              <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                <div class="flex items-center space-x-4">
+                  {# Helpful button with counter #}
+                  <button class="helpful-button flex items-center text-sm {% if user_voted_helpful %}text-indigo-600{% else %}text-gray-500{% endif %} hover:text-indigo-600 transition duration-150 ease-in-out"
+                          data-review-id="{{ review.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                    </svg>
+                    <span>Helpful</span>
+                    <span id="helpful-count-{{ review.id }}" class="ml-1">({{ review.helpful_count }})</span>
+                  </button>
+                  
+                  {# Comments count with link to detail page #}
+                  <a href="{% url 'reviews:review_detail' review_id=review.id %}" class="flex items-center text-sm text-gray-500 hover:text-indigo-600 transition duration-150 ease-in-out">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Comments</span>
+                    <span class="ml-1">({{ review.comments_count }})</span>
+                  </a>
+                </div>
+                
+                <a href="{% url 'reviews:review_detail' review_id=review.id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  Read More
+                </a>
+              </div>
+              
+              {# Show review object link if we're in the main review list #}
+              {% if not content_object %}
+                <div class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <a href="{{ review.content_object.get_absolute_url }}" class="text-xs text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-300 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Review for: {{ review.content_object }}
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        
+        {# Pagination controls #}
+        {% if is_paginated %}
+          <nav class="mt-8 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700 dark:text-gray-300">
+                  Showing
+                  <span class="font-medium">{{ page_obj.start_index }}</span>
+                  to
+                  <span class="font-medium">{{ page_obj.end_index }}</span>
+                  of
+                  <span class="font-medium">{{ paginator.count }}</span>
+                  results
+                </p>
+              </div>
+              <div>
+                <ul class="flex space-x-2">
+                  {% if page_obj.has_previous %}
+                    <li>
+                      <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                         class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Previous
+                      </a>
+                    </li>
+                  {% endif %}
+                  
+                  {% for i in paginator.page_range %}
+                    {% if i == page_obj.number %}
+                      <li>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 dark:bg-indigo-900 dark:text-indigo-200">
+                          {{ i }}
+                        </span>
+                      </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                      <li>
+                        <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                          {{ i }}
+                        </a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% if page_obj.has_next %}
+                    <li>
+                      <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                         class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Next
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+          </nav>
+        {% endif %}
+      {% else %}
+        {# No reviews message with call-to-action #}
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No reviews yet</h3>
+          
+          {% if content_object %}
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Be the first to share your experience.</p>
+            <div class="mt-6">
+              <a href="{% url 'reviews:create_review' content_type_id=content_type.id object_id=content_object.id %}" 
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                </svg>
+                Write a Review
+              </a>
+            </div>
+          {% else %}
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No reviews match your filter criteria.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

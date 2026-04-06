@@ -1,0 +1,73 @@
+# Core
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+drf-yasg>=1.21.5  # Swagger/OpenAPI documentation
+django-cors-headers>=4.1.0
+django-environ>=0.10.0
+python-dotenv>=1.0.0
+
+# Database
+psycopg2-binary>=2.9.6
+django-db-geventpool>=5.0.0
+
+# Authentication
+djangorestframework-simplejwt>=5.2.2
+dj-rest-auth>=3.0.0
+python-jose[cryptography]>=3.3.0
+
+# Storage
+django-storages>=1.13.2
+boto3>=1.26.0
+
+# Caching
+redis>=4.5.1
+django-redis>=5.2.0
+
+# Async/Celery
+celery>=5.2.7
+flower>=1.2.0
+django-celery-beat>=2.5.0
+django-celery-results>=2.5.0
+
+# Image Processing
+Pillow>=9.5.0
+sorl-thumbnail>=12.9.0
+
+# Email
+sendgrid>=6.10.0
+django-anymail>=9.0.0
+
+# Security
+django-csp>=3.7
+whitenoise>=6.4.0
+django-axes>=6.0.0
+
+# Utilities
+python-slugify>=7.0.0
+phonenumbers>=8.13.5
+python-dateutil>=2.8.2
+pytz>=2023.3
+
+# Monitoring
+sentry-sdk>=1.19.1
+django-prometheus>=2.3.1
+
+# Testing
+pytest>=7.3.1
+pytest-django>=4.5.2
+pytest-cov>=4.0.0
+factory-boy>=3.2.1
+
+# Code Quality
+black>=23.3.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.2.0
+django-stubs>=4.1.0
+djangorestframework-stubs>=3.14.0
+
+# Development
+django-debug-toolbar>=4.0.0
+django-extensions>=3.2.1
+ipython>=8.12.0
+python-dotenv>=1.0.0

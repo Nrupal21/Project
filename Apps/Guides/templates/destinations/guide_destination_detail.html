@@ -1,0 +1,466 @@
+{% extends 'destinations/guide_base.html' %}
+{% load static %}
+{% load humanize %}
+{% load currency_filters %}
+
+{# Page title - Dynamic name of the destination #}
+{% block page_title %}{{ destination.name }}{% endblock %}
+
+{# Page action buttons - Edit and other destination management actions #}
+{% block page_actions %}
+<!-- Primary Action Buttons -->
+<div class="flex items-center space-x-2">
+    <!-- Pending Status Badge -->
+    {% if destination.is_pending %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+            <i class="fas fa-hourglass-half mr-1.5"></i> Pending Review
+        </span>
+    {% endif %}
+    
+    <div class="btn-group">
+        <a href="{% url 'destinations:destination_update' destination.id %}" class="btn {% if destination.is_pending %}bg-yellow-500 hover:bg-yellow-600{% else %}bg-indigo-600 hover:bg-indigo-700{% endif %} text-white">
+            <i class="fas {% if destination.is_pending %}fa-edit{% else %}fa-save{% endif %} me-1"></i>
+            {% if destination.is_pending %}Edit Submission{% else %}Edit Destination{% endif %}
+        </a>
+        <!-- Dropdown Toggle Button -->
+        <button type="button" class="btn {% if destination.is_pending %}bg-yellow-500 hover:bg-yellow-600{% else %}bg-indigo-600 hover:bg-indigo-700{% endif %} text-white dropdown-toggle dropdown-toggle-split" 
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+    <!-- Dropdown Menu with Actions -->
+    <ul class="dropdown-menu dropdown-menu-end shadow-lg border border-gray-100">
+        <li>
+            <a class="dropdown-item hover:bg-indigo-50" href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}">
+                <i class="fas fa-plus me-2 text-indigo-500"></i>Add Attraction
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item hover:bg-indigo-50" href="{% url 'destinations:destination_update' destination.id %}#images">
+                <i class="fas fa-images me-2 text-indigo-500"></i>Manage Images
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <button class="dropdown-item text-red-600 hover:bg-red-50" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-2"></i>Delete Destination
+            </button>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block guide_content %}
+<!-- Main content container with wide screen layout -->
+<div class="row gx-4 gx-lg-5">
+    <!-- Main Content Column - Destination details and attractions -->
+    <div class="col-lg-8">
+        <!-- Destination Header Card with enhanced styling -->
+        <div class="card shadow-md rounded-lg mb-5 border border-gray-100 overflow-hidden">
+            <!-- Hero Image Section with Overlay -->
+            {% if destination.primary_image %}
+            <div class="relative">
+                <!-- Main destination image with proper sizing -->
+                <img src="{{ destination.primary_image.image.url }}" 
+                     class="w-full h-80 object-cover" 
+                     alt="{{ destination.name }}">
+                <!-- Gradient overlay for text readability -->
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
+                <!-- Featured badge position -->
+                {% if destination.is_featured %}
+                <div class="absolute top-4 right-4">
+                    <div class="bg-amber-400 text-gray-900 px-3 py-1 rounded-full font-medium text-sm flex items-center shadow-md">
+                        <i class="fas fa-star mr-1"></i> Featured
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Destination title overlay with location info -->
+                <div class="absolute bottom-0 left-0 w-full p-5 text-white">
+                    <h1 class="text-3xl font-bold mb-2 text-white">{{ destination.name }}</h1>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Region badge with indigo palette -->
+                        <span class="badge bg-indigo-600 text-white px-2 py-1 rounded-md text-xs">
+                            {{ destination.region.name }}
+                        </span>
+                        <!-- Location with icon -->
+                        <span class="flex items-center text-sm">
+                            <i class="fas fa-map-marker-alt mr-1 text-indigo-300"></i> 
+                            {{ destination.city }}, {{ destination.country }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Destination Stats Section -->
+            <div class="border-b border-gray-100">
+                <!-- Stats display with improved grid layout -->
+                <div class="grid grid-cols-3 divide-x divide-gray-100">
+                    <!-- Attractions count stat -->
+                    <div class="p-4 text-center">
+                        <div class="text-2xl font-bold text-indigo-600 mb-1">{{ destination.attractions.count }}</div>
+                        <div class="text-gray-600 text-sm">Attractions</div>
+                    </div>
+                    <!-- Price range stat with INR currency -->
+                    <div class="p-4 text-center">
+                        <div class="text-2xl font-bold text-indigo-600 mb-1">{{ destination.get_price_range_display }}</div>
+                        <div class="text-gray-600 text-sm">Price Range</div>
+                    </div>
+                    <!-- Best time to visit stat -->
+                    <div class="p-4 text-center">
+                        <div class="text-2xl font-bold text-indigo-600 mb-1">{{ destination.get_best_time_to_visit_display }}</div>
+                        <div class="text-gray-600 text-sm">Best Time</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Destination Description Section -->
+            <div class="p-5">
+                <!-- Section heading with indigo color -->
+                <h5 class="text-lg font-semibold text-indigo-900 mb-3 flex items-center">
+                    <i class="fas fa-info-circle text-indigo-500 mr-2"></i> About This Destination
+                </h5>
+                <!-- Description text with improved typography -->
+                <div class="prose prose-indigo max-w-none text-gray-700">
+                    {{ destination.description|linebreaksbr }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attractions Section with improved card layout and styling -->
+        <div class="card shadow-md rounded-lg mb-5 border border-gray-100 overflow-hidden">
+            <!-- Card header with gradient and improved layout -->
+            <div class="card-header bg-gradient-to-r from-indigo-50 to-violet-50 py-3 px-4 flex justify-between items-center">
+                <!-- Section title with icon and attraction count -->
+                <h5 class="mb-0 font-semibold text-indigo-900 flex items-center">
+                    <i class="fas fa-map-marked-alt text-indigo-600 mr-2"></i> 
+                    Attractions <span class="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs">{{ destination.attractions.count }}</span>
+                </h5>
+                <!-- Add attraction button with indigo styling -->
+                <a href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}" 
+                   class="btn btn-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-3 py-1.5 rounded shadow-sm">
+                    <i class="fas fa-plus me-1"></i> Add Attraction
+                </a>
+            </div>
+            
+            <!-- Attractions listing with tailwind styling -->
+            <div class="p-0">
+                {% if destination.attractions.exists %}
+                    <!-- Attractions grid with dividers -->
+                    <div class="divide-y divide-gray-100">
+                        {% for attraction in destination.attractions.all %}
+                        <!-- Individual attraction item with hover effect -->
+                        <div class="p-4 hover:bg-gray-50 transition-colors duration-200">
+                            <div class="flex justify-between items-center">
+                                <!-- Attraction info with image -->
+                                <div class="flex items-center">
+                                    {% if attraction.primary_image %}
+                                    <!-- Attraction thumbnail with improved styling -->
+                                    <div class="flex-shrink-0 mr-3">
+                                        <img src="{{ attraction.primary_image.image.url }}" 
+                                             class="rounded-lg shadow-sm w-16 h-16 object-cover" 
+                                             alt="{{ attraction.name }}">
+                                    </div>
+                                    {% else %}
+                                    <!-- Placeholder for missing image -->
+                                    <div class="flex-shrink-0 mr-3 w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-camera text-gray-400"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Attraction details with improved typography -->
+                                    <div>
+                                        <h6 class="font-medium text-gray-900 mb-0.5">{{ attraction.name }}</h6>
+                                        <div class="flex items-center gap-2">
+                                            <!-- Category badge with indigo styling -->
+                                            <span class="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full">{{ attraction.get_category_display }}</span>
+                                            
+                                            <!-- Price display with INR currency -->
+                                            {% if attraction.entrance_fee > 0 %}
+                                            <span class="text-xs text-gray-600 flex items-center">
+                                                <i class="fas fa-rupee-sign text-gray-500 mr-1"></i> ₹{{ attraction.entrance_fee|floatformat:0 }}
+                                            </span>
+                                            {% else %}
+                                            <span class="text-xs text-emerald-600 flex items-center">
+                                                <i class="fas fa-ticket-alt mr-1"></i> Free Entry
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action buttons with improved styling -->
+                                <div class="flex gap-2">
+                                    <!-- View button with indigo styling -->
+                                    <a href="{% url 'destinations:attraction_detail' attraction.slug %}" 
+                                       class="btn btn-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 p-2 rounded-md transition-colors">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <!-- Edit button with violet styling -->
+                                    <a href="{% url 'destinations:attraction_update' attraction.id %}" 
+                                       class="btn btn-sm bg-violet-100 hover:bg-violet-200 text-violet-700 p-2 rounded-md transition-colors">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Empty state with improved styling -->
+                    <div class="text-center py-8 px-4">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-500 mb-4">
+                            <i class="fas fa-map-marked-alt fa-2x"></i>
+                        </div>
+                        <h5 class="font-semibold text-gray-900 mb-2">No Attractions Yet</h5>
+                        <p class="text-gray-600 mb-4 max-w-md mx-auto">This destination doesn't have any attractions added yet. Add your first attraction to get started.</p>
+                        <a href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}" 
+                           class="btn bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-4 py-2 rounded-lg shadow-sm inline-flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add First Attraction
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% else %}
+<div class="text-center py-4">
+    <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+    <h5>No Attractions Yet</h5>
+    <p class="text-muted">You haven't added any attractions to this destination yet.</p>
+    <a href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}" 
+       class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add First Attraction
+    </a>
+</div>
+{% endif %}
+        <!-- Review Status -->
+        {% if destination.is_pending or destination.was_rejected %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between items-center">
+                <span class="font-medium">Review Status</span>
+                {% if destination.is_pending %}
+                    <span class="badge bg-yellow-100 text-yellow-800">
+                        <i class="fas fa-hourglass-half mr-1"></i> Pending Review
+                    </span>
+                {% elif destination.was_rejected %}
+                    <span class="badge bg-red-100 text-red-800">
+                        <i class="fas fa-times-circle mr-1"></i> Rejected
+                    </span>
+                {% endif %}
+            </div>
+            {% if destination.was_rejected and destination.rejection_reason %}
+                <div class="mt-2 p-2 bg-red-50 text-sm text-red-700 rounded">
+                    <div class="font-medium">Feedback:</div>
+                    {{ destination.rejection_reason }}
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <span>Created</span>
+                <span>{{ destination.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Column - Quick information and actions -->
+    <div class="col-lg-4 col-md-5">
+        <!-- Destination Info Card with improved styling -->
+        <div class="card shadow-md rounded-lg mb-5 border border-gray-100 overflow-hidden">
+            <!-- Card header with gradient background -->
+            <div class="card-header bg-gradient-to-r from-indigo-50 to-violet-50 py-3">
+                <h5 class="mb-0 font-semibold text-indigo-900 flex items-center">
+                    <i class="fas fa-info-circle text-indigo-600 mr-2"></i> Destination Info
+                </h5>
+            </div>
+            
+            <!-- Destination details list -->
+            <div class="divide-y divide-gray-100">
+                <!-- Status item with improved badge -->
+                <div class="p-4 flex justify-between items-center">
+                    <span class="text-gray-700">Status</span>
+                    <span class="badge {% if destination.is_active %}bg-gradient-to-r from-emerald-500 to-teal-500{% else %}bg-gray-500{% endif %} text-white px-3 py-1 rounded-full text-xs">
+                        {{ destination.get_status_display }}
+                    </span>
+                </div>
+                
+                <!-- Visibility item with improved badge -->
+                <div class="p-4 flex justify-between items-center">
+                    <span class="text-gray-700">Visibility</span>
+                    <span class="badge {% if destination.is_public %}bg-gradient-to-r from-indigo-500 to-violet-500{% else %}bg-amber-400 text-gray-900{% endif %} text-white px-3 py-1 rounded-full text-xs">
+                        {{ destination.get_visibility_display }}
+                    </span>
+                </div>
+                
+                <!-- Featured status with improved badge -->
+                <div class="p-4 flex justify-between items-center">
+                    <span class="text-gray-700">Featured</span>
+                    <span class="badge {% if destination.is_featured %}bg-amber-400 text-gray-900{% else %}bg-gray-200 text-gray-700{% endif %} px-3 py-1 rounded-full text-xs">
+                        {% if destination.is_featured %}Yes{% else %}No{% endif %}
+                    </span>
+                </div>
+                
+                <!-- Creation date with icon -->
+                <div class="p-4 flex justify-between items-center">
+                    <span class="text-gray-700">Created</span>
+                    <span class="text-gray-700 flex items-center">
+                        <i class="fas fa-calendar-alt text-indigo-500 mr-1"></i>
+                        {{ destination.created_at|date:"M d, Y" }}
+                    </span>
+                </div>
+                
+                <!-- Last updated with icon -->
+                <div class="p-4 flex justify-between items-center">
+                    <span class="text-gray-700">Last Updated</span>
+                    <span class="text-gray-700 flex items-center">
+                        <i class="fas fa-clock text-indigo-500 mr-1"></i>
+                        {{ destination.updated_at|date:"M d, Y" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions Card with improved styling -->
+        <div class="card shadow-md rounded-lg mb-5 border border-gray-100 overflow-hidden">
+            <!-- Card header with gradient background -->
+            <div class="card-header bg-gradient-to-r from-indigo-50 to-violet-50 py-3">
+                <h5 class="mb-0 font-semibold text-indigo-900 flex items-center">
+                    <i class="fas fa-bolt text-indigo-600 mr-2"></i> Quick Actions
+                </h5>
+            </div>
+            
+            <!-- Quick action buttons with improved styling -->
+            <div class="p-4 space-y-3">
+                <!-- Edit destination button with indigo gradient -->
+                <a href="{% url 'destinations:destination_update' destination.id %}" 
+                   class="btn w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white py-2 rounded-lg flex items-center justify-center transition-all">
+                    <i class="fas fa-edit mr-2"></i> Edit Destination
+                </a>
+                
+                <!-- Add attraction button with violet gradient -->
+                <a href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}" 
+                   class="btn w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-2 rounded-lg flex items-center justify-center transition-all">
+                    <i class="fas fa-plus-circle mr-2"></i> Add Attraction
+                </a>
+                
+                <!-- Delete button with danger styling -->
+                <button class="btn w-full bg-white border border-red-500 hover:bg-red-50 text-red-600 py-2 rounded-lg flex items-center justify-center transition-all"
+                        data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash mr-2"></i> Delete Destination
+                </button>
+            </div>
+        </div>
+        
+        <!-- Weather Card (if applicable) -->
+        <div class="card shadow-md rounded-lg mb-5 border border-gray-100 overflow-hidden">
+            <!-- Card header with gradient background -->
+            <div class="card-header bg-gradient-to-r from-indigo-50 to-violet-50 py-3">
+                <h5 class="mb-0 font-semibold text-indigo-900 flex items-center">
+                    <i class="fas fa-cloud-sun text-indigo-600 mr-2"></i> Weather & Climate
+                </h5>
+            </div>
+            
+            <!-- Weather information with improved styling -->
+            <div class="p-4">
+                <!-- Climate description -->
+                <div class="mb-4">
+                    <h6 class="text-sm font-semibold text-gray-700 mb-2">Climate</h6>
+                    <p class="text-gray-600 text-sm">{{ destination.climate_description|default:"Climate information not available." }}</p>
+                </div>
+                
+                <!-- Seasonal information -->
+                <div class="mb-3">
+                    <h6 class="text-sm font-semibold text-gray-700 mb-2">Seasonal Information</h6>
+                    <!-- Temperature grid with improved styling -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Summer season -->
+                        <div class="bg-amber-50 rounded-lg p-3 text-center">
+                            <div class="text-amber-600 mb-1"><i class="fas fa-sun"></i></div>
+                            <div class="text-sm font-medium text-gray-800">Summer</div>
+                            <div class="text-xs text-gray-600">{{ destination.summer_temp_range|default:"N/A" }}</div>
+                        </div>
+                        <!-- Winter season -->
+                        <div class="bg-blue-50 rounded-lg p-3 text-center">
+                            <div class="text-blue-600 mb-1"><i class="fas fa-snowflake"></i></div>
+                            <div class="text-sm font-medium text-gray-800">Winter</div>
+                            <div class="text-xs text-gray-600">{{ destination.winter_temp_range|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Best time to visit reminder -->
+                <div class="bg-indigo-50 rounded-lg p-3 flex items-center">
+                    <div class="text-indigo-600 mr-3"><i class="fas fa-calendar-check fa-lg"></i></div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-800">Best Time to Visit</div>
+                        <div class="text-xs text-gray-600">{{ destination.get_best_time_to_visit_display }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal with improved styling and user experience -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <!-- Modal dialog with enhanced shadow and rounded corners -->
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-lg shadow-xl border-0">
+            <!-- Modal header with gradient background -->
+            <div class="modal-header bg-gradient-to-r from-red-50 to-red-100 border-0">
+                <h5 class="modal-title font-semibold text-red-700 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i> Delete Destination
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- Modal body with improved typography and warning message -->
+            <div class="modal-body p-5">
+                <!-- Confirmation question with destination name highlight -->
+                <p class="text-gray-700 mb-4">Are you sure you want to delete <strong class="text-gray-900">{{ destination.name }}</strong>?</p>
+                
+                <!-- Warning for cascading deletions of attractions -->
+                {% if destination.attractions.exists %}
+                <div class="bg-amber-50 border-l-4 border-amber-500 text-amber-800 p-4 rounded-md mb-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-amber-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm">
+                                <strong>Warning:</strong> This will permanently delete {{ destination.attractions.count }} attraction(s) associated with this destination.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Additional note about permanent deletion -->
+                <div class="text-gray-500 text-sm">
+                    <i class="fas fa-info-circle mr-1"></i> This action cannot be undone.
+                </div>
+            </div>
+            
+            <!-- Modal footer with styled action buttons -->
+            <div class="modal-footer border-0 pt-0 flex justify-between">
+                <!-- Cancel button with subtle styling -->
+                <button type="button" class="btn bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition-colors"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                
+                <!-- Delete form submission button with danger styling -->
+                <form action="{% url 'destinations:destination_delete' destination.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors">
+                        <i class="fas fa-trash mr-1"></i> Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

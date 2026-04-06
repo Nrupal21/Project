@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+  <!-- Additional CSS for gallery page -->
+  <style>
+    /* Animation for gallery image hover effects */
+    .gallery-image-transition {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .gallery-image:hover .gallery-image-transition {
+      transform: translateY(-5px);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="max-w-screen-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Gallery Header Section -->
+    <div class="text-center mb-16">
+      <span class="inline-flex items-center px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-xs font-semibold tracking-wider uppercase rounded-full mb-4 shadow-lg transform transition-transform hover:scale-105">
+        <span class="relative z-10 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" clip-rule="evenodd" />
+          </svg>
+          Travel Gallery
+        </span>
+      </span>
+      
+      <!-- Gallery Main Heading -->
+      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+        Explore <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-600">Breathtaking Destinations</span>
+      </h1>
+      
+      <!-- Decorative Divider with Indigo-Violet Gradient -->
+      <div class="w-24 h-1.5 bg-gradient-to-r from-indigo-400 to-violet-500 mx-auto rounded-full mb-6"></div>
+      
+      <!-- Gallery Description -->
+      <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Discover stunning locations around the world through our curated collection of travel moments
+      </p>
+    </div>
+
+    <!-- Main Content Area -->
+    {% block gallery_content %}
+      <!-- Gallery specific content will go here -->
+    {% endblock %}
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <!-- Any extra JavaScript for gallery functionality -->
+  <script>
+    /**
+     * Enhances gallery image loading and interactions
+     * Sets up lazy loading and hover interactions for gallery images
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize any gallery-specific functionality here
+    });
+  </script>
+{% endblock %}

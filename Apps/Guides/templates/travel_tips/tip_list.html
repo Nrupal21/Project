@@ -1,0 +1,162 @@
+{% extends 'travel_tips/base.html' %}
+{% load humanize %}
+
+{% block head_title %}Travel Tips & Guides - Expert Advice{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-6">
+    <ol class="flex items-center space-x-2">
+        <li><a href="{% url 'home' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Home</a></li>
+        <li class="text-gray-500">›</li>
+        <li class="text-gray-500">Travel Tips</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block tip_content %}
+<header class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Travel Tips & Guides</h1>
+    <p class="text-gray-600 dark:text-gray-300">Expert advice for your next adventure</p>
+</header>
+
+<!-- Search and Filter -->
+<div class="mb-8">
+    <form method="get" class="mb-4">
+        <div class="flex">
+            <input type="text" name="q" placeholder="Search tips..." 
+                   class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                   value="{{ request.GET.q }}">
+            <button type="submit" class="px-4 bg-indigo-600 text-white rounded-r-lg hover:bg-indigo-700">
+                Search
+            </button>
+        </div>
+    </form>
+    
+    <div class="flex flex-wrap gap-2">
+        <a href="?sort=newest" 
+           class="px-3 py-1 rounded-full text-sm {% if request.GET.sort != 'popular' and request.GET.sort != 'featured' %}bg-indigo-100 text-indigo-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} dark:bg-gray-700 dark:text-gray-200">
+            Newest
+        </a>
+        <a href="?sort=popular" 
+           class="px-3 py-1 rounded-full text-sm {% if request.GET.sort == 'popular' %}bg-indigo-100 text-indigo-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} dark:bg-gray-700 dark:text-gray-200">
+            Popular
+        </a>
+        <a href="?sort=featured" 
+           class="px-3 py-1 rounded-full text-sm {% if request.GET.sort == 'featured' %}bg-indigo-100 text-indigo-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} dark:bg-gray-700 dark:text-gray-200">
+            Featured
+        </a>
+    </div>
+</div>
+
+<!-- Tips Grid -->
+{% if tips %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for tip in tips %}
+    <article class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+        {% if tip.featured_image %}
+        <a href="{% url 'travel_tips:detail' tip.slug %}">
+            <img src="{{ tip.featured_image.url }}" alt="{{ tip.title }}" class="w-full h-48 object-cover">
+        </a>
+        {% endif %}
+        
+        <div class="p-6">
+            {% if tip.category %}
+            <div class="mb-2">
+                <a href="{% url 'travel_tips:category_detail' tip.category.slug %}" 
+                   class="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">
+                    {{ tip.category.name }}
+                </a>
+            </div>
+            {% endif %}
+            
+            <h2 class="text-xl font-bold mb-2">
+                <a href="{% url 'travel_tips:detail' tip.slug %}" class="text-gray-900 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400">
+                    {{ tip.title }}
+                </a>
+            </h2>
+            
+            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                {{ tip.excerpt|truncatewords:20 }}
+            </p>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ tip.published_at|naturalday|title }}
+                    </span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ tip.read_time }} min read
+                    </span>
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="mt-8 flex justify-center">
+    <ul class="flex items-center space-x-1">
+        {% if page_obj.has_previous %}
+        <li>
+            <a href="?page=1" class="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                &laquo; First
+            </a>
+        </li>
+        <li>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                Previous
+            </a>
+        </li>
+        {% endif %}
+        
+        <li class="px-3 py-1">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </li>
+        
+        {% if page_obj.has_next %}
+        <li>
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                Next
+            </a>
+        </li>
+        <li>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                Last &raquo;
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tips found</h3>
+    <p class="mt-1 text-gray-500 dark:text-gray-400">
+        {% if request.GET.q %}
+        No tips match your search criteria. Try different keywords.
+        {% else %}
+        There are no travel tips available at the moment. Please check back later.
+        {% endif %}
+    </p>
+    
+    {% if user.is_staff %}
+    <div class="mt-6">
+        <a href="{% url 'travel_tips:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Create New Tip
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

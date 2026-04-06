@@ -1,0 +1,54 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Guide Application Submitted - TravelGuide{% endblock %}
+
+{% block email_title %}Local Guide Application Submitted Successfully!{% endblock %}
+
+{% block content %}
+<!-- 
+/**
+ * Guide Application Confirmation Email
+ * 
+ * This email notifies users that their guide application has been successfully submitted
+ * and is pending review. It includes:
+ * - Confirmation of receipt
+ * - Application details summary
+ * - Expected timeline for review
+ * - Next steps information
+ */
+-->
+<p>Hello {{ user.get_full_name|default:user.username }},</p>
+
+<p>Thank you for applying to become a Local Guide with TravelGuide! We're excited about your interest in joining our community of travel experts.</p>
+
+<div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h2 style="color: #5b21b6; margin-top: 0;">Application Summary</h2>
+    <p><strong>Application ID:</strong> #{{ application_id }}</p>
+    <p><strong>Submitted On:</strong> {{ application_date|date:"F j, Y, g:i a" }}</p>
+    <p><strong>Status:</strong> <span style="background-color: #FEEBC8; color: #9C4221; padding: 3px 8px; border-radius: 4px; font-weight: 600;">Pending Review</span></p>
+</div>
+
+<h2>What happens next?</h2>
+<p>Our team will carefully review your application, which typically takes 3-5 business days. The review process includes:</p>
+
+<ol style="padding-left: 20px;">
+    <li>ID verification check</li>
+    <li>Review of your travel expertise and experience</li>
+    <li>Background verification</li>
+</ol>
+
+<p>Once the review is complete, you'll receive another email with the decision. If approved, you'll gain access to our Local Guide features where you can:</p>
+
+<ul style="padding-left: 20px;">
+    <li>Submit destinations and attractions</li>
+    <li>Create custom travel itineraries</li>
+    <li>Earn rewards for your contributions</li>
+    <li>Connect with travelers visiting your area</li>
+</ul>
+
+<p>You can check your application status anytime by visiting your <a href="{{ site_url }}{% url 'accounts:profile' %}">Account Profile</a>.</p>
+{% endblock %}
+
+{% block action_button %}
+<a href="{{ site_url }}{% url 'accounts:profile' %}" class="button">View Your Profile</a>
+{% endblock %}

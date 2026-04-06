@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Destination Submission Confirmation</title>
+    <style>
+        /* Base styling for email clients */
+        @media only screen and (max-width: 620px) {
+            table.body h1 {
+                font-size: 28px !important;
+                margin-bottom: 10px !important;
+            }
+            table.body p,
+            table.body ul,
+            table.body ol,
+            table.body td,
+            table.body span,
+            table.body a {
+                font-size: 16px !important;
+            }
+            table.body .wrapper,
+            table.body .article {
+                padding: 10px !important;
+            }
+            table.body .content {
+                padding: 0 !important;
+            }
+            table.body .container {
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            table.body .main {
+                border-left-width: 0 !important;
+                border-radius: 0 !important;
+                border-right-width: 0 !important;
+            }
+            table.body .btn table {
+                width: 100% !important;
+            }
+            table.body .btn a {
+                width: 100% !important;
+            }
+            table.body .img-responsive {
+                height: auto !important;
+                max-width: 100% !important;
+                width: auto !important;
+            }
+        }
+        
+        /* Tailwind-inspired styles */
+        .bg-indigo-600 {
+            background-color: #4f46e5 !important;
+        }
+        .text-white {
+            color: #ffffff !important;
+        }
+        .text-indigo-600 {
+            color: #4f46e5 !important;
+        }
+        .border-indigo-600 {
+            border-color: #4f46e5 !important;
+        }
+        .bg-gray-50 {
+            background-color: #f9fafb !important;
+        }
+        .text-gray-700 {
+            color: #374151 !important;
+        }
+        .text-gray-500 {
+            color: #6b7280 !important;
+        }
+        
+        /* Styles for responsive images */
+        img {
+            display: block;
+            max-width: 100%;
+            /* Note: vertical-align is technically ignored with display:block but kept for fallback */
+            /* when images might revert to inline display in some email clients */
+            vertical-align: middle;
+        }
+        
+        /* Hide elements in Outlook */
+        .outlook-hide {
+            /* MSO-specific property to hide elements in Microsoft Outlook */
+            mso-hide: all;
+        }
+        
+        /* Reset styles for tables */
+        table {
+            border-collapse: collapse;
+            /* MSO-specific properties needed for Outlook email clients */
+            /* These properties prevent Outlook from adding extra space around tables */
+            mso-table-lspace: 0pt; /* MS Outlook left spacing */
+            mso-table-rspace: 0pt; /* MS Outlook right spacing */
+        }
+    </style>
+</head>
+<body style="background-color: #f6f9fc; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+    <!-- MSO properties are used to control the layout in Microsoft Outlook email clients -->
+    <!-- mso-table-lspace and mso-table-rspace are used to prevent extra space around tables -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f6f9fc; width: 100%;" width="100%" bgcolor="#f6f9fc">
+        <tr>
+            <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
+            <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;" width="580" valign="top">
+                <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;">
+
+                    <!-- START CENTERED WHITE CONTAINER -->
+                    <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">Your destination submission has been received and is pending review.</span>
+                    <table role="presentation" class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background: #ffffff; border-radius: 3px; width: 100%;" width="100%">
+
+                        <!-- START MAIN CONTENT AREA -->
+                        <tr>
+                            <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;" valign="top">
+                                <!-- Header -->
+                                <div style="text-align: center; margin-bottom: 30px;">
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                                        <tr>
+                                            <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: #4f46e5; border-radius: 5px 5px 0 0; color: white; font-size: 20px; font-weight: bold; text-align: center; padding: 20px 15px;" valign="top" bgcolor="#4f46e5" align="center">
+                                                {{ site_name }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                                    <tr>
+                                        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">
+                                            <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Hi {{ submitter.get_full_name|default:submitter.username }},</p>
+                                            
+                                            <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Thank you for submitting a new destination to {{ site_name }}! Your contribution is valuable to our travel community.</p>
+                                            
+                                            <h2 style="color: #4f46e5; font-size: 18px; font-weight: bold; margin-top: 30px; margin-bottom: 15px;">Submission Details:</h2>
+                                            
+                                            <!-- Destination details box -->
+                                            <div style="background-color: #f9fafb; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+                                                <p style="font-family: sans-serif; font-weight: bold; margin: 0; margin-bottom: 10px; font-size: 16px;">{{ destination.name }}</p>
+                                                <p style="font-family: sans-serif; font-size: 14px; margin: 0; margin-bottom: 5px;"><strong>Region:</strong> {{ destination.region.name }}</p>
+                                                <p style="font-family: sans-serif; font-size: 14px; margin: 0; margin-bottom: 5px;"><strong>Submitted:</strong> {{ current_date }}</p>
+                                                <p style="font-family: sans-serif; font-size: 14px; margin: 0; margin-bottom: 0px;"><strong>Status:</strong> <span style="background-color: #fef3c7; color: #92400e; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: bold;">Pending Review</span></p>
+                                            </div>
+                                            
+                                            <h2 style="color: #4f46e5; font-size: 18px; font-weight: bold; margin-top: 30px; margin-bottom: 15px;">What happens next?</h2>
+                                            
+                                            <ul style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px; padding-left: 25px;">
+                                                <li style="margin-bottom: 10px;">Our team will review your destination submission for completeness and accuracy</li>
+                                                <li style="margin-bottom: 10px;">You'll receive an email notification once the review is complete</li>
+                                                <li style="margin-bottom: 10px;">If approved, your destination will be published on our platform</li>
+                                                <li style="margin-bottom: 10px;">You'll earn reward points for your contribution</li>
+                                            </ul>
+                                            
+                                            <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-top: 30px; margin-bottom: 15px;">Review typically takes 1-2 business days. You can check the status of your submission in your profile dashboard.</p>
+                                            
+                                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" width="100%">
+                                                <tbody>
+                                                    <tr>
+                                                        <td align="center" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;" valign="top">
+                                                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #4f46e5;" valign="top" bgcolor="#4f46e5" align="center">
+                                                                            <a href="{{ profile_url }}" target="_blank" style="border: solid 1px #4f46e5; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: #4f46e5; border-color: #4f46e5; color: #ffffff;">View Your Profile</a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            
+                                            <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Thank you for contributing to {{ site_name }}!</p>
+                                            <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Best regards,<br>The {{ site_name }} Team</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- END MAIN CONTENT AREA -->
+                    </table>
+                    <!-- END CENTERED WHITE CONTAINER -->
+
+                    <!-- START FOOTER -->
+                    <div class="footer" style="clear: both; margin-top: 10px; text-align: center; width: 100%;">
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
+                            <tr>
+                                <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" valign="top" align="center">
+                                    <span class="apple-link" style="color: #999999; font-size: 12px; text-align: center;">{{ site_name }} Inc, Travel Experience Platform</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="content-block powered-by" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" valign="top" align="center">
+                                    © {{ current_year }} {{ site_name }}. All rights reserved.
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- END FOOTER -->
+
+                </div>
+            </td>
+            <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,1021 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login - TravelGuide{% endblock %}
+
+{% block extra_css %}
+
+
+
+<style>
+    /**
+     * Login Page Styles
+     * ==========================================
+     * Custom styling for the login page with:
+     * - Indigo/violet color scheme
+     * - Responsive design for all devices
+     * - Wave background effect
+     * - Smooth animations and transitions
+     * - Form validation styling
+     */
+    :root {
+        /* Color Scheme */
+        --primary: #4F46E5;      /* Indigo 600 */
+        --primary-hover: #4338CA; /* Indigo 700 */
+        --primary-light: #6366F1; /* Indigo 500 */
+        --secondary: #8B5CF6;    /* Violet 500 */
+        --accent: #7C3AED;       /* Violet 600 */
+        --text: #1F2937;         /* Gray 800 */
+        --text-light: #6B7280;   /* Gray 500 */
+        --bg-light: #F9FAFB;     /* Gray 50 */
+        --bg-card: #FFFFFF;      /* White */
+        --border: #E5E7EB;       /* Gray 200 */
+        --success: #10B981;      /* Emerald 500 */
+        --error: #EF4444;        /* Red 500 */
+        --warning: #F59E0B;      /* Amber 500 */
+        --info: #3B82F6;         /* Blue 500 */
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* Transitions */
+        --transition: all 0.2s ease-in-out;
+        --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /**
+     * Auth Container
+     * - Main container for the login page
+     * - Creates a full-height gradient background
+     * - Centers the login card horizontally and vertically
+     * - Fixed width container prevents stretching on large screens
+     * - Matching registration page gradient style
+     */
+    .auth-container {
+        margin-top: 5rem;
+        min-height: 130vh;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    /**
+     * Auth Wrapper
+     * - Constrains the width of the login form
+     * - Centers the form in the container
+     * - Provides responsive behavior across screen sizes
+     */
+    .auth-wrapper {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+    
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /**
+     * Auth Card
+     * - Container for the login form
+     * - Soft UI design with subtle shadows matching registration page
+     * - Rounded corners for modern look
+     * - Slide-up animation on page load
+     * - Contained within auth-wrapper for width control
+     */
+    .auth-card {
+        background: #ffffff;
+        border-radius: 30px;
+        box-shadow: 20px 20px 60px rgba(119, 117, 117, 0.2),
+                   -20px -20px 60px rgba(182, 181, 181, 0.2);
+        padding: 2.5rem;
+        width: 100%;
+        position: relative;
+        transition: all 0.3s ease;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: slideUp 0.5s ease-out forwards;
+    }
+    
+    @keyframes slideUp {
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Header Section */
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+        display: block;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        padding: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-header h1 {
+        color: var(--text);
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .auth-header p {
+        color: var(--text-light);
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /**
+     * Form Elements
+     * - Styling for form container and groups
+     * - Consistent spacing and positioning
+     * - Matches registration page styling
+     */
+    .auth-form {
+        margin-top: 1.5rem;
+    }
+
+    /**
+     * Form Group
+     * - Container for form fields and labels
+     * - Provides proper spacing between form elements
+     */
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        color: var(--text);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        transition: var(--transition);
+    }
+
+    /**
+     * Form Control
+     * - Styling for input fields
+     * - Consistent border, padding, and radius
+     * - Smooth focus transitions
+     * - Subtle shadow for depth
+     */
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 2px solid var(--border);
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: #fff;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /**
+     * Form Control Focus State
+     * - Highlights border with primary color
+     * - Adds subtle glow effect
+     * - Removes default outline
+     */
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        outline: none;
+    }
+    
+    /**
+     * Form Control Placeholder
+     * - Lighter text for placeholders
+     * - Proper opacity for accessibility
+     */
+    .form-control::placeholder {
+        color: var(--text-light);
+        opacity: 0.7;
+    }
+    
+    /**
+     * Input Icon
+     * - Positions icons within input fields
+     * - Provides visual cues for input types
+     * - Transitions color on input focus
+     */
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        transition: color 0.2s ease-in-out;
+        pointer-events: none;
+    }
+    
+    /**
+     * Input Focus State
+     * - Changes icon color when input is focused
+     * - Provides visual feedback to user
+     */
+    .form-control:focus + .input-icon {
+        color: var(--primary);
+    }
+
+    /**
+     * Password Toggle Button
+     * - Shows/hides password text
+     * - Positioned absolutely within input field
+     * - Smooth hover and focus states
+     * - Accessible interaction design
+     */
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-light);
+        background: none;
+        border: none;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .password-toggle:hover {
+        color: var(--primary);
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .password-toggle:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    /**
+     * Button Base Styles
+     * - Common styling for all buttons
+     * - Flexbox layout for icon alignment
+     * - Consistent sizing and padding
+     * - Smooth transitions for interactions
+     */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1.5;
+        transition: var(--transition-slow);
+        cursor: pointer;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    /**
+     * Primary Button
+     * - Gradient background from indigo to violet
+     * - Consistent with registration page button styling
+     * - Smooth hover and focus states
+     * - Proper shadow and rounded corners
+     */
+    .btn-primary {
+        background: linear-gradient(to right, var(--primary), var(--accent));
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+        margin-top: 1.5rem;
+    }
+    
+    /**
+     * Button Hover/Focus States
+     * - Darker gradient on hover/focus
+     * - Slight elevation effect with shadow
+     * - Small transform for interactive feel
+     */
+    .btn-primary:hover, .btn-primary:focus {
+        background: linear-gradient(to right, var(--primary-hover), var(--secondary));
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
+    
+    /**
+     * Button Active State
+     * - Pressed down effect
+     * - Reduced shadow
+     * - Provides tactile feedback
+     */
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px -1px rgba(79, 70, 229, 0.3);
+    }
+    
+    /**
+     * Button Focus State
+     * - Accessible focus outline
+     * - Matches primary color
+     * - Ensures keyboard navigation visibility
+     */
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+    }
+    
+    /**
+     * Loading State for Buttons
+     * - Shows spinner during form submission
+     * - Prevents multiple submissions
+     * - Visual feedback for processing state
+     */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        color: transparent !important;
+    }
+    
+    /**
+     * Loading Spinner Animation
+     * - Creates circular loading indicator
+     * - Centered within button
+     * - Smooth rotation animation
+     */
+    .btn-loading:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /**
+     * Form Footer
+     * - Container for links below form
+     * - Centered text alignment
+     * - Proper spacing from form elements
+     */
+    .form-footer {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+    
+    /**
+     * Form Footer Links
+     * - Styling for links in footer
+     * - Primary color for visibility
+     * - Smooth hover transition
+     */
+    .form-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    /**
+     * Form Footer Link Hover
+     * - Adds underline on hover
+     * - Provides visual feedback
+     */
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    /**
+     * Alert Component
+     * - Base styling for alert messages
+     * - Rounded corners and proper padding
+     * - Appropriate text size
+     */
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+    
+    /**
+     * Error Alert
+     * - Red background and border for errors
+     * - High contrast for visibility
+     * - Left border for emphasis
+     */
+    .alert-error {
+        background-color: #FEE2E2;
+        color: #B91C1C;
+        border-left: 4px solid #DC2626;
+    }
+    
+    /**
+     * Divider Component
+     * - Horizontal divider with text
+     * - Used between form and social login
+     * - Centered text with lines on either side
+     */
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: var(--text-light);
+        font-size: 0.875rem;
+    }
+    
+    /**
+     * Divider Lines
+     * - Creates horizontal lines on either side of text
+     * - Subtle color matching border color
+     * - Flexible width with proper spacing
+     */
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+        margin: 0 1rem;
+    }
+    
+    /**
+     * Social Login Container
+     * - Grid layout for social login buttons
+     * - Responsive column arrangement
+     * - Proper spacing between buttons
+     */
+    .social-login {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    /**
+     * Social Login Button
+     * - Styling for social media login options
+     * - Centered icon with border
+     * - Hover effects for interaction
+     */
+    .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    /**
+     * Social Button Hover State
+     * - Light background on hover
+     * - Border color change for emphasis
+     * - Visual feedback for interaction
+     */
+    .social-btn:hover {
+        background: var(--bg-light);
+        border-color: var(--primary);
+    }
+    
+    /**
+     * Social Button Icon
+     * - Consistent size for all social icons
+     * - Proper scaling without distortion
+     */
+    .social-btn img {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    
+    /**
+     * Responsive Adjustments
+     * - Adapts layout for smaller screens
+     * - Reduces padding for more content space
+     * - Stacks social buttons vertically
+     */
+    @media (max-width: 640px) {
+        .auth-card {
+            padding: 1.5rem;
+        }
+        
+        .social-login {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /**
+     * Forgot Password Link
+     * - Right-aligned link for password recovery
+     * - Proper spacing from input field
+     * - Primary color for visibility
+     */
+    .forgot-password {
+        display: block;
+        text-align: right;
+        font-size: 0.875rem;
+        color: var(--primary);
+        margin-top: 0.5rem;
+        text-decoration: none;
+    }
+    
+    /**
+     * Forgot Password Hover State
+     * - Adds underline on hover
+     * - Visual feedback for interaction
+     */
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+    
+    /* Checkbox Styling */
+    /**
+     * Form Check
+     * - Styling for checkbox containers
+     * - Flexbox layout for alignment with labels
+     * - Proper spacing between elements
+     */
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    /**
+     * Form Check Input
+     * - Styling for checkbox inputs
+     * - Consistent size and spacing
+     * - Custom border and radius
+     * - Smooth transition effects
+     */
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.5rem;
+        border: 2px solid var(--border);
+        border-radius: 0.25rem;
+        transition: var(--transition);
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+    
+    /**
+     * Checkbox Checked State
+     * - Custom styling for checked checkbox
+     * - Uses primary color for background
+     * - Adds checkmark SVG for visual indicator
+     * - Ensures proper positioning and sizing of checkmark
+     */
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M5.707 7.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4a1 1 0 0 0-1.414-1.414L7 8.586 5.707 7.293z'/%3e%3c/svg%3e");
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    /**
+     * Checkbox Label
+     * - Styling for text next to checkbox
+     * - Proper font size and color
+     * - Cursor pointer for better UX
+     * - Matches registration page styling
+     */
+    .form-check-label {
+        font-size: 0.875rem;
+        color: var(--text-light);
+        cursor: pointer;
+    }
+    
+    /* Add this to your existing styles */
+    .navbar-wrapper {
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .navbar-wrapper .nav-link,
+    .navbar-wrapper .text-gray-300,
+    .navbar-wrapper .text-white {
+        color: #4B5563 !important; /* gray-600 */
+    }
+    
+    .navbar-wrapper .nav-link:hover {
+        color: #1F2937 !important; /* gray-800 */
+    }
+    
+    .navbar-wrapper .logo-icon {
+        background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+    }
+    
+    .mobile-menu-button .hamburger-line {
+        background-color: #4B5563 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- Main login container with gradient background -->
+<div class="auth-container">
+    <!-- Auth wrapper to constrain width on larger screens -->
+    <div class="auth-wrapper">
+        <!-- Auth card with form elements -->
+        <div class="auth-card">
+        <!-- Header -->
+        <div class="auth-header">
+            <!-- 
+             * Auth Logo
+             * - Centered logo with gradient background
+             * - Uses the indigo/violet color scheme
+             * - Subtle shadow for depth
+             * - Responsive sizing
+             -->
+            <!-- 
+             * Auth Logo Container
+             * - Circular logo with gradient background
+             * - Subtle shadow and hover effect
+             * - Smooth transition for interactive feedback
+             -->
+            <div class="auth-logo group">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-lg transform transition-transform duration-300 group-hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+                        <path d="M20 10v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10" />
+                        <path d="M22 10.5V6a2 2 0 0 0-2-2h-6l-2-2H8L6 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2.5" />
+                        <circle cx="12" cy="13" r="4" />
+                        <path d="M16 13h.01" />
+                    </svg>
+                </div>
+            </div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to your TravelGuide account to continue your journey</p>
+        </div>
+
+        <!-- Display Form Errors -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors.0 }}
+            </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form" method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <input type="hidden" name="username_normalized" id="username_normalized">
+            
+            <!-- Username/Email Field -->
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Email or Username</label>
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        name="{{ form.username.name }}" 
+                        id="{{ form.username.id_for_label }}" 
+                        class="form-control" 
+                        placeholder="Enter your email or username"
+                        value="{{ form.username.value|default:'' }}"
+                        required
+                        autofocus
+                    >
+                    <!-- 
+                     * Username/Email Input Icon
+                     * - User icon for username/email field
+                     * - Consistent with the design system
+                     * - Properly aligned within input
+                     -->
+                    <span class="input-icon">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </span>
+                </div>
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+                <div class="flex justify-between items-center">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <a href="{% url 'accounts:password_reset' %}" class="forgot-password">
+                        Forgot password?
+                    </a>
+                </div>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="{{ form.password.name }}" 
+                        id="{{ form.password.id_for_label }}" 
+                        class="form-control pr-12" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <!-- 
+                     * Password Input Icon
+                     * - Lock icon for password field
+                     * - Matches the design system
+                     * - Properly aligned within input
+                     -->
+                    <span class="input-icon">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </span>
+                    <!-- 
+                     * Password Toggle Button
+                     * - Toggle password visibility
+                     * - Eye icon with hover state
+                     * - Accessible with proper ARIA labels
+                     -->
+                    <button 
+                        type="button" 
+                        class="password-toggle text-gray-400 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-full p-1 transition-colors duration-200" 
+                        onclick="togglePassword('{{ form.password.id_for_label }}')"
+                        aria-label="Toggle password visibility"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                {% if form.password.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Remember Me -->
+            <div class="form-check">
+                <input 
+                    type="checkbox" 
+                    name="remember_me" 
+                    id="remember_me" 
+                    class="form-check-input"
+                    {% if form.remember_me.value %}checked{% endif %}
+                >
+                <label for="remember_me" class="form-check-label">
+                    Remember me
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" id="login-button">
+                <span>Sign In</span>
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span>or continue with</span>
+        </div>
+
+        <!-- 
+         * Social Login Buttons
+         * ==========================================
+         * Styled social login buttons with consistent sizing and hover effects
+         * Uses grid layout for better alignment and spacing
+         * Includes proper ARIA labels and error handling for icons
+         */-->
+        <div class="mt-6 grid grid-cols-2 gap-4">
+            <!-- Google Login Button -->
+            <div>
+                <a href="{% url 'social:begin' 'google-oauth2' %}" 
+                   class="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                   aria-label="Sign in with Google">
+                    <img src="{% static 'images/google-icon.svg' %}" 
+                         alt="Google" 
+                         class="w-5 h-5 mr-2"
+                         onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg'">
+                    <span class="text-sm font-medium">Google</span>
+                </a>
+            </div>
+            
+            <!-- Facebook Login Button -->
+            <div>
+                <a href="{% url 'social:begin' 'facebook' %}" 
+                   class="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                   aria-label="Sign in with Facebook">
+                    <img src="{% static 'images/facebook-icon.svg' %}" 
+                         alt="Facebook" 
+                         class="w-5 h-5 mr-2"
+                         onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg'">
+                    <span class="text-sm font-medium">Facebook</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Sign Up Link -->
+        <div class="form-footer">
+            Don't have an account? 
+            <a href="{% url 'accounts:register' %}">Sign up</a>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wave Background -->
+<svg class="absolute bottom-0 left-0 w-full h-24" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1440 21.21V120H0V21.21C120 35.07 240 42 360 42C600 42 840 0 1080 0C1200 0 1320 7.07001 1440 21.21Z" fill="white" fill-opacity="0.9"/>
+</svg>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Normalize Login Form Data
+     * ==========================================
+     * Converts email/username and password to lowercase before form submission
+     * to ensure case-insensitive login.
+     * 
+     * @param {HTMLFormElement} form - The login form element
+     * @returns {boolean} - Always returns true to allow form submission
+     */
+    /**
+     * Handle Form Submission
+     * ==========================================
+     * Handles the form submission event, normalizes input values,
+     * and ensures proper CSRF token handling.
+     */
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const usernameInput = form.querySelector('input[name="username"]');
+        const passwordInput = form.querySelector('input[type="password"]');
+        const normalizedInput = form.querySelector('input[name="username_normalized"]');
+        
+        // Store original username in the hidden field before normalizing
+        if (usernameInput && normalizedInput) {
+            normalizedInput.value = usernameInput.value.trim();
+            // Convert username to lowercase for case-insensitive comparison
+            usernameInput.value = usernameInput.value.trim().toLowerCase();
+        }
+        
+        if (passwordInput) {
+            // Convert password to lowercase for case-insensitive comparison
+            passwordInput.value = passwordInput.value.trim().toLowerCase();
+        }
+        
+        // Submit the form programmatically after normalizing values
+        form.submit();
+    });
+
+    /**
+     * Toggle Password Visibility Function
+     * ==========================================
+     * Toggles the visibility of password input between hidden and visible states.
+     * Updates the eye icon to reflect the current state (open eye or closed eye).
+     * 
+     * @param {string} inputId - The ID of the password input field to toggle
+     * @returns {void}
+     */
+    function togglePassword(inputId) {
+        // Get references to the password input and the SVG icon
+        const passwordInput = document.getElementById(inputId);
+        const icon = document.querySelector(`[onclick="togglePassword('${inputId}')"] svg`);
+        const isPassword = passwordInput.type === 'password';
+        
+        // Toggle input type between password and text
+        passwordInput.type = isPassword ? 'text' : 'password';
+        
+        // Update the SVG icon based on the current visibility state
+        if (isPassword) {
+            // Show "hide password" icon (eye with slash)
+            icon.innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.5 0-8.25-3-9.5-7 1.075-3.2 3.25-5.6 6-6.75m7.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.98 8.25A10.5 10.5 0 0012 16.5c1.6 0 3.075-.5 4.3-1.25L14.25 13.5" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.98 8.25L2.25 6.5m15.5 12l-1.8-1.8" />
+            `;
+        } else {
+            // Show "show password" icon (eye)
+            icon.innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            `;
+        }
+    }
+
+    /**
+     * Form Input Enhancement and Animation
+     * ==========================================
+     * Adds interactive behaviors to form inputs including:
+     * - Focus/blur state management
+     * - Value state tracking for styling
+     * - Form submission loading state
+     * 
+     * Executes when the DOM is fully loaded to ensure all elements are available.
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all form input elements
+        const inputs = document.querySelectorAll('.form-control');
+        
+        /**
+         * Input Field Enhancement
+         * - Adds visual feedback when fields are focused or contain values
+         * - Improves user experience with clear state indicators
+         */
+        inputs.forEach(input => {
+            // Initialize state for inputs with pre-filled values
+            if (input.value) {
+                input.parentNode.classList.add('has-value');
+            }
+            
+            /**
+             * Focus event handler
+             * - Adds 'focused' class to parent for styling
+             */
+            input.addEventListener('focus', function() {
+                this.parentNode.classList.add('focused');
+            });
+            
+            /**
+             * Blur event handler
+             * - Removes focus styling
+             * - Maintains 'has-value' class if input contains text
+             * - Ensures proper visual state based on content
+             */
+            input.addEventListener('blur', function() {
+                this.parentNode.classList.remove('focused');
+                if (this.value) {
+                    this.parentNode.classList.add('has-value');
+                } else {
+                    this.parentNode.classList.remove('has-value');
+                }
+            });
+        });
+        
+        /**
+         * Form Submission Handler
+         * - Adds loading state to prevent multiple submissions
+         * - Visual feedback during form processing
+         */
+        const loginForm = document.querySelector('.auth-form');
+        const loginButton = document.getElementById('login-button');
+        
+        if (loginForm && loginButton) {
+            loginForm.addEventListener('submit', function() {
+                // Enable loading state and disable button
+                loginButton.classList.add('btn-loading');
+                loginButton.disabled = true;
+            });
+        }
+    });
+</script>
+{% endblock %}

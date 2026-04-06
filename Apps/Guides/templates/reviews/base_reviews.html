@@ -1,0 +1,502 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# 
+  Base Reviews Template
+  Provides a consistent layout structure for all review-related pages.
+  Includes common UI elements, breadcrumbs, and styling specific to review features.
+#}
+
+{% block title %}{% block reviews_title %}Reviews{% endblock %}{% endblock %}
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+
+        /* Star rating display styles */
+        .star-rating-display {
+            display: flex;
+            align-items: center;
+        }
+        
+        .star-rating-display .star {
+            color: #FBBF24; /* Yellow-400 */
+            font-size: 1.25rem;
+        }
+
+        .star-rating-display .empty-star {
+            color: #E5E7EB; /* Gray-200 */
+            font-size: 1.25rem;
+        }
+
+        /* Review card styles */
+        .review-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Review badges */
+        .review-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        .review-badge.featured {
+            background-color: #EFF6FF;
+            color: #1D4ED8;
+        }
+
+        .review-badge.pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .review-badge.approved {
+            background-color: #ECFDF5;
+            color: #065F46;
+        }
+
+        .review-badge.rejected {
+            background-color: #FEF2F2;
+            color: #991B1B;
+        }
+
+        /* Review form styles */
+        .star-rating-input .star {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star-rating-input .star:hover,
+        .star-rating-input .star.active {
+            color: #FBBF24; /* Yellow-400 */
+        }
+
+        /* Image preview styles */
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .image-preview {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            border: 1px solid #E5E7EB;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            line-height: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .review-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .review-actions .flex {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Review card styling */
+        .review-card {
+            @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition duration-300 ease-in-out;
+        }
+        
+        .review-card:hover {
+            @apply shadow-lg;
+        }
+        
+        /* Rating input component styling */
+        .rating-input {
+            display: inline-flex;
+            flex-direction: row-reverse; /* Reverses the order for proper hover effect */
+            justify-content: flex-end;
+        }
+        
+        .rating-input input {
+            display: none;
+        }
+        
+        .rating-input label {
+            cursor: pointer;
+            color: #D1D5DB; /* Gray-300 */
+            font-size: 1.75rem;
+            padding: 0 0.1rem;
+            transition: color 0.2s;
+        }
+        
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: #FBBF24; /* Yellow-400 */
+        }
+        
+        /* Review badge styles */
+        /* Review badge styles */
+        .review-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+        }
+        
+        .review-badge-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .dark .review-badge-pending {
+            background-color: #78350F;
+            color: #FEF3C7;
+        }
+        
+        .review-badge-approved {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .dark .review-badge-approved {
+            background-color: #064E3B;
+            color: #D1FAE5;
+        }
+        
+        .review-badge-rejected {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .dark .review-badge-rejected {
+            background-color: #7F1D1D;
+            color: #FEE2E2;
+        }
+        
+        .review-badge-featured {
+            background-color: #E0E7FF;
+            color: #3730A3;
+        }
+        
+        .dark .review-badge-featured {
+            background-color: #312E81;
+            color: #E0E7FF;
+        }
+        
+        /* Review image preview container */
+        .review-image-preview {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .review-image-preview {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .review-image-preview {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        
+        .review-image-preview-item {
+            position: relative;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            height: 8rem;
+        }
+        
+        .dark .review-image-preview-item {
+            border-color: #374151;
+        }
+        
+        .review-image-preview img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .review-image-preview-remove {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #EF4444;
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        
+        .review-image-preview-remove:hover {
+            background-color: #DC2626;
+        }
+        
+        /* Responsive adjustments for mobile landscape orientation */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .review-card {
+                padding: 1rem;
+            }
+            
+            .star-rating-display .star {
+                font-size: 1rem;
+            }
+            
+            .rating-input label {
+                font-size: 1.5rem;
+            }
+            
+            .review-image-preview-item {
+                height: 6rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-16"></div>
+<div class="container mx-auto px-4 py-8">
+  {# Breadcrumb navigation for all review pages #}
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      {# Home link #}
+      <li class="inline-flex items-center">
+        <a href="{% url 'core:home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-white">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+          </svg>
+          Home
+        </a>
+      </li>
+      
+      {# Reviews base link #}
+      <li>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+          </svg>
+          <a href="{% url 'reviews:review_list' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-indigo-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">Reviews</a>
+        </div>
+      </li>
+      
+      {# Additional breadcrumb items will be added in child templates #}
+      {% block reviews_breadcrumb %}{% endblock %}
+    </ol>
+  </nav>
+
+  {# Page header section #}
+  <div class="mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+      {% block reviews_header %}Reviews{% endblock %}
+    </h1>
+    <div class="mt-2 text-gray-600 dark:text-gray-400">
+      {% block reviews_subheader %}{% endblock %}
+    </div>
+  </div>
+  
+  {# Main content area for review templates #}
+  {% block reviews_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{# 
+  Common CSS styles for review components 
+{# 
+  Common JavaScript functionality for review components
+  Including star ratings, helpful votes, and image preview functionality
+#}
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    /**
+     * Initialize star rating displays
+     * Converts data-rating attributes to visual star representations
+     */
+    function initStarRatingDisplays() {
+      const starRatingElements = document.querySelectorAll('.star-rating-display');
+      starRatingElements.forEach(function(element) {
+        const rating = parseInt(element.dataset.rating, 10);
+        let starsHtml = '';
+        
+        for (let i = 1; i <= 5; i++) {
+          if (i <= rating) {
+            starsHtml += '<span class="star">★</span>'; // Filled star
+          } else {
+            starsHtml += '<span class="star">☆</span>'; // Empty star
+          }
+        }
+        
+        element.innerHTML = starsHtml;
+      });
+    }
+    
+    /**
+     * Initialize helpful vote buttons
+     * Sets up AJAX interaction for toggling helpful votes on reviews
+     */
+    function initHelpfulButtons() {
+      const helpfulButtons = document.querySelectorAll('.helpful-button');
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+      
+      helpfulButtons.forEach(function(button) {
+        const reviewId = button.dataset.reviewId;
+        if (!reviewId || !csrfToken) return;
+        
+        const helpfulCount = document.getElementById(`helpful-count-${reviewId}`);
+        
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Send AJAX request to toggle helpful vote
+          fetch(`/reviews/vote-helpful/${reviewId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Update helpful count
+              if (helpfulCount) {
+                helpfulCount.textContent = `(${data.count})`;
+              }
+              
+              // Toggle button styling
+              if (data.voted) {
+                button.classList.add('text-indigo-600');
+                button.classList.remove('text-gray-500');
+              } else {
+                button.classList.remove('text-indigo-600');
+                button.classList.add('text-gray-500');
+              }
+            } else {
+              // Handle login required
+              if (data.error === 'Login required') {
+                window.location.href = '/accounts/login/?next=' + window.location.pathname;
+              } else {
+                // Show other error messages
+                alert(data.error || 'An error occurred while processing your vote.');
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        });
+      });
+    }
+    
+    /**
+     * Initialize image preview functionality
+     * For review forms that allow image uploads
+     */
+    function initImagePreview() {
+      const imageInput = document.getElementById('id_images');
+      const previewContainer = document.getElementById('image-preview-container');
+      
+      if (imageInput && previewContainer) {
+        imageInput.addEventListener('change', function() {
+          // Clear previous previews
+          previewContainer.innerHTML = '';
+          
+          if (this.files.length > 0) {
+            // Create preview grid
+            const previewGrid = document.createElement('div');
+            previewGrid.className = 'review-image-preview';
+            
+            // Add each image to preview
+            Array.from(this.files).forEach((file, index) => {
+              if (!file.type.startsWith('image/')) return;
+              
+              const previewItem = document.createElement('div');
+              previewItem.className = 'review-image-preview-item';
+              
+              const img = document.createElement('img');
+              img.src = URL.createObjectURL(file);
+              img.onload = function() {
+                URL.revokeObjectURL(this.src);
+              };
+              
+              previewItem.appendChild(img);
+              previewGrid.appendChild(previewItem);
+            });
+            
+            previewContainer.appendChild(previewGrid);
+          }
+        });
+      }
+    }
+    
+    // Initialize all review components
+    initStarRatingDisplays();
+    initHelpfulButtons();
+    initImagePreview();
+  });
+</script>
+{% endblock %}

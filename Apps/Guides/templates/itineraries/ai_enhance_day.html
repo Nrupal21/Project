@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Enhance Itinerary Day with AI" %} | {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom styling for interest selection chips */
+    .interest-chip input:checked + label {
+        @apply bg-indigo-600 text-white border-indigo-600;
+    }
+    
+    /* Activity card hover effect */
+    .activity-card {
+        @apply transition-all duration-200;
+    }
+    
+    .activity-card:hover {
+        @apply shadow-md;
+    }
+    
+    .activity-card input:checked + label {
+        @apply ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main container with proper padding and responsive layout -->
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Page header section with title and description -->
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-indigo-700 dark:text-indigo-400">
+            {% trans "Enhance Your Itinerary Day" %}
+        </h1>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-gray-600 dark:text-gray-300">
+            <a href="{% url 'itineraries:itinerary_detail' pk=itinerary.pk %}" 
+               class="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                {% trans "Back to Itinerary" %}
+            </a>
+            <span class="hidden md:inline">|</span>
+            <span>
+                {% trans "Enhancing Day" %} {{ day.day_number }}: {{ day.date|date:"F j, Y" }}
+            </span>
+        </div>
+        <p class="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-3xl">
+            {% trans "Let our AI suggest new activities based on your interests for this day of your itinerary." %}
+        </p>
+    </div>
+
+    <!-- Error messages display -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-500{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-500{% else %}bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500{% endif %} px-4 py-3 rounded border mb-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Current day summary -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+            {% trans "Current Day Activities" %}
+        </h2>
+        
+        <!-- Display current activities -->
+        {% if day.activities.all %}
+            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for activity in day.activities.all %}
+                    <div class="py-3">
+                        <div class="flex justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-800 dark:text-gray-200">{{ activity.title }}</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ activity.start_time|time:"H:i" }} - {{ activity.end_time|time:"H:i" }}
+                                    {% if activity.location %} • {{ activity.location }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 dark:text-gray-400 italic">
+                {% trans "No activities planned for this day yet." %}
+            </p>
+        {% endif %}
+    </div>
+    
+    <!-- AI Enhancement Form -->
+    <div id="enhancement-form" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+            {% trans "Get AI Suggestions" %}
+        </h2>
+        
+        <form method="post" class="space-y-6" id="interest-form">
+            {% csrf_token %}
+            
+            <!-- Interests selection with toggle chips -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {% trans "Select Your Interests" %} <span class="text-red-500">*</span>
+                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400"> 
+                        ({% trans "select at least one" %})
+                    </span>
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    {% for interest in interests %}
+                        <div class="interest-chip">
+                            <input type="checkbox" id="interest_{{ interest|lower }}" name="interests" value="{{ interest }}" class="hidden peer">
+                            <label for="interest_{{ interest|lower }}" 
+                                class="inline-flex cursor-pointer items-center px-3 py-1.5 rounded-full text-sm 
+                                border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
+                                hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                                {{ interest }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Generate button -->
+            <div>
+                <button type="button" id="generate-btn"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                    </svg>
+                    {% trans "Generate Activity Suggestions" %}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Loading state -->
+    <div id="loading-state" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8 text-center">
+        <div class="animate-pulse flex flex-col items-center">
+            <div class="rounded-full bg-indigo-200 dark:bg-indigo-800 h-16 w-16 flex items-center justify-center mb-4">
+                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
+                {% trans "Generating Suggestions..." %}
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400">
+                {% trans "Our AI is creating tailored activity recommendations based on your interests." %}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Recommendations results (hidden initially) -->
+    <div id="recommendations-container" class="hidden mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+            {% trans "AI Activity Recommendations" %}
+        </h2>
+        
+        <form method="post" id="recommendations-form">
+            {% csrf_token %}
+            <!-- Hidden interests field to pass back selected interests -->
+            <div id="hidden-interests-container"></div>
+            
+            <!-- Activity recommendations will be inserted here by JavaScript -->
+            <div id="recommendations-list" class="grid md:grid-cols-2 gap-4 mb-6">
+                <!-- Cards will be inserted here -->
+            </div>
+            
+            <!-- Form buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-between">
+                <button type="button" id="refresh-btn"
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {% trans "Generate More Suggestions" %}
+                </button>
+                
+                <button type="submit" id="add-activities-btn"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    {% trans "Add Selected Activities to Day" %}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Tips and instructions -->
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-6">
+        <h3 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">
+            {% trans "Tips for the best results" %}
+        </h3>
+        <ul class="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+            <li>{% trans "Select multiple interests to get diverse activity recommendations" %}</li>
+            <li>{% trans "Choose activities that fit your schedule and complement existing plans" %}</li>
+            <li>{% trans "The AI generates suggestions based on destination data and your preferences" %}</li>
+            <li>{% trans "You can generate new recommendations if the current ones don't meet your needs" %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const interestForm = document.getElementById('interest-form');
+        const generateBtn = document.getElementById('generate-btn');
+        const loadingState = document.getElementById('loading-state');
+        const enhancementForm = document.getElementById('enhancement-form');
+        const recommendationsContainer = document.getElementById('recommendations-container');
+        const recommendationsList = document.getElementById('recommendations-list');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const hiddenInterestsContainer = document.getElementById('hidden-interests-container');
+        const recommendationsForm = document.getElementById('recommendations-form');
+        const addActivitiesBtn = document.getElementById('add-activities-btn');
+
+        /**
+         * Get selected interests from form
+         * @returns {Array} Array of selected interest values
+         */
+        function getSelectedInterests() {
+            const interestCheckboxes = document.querySelectorAll('input[name="interests"]:checked');
+            return Array.from(interestCheckboxes).map(checkbox => checkbox.value);
+        }
+        
+        /**
+         * Generate recommendations based on selected interests
+         * @param {Event} e - Click event
+         */
+        function generateRecommendations(e) {
+            e.preventDefault();
+            
+            const interests = getSelectedInterests();
+            
+            if (interests.length === 0) {
+                alert("{% trans 'Please select at least one interest' %}");
+                return;
+            }
+            
+            // Show loading state
+            enhancementForm.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            recommendationsContainer.classList.add('hidden');
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            interests.forEach(interest => params.append('interests', interest));
+            
+            // Make API request to get recommendations
+            fetch(`{% url 'itineraries:ai_activity_recommendations' destination_id=day.destination.id %}?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading, show results
+                    loadingState.classList.add('hidden');
+                    recommendationsContainer.classList.remove('hidden');
+                    
+                    // Clear previous recommendations
+                    recommendationsList.innerHTML = '';
+                    hiddenInterestsContainer.innerHTML = '';
+                    
+                    // Add hidden fields for interests
+                    interests.forEach(interest => {
+                        const hiddenField = document.createElement('input');
+                        hiddenField.type = 'hidden';
+                        hiddenField.name = 'interests';
+                        hiddenField.value = interest;
+                        hiddenInterestsContainer.appendChild(hiddenField);
+                    });
+                    
+                    // Display recommendations
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        data.recommendations.forEach((recommendation, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'activity-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative';
+                            
+                            card.innerHTML = `
+                                <input type="checkbox" id="activity_${index}" name="selected_activities" value="${index}" class="hidden peer">
+                                <label for="activity_${index}" class="absolute inset-0 cursor-pointer rounded-lg"></label>
+                                <div class="flex justify-between mb-2">
+                                    <h3 class="font-semibold text-gray-800 dark:text-gray-200">${recommendation.title}</h3>
+                                    <div class="relative z-10">
+                                        <input type="checkbox" id="select_${index}" class="h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">${recommendation.description}</p>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    ${recommendation.location ? `<span class="inline-flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        ${recommendation.location}
+                                    </span>` : ''}
+                                </div>
+                            `;
+                            
+                            recommendationsList.appendChild(card);
+                            
+                            // Connect the checkbox and label
+                            const checkbox = card.querySelector(`#select_${index}`);
+                            const activityCheckbox = card.querySelector(`#activity_${index}`);
+                            
+                            checkbox.addEventListener('change', function() {
+                                activityCheckbox.checked = checkbox.checked;
+                            });
+                        });
+                    } else {
+                        recommendationsList.innerHTML = `
+                            <div class="md:col-span-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 rounded-lg">
+                                <p>{% trans "No recommendations found. Try different interests or generate again." %}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingState.classList.add('hidden');
+                    enhancementForm.classList.remove('hidden');
+                    
+                    alert("{% trans 'Error generating recommendations. Please try again.' %}");
+                });
+        }
+        
+        /**
+         * Return to interest selection
+         * @param {Event} e - Click event
+         */
+        function refreshRecommendations(e) {
+            e.preventDefault();
+            recommendationsContainer.classList.add('hidden');
+            enhancementForm.classList.remove('hidden');
+        }
+        
+        /**
+         * Add selected activities
+         * @param {Event} e - Submit event
+         */
+        function addSelectedActivities(e) {
+            const selectedActivities = document.querySelectorAll('input[name="selected_activities"]:checked');
+            
+            if (selectedActivities.length === 0) {
+                e.preventDefault();
+                alert("{% trans 'Please select at least one activity to add' %}");
+            }
+        }
+        
+        // Event listeners
+        generateBtn.addEventListener('click', generateRecommendations);
+        refreshBtn.addEventListener('click', refreshRecommendations);
+        recommendationsForm.addEventListener('submit', addSelectedActivities);
+        
+        // Connect card clicks to checkboxes for better UX
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('activity-card') || e.target.closest('.activity-card')) {
+                const card = e.target.closest('.activity-card');
+                if (card) {
+                    const checkbox = card.querySelector('input[type="checkbox"]');
+                    if (checkbox && e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        
+                        // Also update the hidden checkbox
+                        const activityCheckbox = card.querySelector('input[name="selected_activities"]');
+                        if (activityCheckbox) {
+                            activityCheckbox.checked = checkbox.checked;
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

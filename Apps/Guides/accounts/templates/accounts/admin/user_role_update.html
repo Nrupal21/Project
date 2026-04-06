@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update User Role - {{ object.username }}{% endblock %}
+
+{% block extra_css %}
+<!-- JSON editor styling -->
+<style>
+    /* Syntax highlighting for the JSON editor */
+    .json-key { color: #a6e22e; }
+    .json-value { color: #f8f8f2; }
+    .json-string { color: #e6db74; }
+    .json-comment { color: #75715e; }
+    
+    /* Custom styling for permissions section */
+    .permission-group {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .permission-group-header {
+        background-color: #f3f4f6;
+        padding: 0.75rem;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        font-weight: 600;
+    }
+    .permission-group-items {
+        padding: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header with breadcrumbs -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'accounts:admin_user_roles' %}" class="ml-1 text-gray-700 hover:text-blue-600 md:ml-2">User Roles</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-1 text-gray-500 md:ml-2">Update Role</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">
+            Update Role: {{ object.username }} ({{ object.get_full_name|default:"No Name" }})
+        </h1>
+        <a href="{% url 'accounts:admin_user_permissions' object.id %}" 
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+            View Detailed Permissions
+        </a>
+    </div>
+    
+    <!-- User info card -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h2 class="text-lg font-medium mb-4">User Information</h2>
+                <dl class="grid grid-cols-3 gap-2">
+                    <dt class="text-gray-500">Username:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.username }}</dd>
+                    
+                    <dt class="text-gray-500">Email:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.email }}</dd>
+                    
+                    <dt class="text-gray-500">Full Name:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.get_full_name|default:"Not provided" }}</dd>
+                    
+                    <dt class="text-gray-500">Current Role:</dt>
+                    <dd class="col-span-2">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if object.role == 'ADMIN' %}bg-purple-100 text-purple-800
+                            {% elif object.role == 'MANAGER' %}bg-blue-100 text-blue-800
+                            {% elif object.role == 'LOCAL_GUIDE' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ object.get_role_display }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="text-gray-500">Last Login:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.last_login|date:"M d, Y H:i"|default:"Never" }}</dd>
+                    
+                    <dt class="text-gray-500">Joined:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.date_joined|date:"M d, Y" }}</dd>
+                </dl>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-medium mb-4">Role Assignment History</h2>
+                {% if object.role_assigned_at %}
+                <dl class="grid grid-cols-3 gap-2">
+                    <dt class="text-gray-500">Role Assigned:</dt>
+                    <dd class="col-span-2 text-gray-900">{{ object.role_assigned_at|date:"M d, Y H:i"|default:"Not recorded" }}</dd>
+                    
+                    <dt class="text-gray-500">Assigned By:</dt>
+                    <dd class="col-span-2 text-gray-900">
+                        {% if object.role_assigned_by %}
+                            {{ object.role_assigned_by.get_full_name|default:object.role_assigned_by.username }}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </dd>
+                </dl>
+                {% else %}
+                <p class="text-gray-500 italic">No role assignment history available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Role update form -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-medium mb-4">Update User Role</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Form errors -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <ul class="list-disc pl-5">
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Role field -->
+            <div>
+                <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.role.label }}
+                </label>
+                {{ form.role }}
+                {% if form.role.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+                {% endif %}
+                {% if form.role.help_text %}
+                <p class="mt-2 text-xs text-gray-500">{{ form.role.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Custom permissions field -->
+            <div>
+                <label for="{{ form.custom_permissions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.custom_permissions.label }}
+                </label>
+                {{ form.custom_permissions }}
+                {% if form.custom_permissions.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.custom_permissions.errors.0 }}</p>
+                {% endif %}
+                {% if form.custom_permissions.help_text %}
+                <p class="mt-2 text-xs text-gray-500">{{ form.custom_permissions.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Change reason field -->
+            <div>
+                <label for="{{ form.change_reason.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.change_reason.label }}
+                </label>
+                {{ form.change_reason }}
+                {% if form.change_reason.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.change_reason.errors.0 }}</p>
+                {% endif %}
+                {% if form.change_reason.help_text %}
+                <p class="mt-2 text-xs text-gray-500">{{ form.change_reason.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Hidden fields -->
+            {{ form.role_assigned_at }}
+            
+            <div class="flex justify-between pt-4">
+                <a href="{% url 'accounts:admin_user_roles' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    Update Role
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Security logs -->
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h2 class="text-lg font-medium mb-4">Recent Security Events</h2>
+        
+        {% if security_logs %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Timestamp
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Event
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            IP Address
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for log in security_logs %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ log.timestamp|date:"M d, Y H:i:s" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if 'login' in log.event_type %}bg-blue-100 text-blue-800
+                                {% elif 'role' in log.event_type %}bg-purple-100 text-purple-800
+                                {% elif 'failed' in log.event_type %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ log.event_type|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            {{ log.description|truncatechars:50 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ log.ip_address }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 italic">No recent security logs found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Add JSON syntax highlighting for permissions field -->
+<script>
+    // Format JSON in the textarea when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const jsonTextarea = document.getElementById('{{ form.custom_permissions.id_for_label }}');
+        
+        if (jsonTextarea && jsonTextarea.value) {
+            try {
+                // Parse and prettify JSON
+                const jsonObj = JSON.parse(jsonTextarea.value);
+                jsonTextarea.value = JSON.stringify(jsonObj, null, 2);
+            } catch (e) {
+                console.error('Error formatting JSON:', e);
+            }
+        }
+    });
+</script>
+{% endblock %}

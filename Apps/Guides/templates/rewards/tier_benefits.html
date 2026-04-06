@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tier Benefits | TravelGuide Rewards{% endblock %}
+{% block meta_description %}Explore the exclusive benefits of each rewards tier in TravelGuide's loyalty program. Unlock premium perks as you advance through Silver, Gold, Platinum, and Diamond tiers.{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<style>
+    /**
+     * Tier Benefits Styles
+     * - Custom styling for the tier benefits page with indigo/violet accents
+     * - Includes tier cards with distinctive styling for each tier level
+     * - Contains responsive adjustments for all screen sizes
+     * - Uses gradients and animations for visual appeal
+     */
+    .tier-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .tier-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .silver-gradient {
+        background: linear-gradient(45deg, #9ca3af, #d1d5db);
+    }
+    
+    .gold-gradient {
+        background: linear-gradient(45deg, #fbbf24, #d97706);
+    }
+    
+    .platinum-gradient {
+        background: linear-gradient(45deg, #a78bfa, #7c3aed);
+    }
+    
+    .diamond-gradient {
+        background: linear-gradient(45deg, #93c5fd, #3b82f6);
+    }
+    
+    .dark .silver-gradient {
+        background: linear-gradient(45deg, #6b7280, #9ca3af);
+    }
+    
+    .dark .gold-gradient {
+        background: linear-gradient(45deg, #d97706, #fbbf24);
+    }
+    
+    .dark .platinum-gradient {
+        background: linear-gradient(45deg, #7c3aed, #a78bfa);
+    }
+    
+    .dark .diamond-gradient {
+        background: linear-gradient(45deg, #3b82f6, #93c5fd);
+    }
+    
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .benefit-icon {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        margin-right: 0.75rem;
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+    
+    .dark .benefit-icon {
+        background-color: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+    }
+    
+    .tier-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+    }
+    
+    .silver-badge {
+        background-color: #d1d5db;
+        color: #4b5563;
+    }
+    
+    .gold-badge {
+        background-color: #fbbf24;
+        color: #92400e;
+    }
+    
+    .platinum-badge {
+        background-color: #a78bfa;
+        color: #5b21b6;
+    }
+    
+    .diamond-badge {
+        background-color: #93c5fd;
+        color: #1e40af;
+    }
+    
+    .progress-container {
+        height: 0.75rem;
+        background-color: #e5e7eb;
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+    
+    .dark .progress-container {
+        background-color: #374151;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        border-radius: 9999px;
+    }
+    
+    /* Responsive adjustments for mobile landscape orientation */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .page-header {
+            padding: 0.5rem 0;
+        }
+        
+        .tier-cards-container {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        
+        .tier-card {
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+ * Tier Benefits Page
+ * - Shows all reward tiers and their benefits
+ * - Highlights the user's current tier and progress
+ * - Provides clear comparison between tiers
+ * - Uses consistent indigo/violet color scheme
+ */
+-->
+<div class="bg-gray-50 dark:bg-gray-900 py-8 md:py-12">
+    <div class="max-w-screen-2xl w-full mx-auto px-4">
+        <!-- Page Header with Back Navigation -->
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between page-header">
+            <div>
+                <div class="flex items-center mb-2">
+                    <a href="{% url 'rewards:dashboard' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 mr-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Rewards Tiers & Benefits</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300">Explore the exclusive benefits of each tier level</p>
+            </div>
+        </div>
+        
+        <!-- User's Current Tier Summary -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Current Status</h2>
+                
+                <div class="flex items-center mb-4">
+                    <div class="tier-badge 
+                          {% if user_tier.name == 'Silver' %}silver-badge
+                          {% elif user_tier.name == 'Gold' %}gold-badge
+                          {% elif user_tier.name == 'Platinum' %}platinum-badge
+                          {% elif user_tier.name == 'Diamond' %}diamond-badge{% endif %}">
+                        {{ user_tier.name|first }}
+                    </div>
+                    <span class="font-semibold text-lg text-gray-900 dark:text-white">{{ user_tier.name }} Tier</span>
+                </div>
+                
+                <!-- 
+                 * Tier Progress Section
+                 * - Shows visual progress toward next tier
+                 * - Includes points remaining calculation
+                 * - Different color indicators for each tier
+                 */
+                -->
+                {% if next_tier %}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Progress to {{ next_tier.name }}</span>
+                            <span class="text-sm text-gray-800 dark:text-gray-300 font-medium">
+                                {{ points_balance }} / {{ next_tier.points_threshold }} points
+                            </span>
+                        </div>
+                        
+                        <div class="progress-container mb-2">
+                            <div class="progress-bar bg-gradient-to-r from-indigo-500 to-violet-600" 
+                                 style="width: {% widthratio points_balance next_tier.points_threshold 100 %}%"></div>
+                        </div>
+                        
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            You need <span class="font-medium text-indigo-600 dark:text-indigo-400">{{ points_needed_for_next_tier }}</span> more points to reach {{ next_tier.name }}
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 text-center">
+                        <p class="text-indigo-700 dark:text-indigo-300">
+                            <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                            Congratulations! You've reached our highest tier level.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- All Tiers Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 tier-cards-container">
+            <!-- 
+             * Tier Cards Section
+             * - One card for each tier with distinct styling
+             * - Shows points threshold and all benefits
+             * - Highlights user's current tier
+             */
+            -->
+            {% for tier in all_tiers %}
+                <div class="tier-card bg-white dark:bg-gray-800 shadow-md {% if tier.name == user_tier.name %}ring-2 ring-indigo-500 dark:ring-indigo-400{% endif %}">
+                    <!-- Tier Header with Gradient -->
+                    <div class="p-6 text-white 
+                         {% if tier.name == 'Silver' %}silver-gradient
+                         {% elif tier.name == 'Gold' %}gold-gradient
+                         {% elif tier.name == 'Platinum' %}platinum-gradient
+                         {% elif tier.name == 'Diamond' %}diamond-gradient{% endif %}">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold">{{ tier.name }}</h3>
+                            {% if tier.name == user_tier.name %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white bg-opacity-25">
+                                    Current Tier
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="mt-1">{{ tier.points_threshold }} points</p>
+                    </div>
+                    
+                    <!-- Tier Benefits List -->
+                    <div class="p-6">
+                        <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Benefits</h4>
+                        
+                        <ul class="space-y-3">
+                            {% for benefit in tier.benefits %}
+                                <li class="benefit-item">
+                                    <span class="benefit-icon">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="text-gray-700 dark:text-gray-300">{{ benefit }}</span>
+                                </li>
+                            {% empty %}
+                                <li class="text-gray-500 dark:text-gray-400 text-center italic">No benefits available</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Tier Program Details -->
+        <div class="mt-10 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">About Our Tiers Program</h2>
+                
+                <!-- 
+                 * Tier Program Information
+                 * - Explains the rewards tier system
+                 * - Details how to earn and maintain tiers
+                 * - Answers frequently asked questions
+                 */
+                -->
+                <div class="prose max-w-screen-xl w-full dark:prose-invert prose-indigo">
+                    <p>TravelGuide's rewards tier program is designed to recognize and reward our most loyal customers. As you travel and engage with our services, you'll earn points and climb through our tier levels, unlocking increasingly valuable benefits along the way.</p>
+                    
+                    <h3>How to Earn and Maintain Tiers</h3>
+                    <ul>
+                        <li>Tiers are based on the total points you've earned in the current calendar year.</li>
+                        <li>Points are earned through bookings, reviews, referrals, and other activities.</li>
+                        <li>Your tier status is recalculated at the beginning of each calendar year.</li>
+                        <li>Once you reach a tier, you'll maintain that status for the remainder of the current calendar year and all of the following year.</li>
+                    </ul>
+                    
+                    <h3>Frequently Asked Questions</h3>
+                    <h4>How do I track my tier progress?</h4>
+                    <p>You can monitor your current tier status and progress toward the next tier on your <a href="{% url 'rewards:dashboard' %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Rewards Dashboard</a>.</p>
+                    
+                    <h4>What happens to my tier if I don't earn enough points?</h4>
+                    <p>If you don't earn enough points to maintain your current tier level by the end of the calendar year, you'll be moved to the appropriate tier based on your points total for that year.</p>
+                    
+                    <h4>Do my points expire?</h4>
+                    <p>Points expire 24 months after they are earned if not redeemed. However, tier qualification is based on points earned during the calendar year regardless of whether they have been redeemed or expired.</p>
+                    
+                    <h4>Can I gift my tier benefits to someone else?</h4>
+                    <p>Some benefits, like companion discounts, inherently extend to others. However, most tier benefits are non-transferable and linked to your account.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

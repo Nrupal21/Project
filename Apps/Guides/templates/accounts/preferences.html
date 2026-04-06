@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Preferences - TravelGuide{% endblock %}
+
+{% block extra_css %}
+
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900">Your Preferences</h1>
+            <p class="mt-2 text-lg text-gray-600">Customize your travel preferences and notification settings</p>
+        </div>
+        
+        <!-- Display success or error messages -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="mb-6 rounded-md {% if message.tags == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                    <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    {% else %}
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium {% if message.tags == 'success' %}text-green-800{% else %}text-red-800{% endif %}">
+                        {{ message }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        
+        <!-- Preferences Form -->
+        <form method="POST" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Travel Preferences Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Travel Preferences</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Tell us about your travel style and interests.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <!-- Budget Preference -->
+                    <div class="mb-6">
+                        {{ preferences_form.budget_preference.label_tag }}
+                        <div class="mt-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {% for choice in preferences_form.budget_preference %}
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ choice.tag }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ choice.id_for_label }}" class="font-medium text-gray-700">{{ choice.choice_label }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if preferences_form.budget_preference.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ preferences_form.budget_preference.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Travel Interests -->
+                    <div class="mb-6">
+                        {{ preferences_form.travel_interests.label_tag }}
+                        <div class="mt-1">
+                            {{ preferences_form.travel_interests }}
+                        </div>
+                        {% if preferences_form.travel_interests.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ preferences_form.travel_interests.help_text }}</p>
+                        {% endif %}
+                        {% if preferences_form.travel_interests.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ preferences_form.travel_interests.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Preferred Destinations -->
+                    <div class="mb-6">
+                        {{ preferences_form.preferred_destinations.label_tag }}
+                        <div class="mt-1">
+                            {{ preferences_form.preferred_destinations }}
+                        </div>
+                        {% if preferences_form.preferred_destinations.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ preferences_form.preferred_destinations.help_text }}</p>
+                        {% endif %}
+                        {% if preferences_form.preferred_destinations.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ preferences_form.preferred_destinations.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notification Preferences Section -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Notification Preferences</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Choose how you'd like to receive updates and notifications.</p>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <!-- Email Notifications -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Email Notifications</h4>
+                        
+                        <div class="space-y-4">
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ preferences_form.newsletter_subscription }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ preferences_form.newsletter_subscription.id_for_label }}" class="font-medium text-gray-700">Newsletter Subscription</label>
+                                    <p class="text-gray-500">Receive our monthly newsletter with travel tips and special offers.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    {{ preferences_form.email_notifications }}
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="{{ preferences_form.email_notifications.id_for_label }}" class="font-medium text-gray-700">Email Notifications</label>
+                                    <p class="text-gray-500">Receive important updates about your account and bookings.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Push Notifications -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Push Notifications</h4>
+                        <p class="text-sm text-gray-500 mb-4">Manage your browser notification preferences.</p>
+                        
+                        <div class="relative flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ preferences_form.push_notifications }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="{{ preferences_form.push_notifications.id_for_label }}" class="font-medium text-gray-700">Enable Push Notifications</label>
+                                <p class="text-gray-500">Receive real-time updates in your browser.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4 pt-5 border-t border-gray-200">
+                <a href="{% url 'accounts:profile' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

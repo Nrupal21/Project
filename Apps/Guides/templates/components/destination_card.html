@@ -1,0 +1,434 @@
+{% comment %}
+Enhanced Destination Card Component
+
+This reusable component displays destination information in a consistent card format
+across the TravelGuide application. It uses Tailwind CSS for styling and includes
+comprehensive functionality for displaying destination details, ratings, and actions.
+
+Features:
+- Responsive design with mobile-first approach
+- Tailwind CSS styling with indigo/violet color scheme
+- Image optimization and fallback handling
+- Rating display with star visualization
+- Price formatting and discount indicators
+- Location-based distance display
+- Accessibility features and semantic HTML
+- Hover effects and smooth transitions
+
+Usage:
+{% include 'components/destination_card.html' with destination=destination show_distance=True %}
+
+Parameters:
+- destination: Destination object with all related data
+- show_distance: Boolean to show/hide distance information (optional)
+- card_size: 'small', 'medium', or 'large' for different card sizes (optional)
+- show_actions: Boolean to show/hide action buttons (optional)
+{% endcomment %}
+
+{% load static %}
+{% load core_extras %}
+
+{% comment %}
+Set default values for optional parameters to ensure component works
+even when not all parameters are provided by the including template
+{% endcomment %}
+{% if not card_size %}
+    {% with card_size='medium' %}
+{% endif %}
+
+{% if show_actions is None %}
+    {% with show_actions=True %}
+{% endif %}
+
+{% comment %}
+Main destination card container with responsive classes and hover effects.
+Uses Tailwind's card styling with shadow and transition effects.
+{% endcomment %}
+<div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group
+            {% if card_size == 'small' %}max-w-sm{% elif card_size == 'large' %}max-w-2xl{% else %}max-w-md{% endif %}">
+    
+    {% comment %}
+    Image section with responsive sizing and overlay effects.
+    Includes fallback handling for destinations without images.
+    {% endcomment %}
+    <div class="relative overflow-hidden
+                {% if card_size == 'small' %}h-48{% elif card_size == 'large' %}h-64{% else %}h-56{% endif %}">
+        
+        {% if destination.primary_images %}
+            {% comment %}
+            Display primary destination image with proper alt text and responsive sizing.
+            Includes hover zoom effect and loading optimization.
+            {% endcomment %}
+            <img src="{{ destination.primary_images.0.image.url }}" 
+                 alt="{{ destination.primary_images.0.alt_text|default:destination.name }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                 loading="lazy">
+        {% else %}
+            {% comment %}
+            Fallback placeholder when no image is available.
+            Uses gradient background with destination name overlay.
+            {% endcomment %}
+            <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center">
+                <div class="text-white text-center p-4">
+                    <i class="fas fa-map-marker-alt text-3xl mb-2 opacity-70"></i>
+                    <p class="text-sm font-medium opacity-90">{{ destination.name }}</p>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        Featured badge overlay for destinations marked as featured.
+        Positioned absolutely in the top-right corner with attractive styling.
+        {% endcomment %}
+        {% if destination.is_featured %}
+            <div class="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                <i class="fas fa-star mr-1"></i>Featured
+            </div>
+        {% endif %}
+        
+        {% comment %}
+        Distance badge overlay when distance information is available and requested.
+        Shows calculated distance from user's location with appropriate formatting.
+        {% endcomment %}
+        {% if show_distance and destination.distance %}
+            <div class="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-xs font-medium px-2 py-1 rounded-full">
+                <i class="fas fa-location-arrow mr-1"></i>{{ destination.distance|format_distance }}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% comment %}
+    Card content section with destination information, ratings, and metadata.
+    Uses responsive padding and typography scaling for different screen sizes.
+    {% endcomment %}
+    <div class="p-4 {% if card_size == 'large' %}p-6{% endif %}">
+        
+        {% comment %}
+        Destination header with name, location, and rating information.
+        Includes truncation for long names and responsive text sizing.
+        {% endcomment %}
+        <div class="mb-3">
+            <h3 class="font-bold text-gray-900 mb-1 line-clamp-2
+                       {% if card_size == 'small' %}text-lg{% elif card_size == 'large' %}text-2xl{% else %}text-xl{% endif %}">
+                {{ destination.name }}
+            </h3>
+            
+            {% comment %}
+            Location information with region and country details.
+            Uses subtle styling and icon for visual hierarchy.
+            {% endcomment %}
+            <div class="flex items-center text-gray-600 text-sm mb-2">
+                <i class="fas fa-map-marker-alt mr-1 text-indigo-500"></i>
+                <span>
+                    {% if destination.city %}{{ destination.city }}, {% endif %}
+                    {% if destination.region %}{{ destination.region.name }}{% endif %}
+                    {% if destination.country %}, {{ destination.country }}{% endif %}
+                </span>
+            </div>
+            
+            {% comment %}
+            Rating display with star visualization and numeric rating.
+            Only shown when rating data is available for the destination.
+            {% endcomment %}
+            {% if destination.rating %}
+                <div class="flex items-center mb-2">
+                    {% with rating_data=destination.rating|format_rating %}
+                        {% comment %}
+                        Star rating visualization using filled and empty stars.
+                        Includes numeric rating and uses consistent color scheme.
+                        {% endcomment %}
+                        <div class="flex items-center text-yellow-400 mr-2">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= rating_data.full_stars %}
+                                    <i class="fas fa-star text-sm"></i>
+                                {% elif forloop.counter == rating_data.full_stars|add:1 and rating_data.half_stars %}
+                                    <i class="fas fa-star-half-alt text-sm"></i>
+                                {% else %}
+                                    <i class="far fa-star text-sm"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-gray-600 text-sm">{{ rating_data.numeric }}</span>
+                    {% endwith %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {% comment %}
+        Destination description with proper truncation and responsive text sizing.
+        Uses line clamping for consistent card heights and clean appearance.
+        {% endcomment %}
+        {% if destination.short_description %}
+            <p class="text-gray-700 mb-4 line-clamp-3
+                      {% if card_size == 'small' %}text-sm{% else %}text-base{% endif %}">
+                {{ destination.short_description }}
+            </p>
+        {% elif destination.description %}
+            <p class="text-gray-700 mb-4 line-clamp-3
+                      {% if card_size == 'small' %}text-sm{% else %}text-base{% endif %}">
+                {{ destination.description|truncate_text:120 }}
+            </p>
+        {% endif %}
+        
+        {% comment %}
+        Price and statistics section with responsive layout and formatting.
+        Includes attraction count and other relevant destination metrics.
+        {% endcomment %}
+        <div class="flex items-center justify-between mb-4">
+            {% comment %}
+            Price display with proper formatting and currency symbols.
+            Shows starting price with "from" prefix for tour packages.
+            {% endcomment %}
+            {% if destination.price %}
+                <div class="text-right">
+                    <p class="text-gray-600 text-xs">Starting from</p>
+                    <p class="text-indigo-600 font-bold
+                              {% if card_size == 'small' %}text-lg{% else %}text-xl{% endif %}">
+                        {{ destination.price|format_price }}
+                    </p>
+                </div>
+            {% endif %}
+            
+            {% comment %}
+            Destination statistics including attraction count and other metrics.
+            Uses subtle styling and icons for visual appeal.
+            {% endcomment %}
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                {% if destination.attractions.count %}
+                    <div class="flex items-center">
+                        <i class="fas fa-map-pin mr-1 text-violet-500"></i>
+                        <span>{{ destination.attractions.count }} attraction{{ destination.attractions.count|pluralize }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if destination.views %}
+                    <div class="flex items-center">
+                        <i class="fas fa-eye mr-1 text-gray-400"></i>
+                        <span>{{ destination.views }} view{{ destination.views|pluralize }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% comment %}
+        Action buttons section with responsive layout and consistent styling.
+        Includes primary action (view details) and secondary actions (wishlist, share).
+        {% endcomment %}
+        {% if show_actions %}
+            <div class="flex items-center justify-between space-x-2">
+                {% comment %}
+                Primary action button to view destination details.
+                Uses gradient background with hover effects and proper accessibility.
+                {% endcomment %}
+                <a href="{% url 'destinations:detail' destination.slug %}" 
+                   class="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 
+                          text-white font-medium py-2 px-4 rounded-lg text-center transition-all duration-200 
+                          focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                   aria-label="View details for {{ destination.name }}">
+                    <i class="fas fa-eye mr-2"></i>View Details
+                </a>
+                
+                {% comment %}
+                Secondary action buttons for wishlist and sharing functionality.
+                Uses outline styling to complement the primary action button.
+                {% endcomment %}
+                <div class="flex space-x-2">
+                    {% comment %}
+                    Wishlist toggle button with dynamic state based on user preferences.
+                    Includes proper ARIA labels for accessibility.
+                    {% endcomment %}
+                    <button type="button" 
+                            class="p-2 border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white 
+                                   rounded-lg transition-all duration-200 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            onclick="toggleWishlist({{ destination.id }})"
+                            aria-label="Add {{ destination.name }} to wishlist">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    
+                    {% comment %}
+                    Share button with dropdown menu for different sharing options.
+                    Includes social media and direct link sharing capabilities.
+                    {% endcomment %}
+                    <button type="button" 
+                            class="p-2 border-2 border-violet-600 text-violet-600 hover:bg-violet-600 hover:text-white 
+                                   rounded-lg transition-all duration-200 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+                            onclick="shareDestination({{ destination.id }})"
+                            aria-label="Share {{ destination.name }}">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% comment %}
+JavaScript functionality for interactive features like wishlist and sharing.
+Includes proper error handling and user feedback mechanisms.
+{% endcomment %}
+<script>
+/**
+ * Toggle wishlist status for a destination
+ * 
+ * This function handles adding/removing destinations from the user's wishlist
+ * with proper API integration and visual feedback.
+ * 
+ * @param {number} destinationId - ID of the destination to toggle
+ */
+function toggleWishlist(destinationId) {
+    // Check if user is authenticated
+    {% if not user.is_authenticated %}
+        // Redirect to login if user is not authenticated
+        window.location.href = "{% url 'accounts:login' %}?next=" + encodeURIComponent(window.location.pathname);
+        return;
+    {% endif %}
+    
+    // Make API call to toggle wishlist status
+    fetch(`/api/v1/destinations/${destinationId}/toggle-wishlist/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button appearance based on wishlist status
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            
+            if (data.in_wishlist) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.classList.add('bg-indigo-600', 'text-white');
+                button.classList.remove('text-indigo-600');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.classList.remove('bg-indigo-600', 'text-white');
+                button.classList.add('text-indigo-600');
+            }
+            
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message || 'Error updating wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating wishlist', 'error');
+    });
+}
+
+/**
+ * Share destination with various options
+ * 
+ * This function provides sharing functionality through native Web Share API
+ * or fallback to clipboard copy with proper user feedback.
+ * 
+ * @param {number} destinationId - ID of the destination to share
+ */
+function shareDestination(destinationId) {
+    const destinationUrl = window.location.origin + "{% url 'destinations:detail' destination.slug %}";
+    const shareData = {
+        title: "{{ destination.name|escapejs }}",
+        text: "Check out this amazing destination: {{ destination.name|escapejs }}",
+        url: destinationUrl
+    };
+    
+    // Use native Web Share API if available
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => showNotification('Shared successfully!', 'success'))
+            .catch(error => {
+                if (error.name !== 'AbortError') {
+                    console.error('Error sharing:', error);
+                    fallbackShare(destinationUrl);
+                }
+            });
+    } else {
+        // Fallback to clipboard copy
+        fallbackShare(destinationUrl);
+    }
+}
+
+/**
+ * Fallback sharing method using clipboard API
+ * 
+ * This function copies the destination URL to clipboard when native
+ * sharing is not available, with proper user feedback.
+ * 
+ * @param {string} url - URL to copy to clipboard
+ */
+function fallbackShare(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url)
+            .then(() => showNotification('Link copied to clipboard!', 'success'))
+            .catch(error => {
+                console.error('Error copying to clipboard:', error);
+                showNotification('Unable to copy link', 'error');
+            });
+    } else {
+        // Final fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            showNotification('Link copied to clipboard!', 'success');
+        } catch (error) {
+            console.error('Error copying to clipboard:', error);
+            showNotification('Unable to copy link', 'error');
+        }
+        
+        document.body.removeChild(textArea);
+    }
+}
+
+/**
+ * Show notification to user
+ * 
+ * This function displays temporary notifications for user feedback
+ * with proper styling and automatic dismissal.
+ * 
+ * @param {string} message - Message to display
+ * @param {string} type - Notification type ('success', 'error', 'info')
+ */
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full
+                             ${type === 'success' ? 'bg-green-600 text-white' : 
+                               type === 'error' ? 'bg-red-600 text-white' : 
+                               'bg-blue-600 text-white'}`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                           type === 'error' ? 'fa-exclamation-circle' : 
+                           'fa-info-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto dismiss after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>

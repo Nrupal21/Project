@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# 
+  Booking Confirmation Template
+  This template displays the booking confirmation details after a successful booking.
+  It shows the booking reference, tour details, traveler information, and payment summary.
+#}
+
+{% block title %}Booking Confirmation - Guides{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<div class="bg-gray-50 py-12">
+  <div class="max-w-screen-2xl w-full mx-auto px-6 sm:px-8 lg:px-12">
+    <div class="max-w-4xl w-full mx-auto">
+      {# Success message header with animation #}
+      <div class="text-center mb-8">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+          <svg class="h-10 w-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          Booking Confirmed!
+        </h1>
+        <p class="mt-2 text-lg text-gray-600">
+          Thank you for booking with Guides. Your adventure awaits!
+        </p>
+      </div>
+
+      {# Booking reference information #}
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Booking Reference
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Please save this information for your records
+          </p>
+        </div>
+        <div class="border-t border-gray-200">
+          <dl>
+            {# Booking reference number - unique identifier for this booking #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Booking Reference
+              </dt>
+              <dd class="mt-1 text-sm font-mono font-bold text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.reference_number }}
+              </dd>
+            </div>
+            {# Booking date - when the booking was made #}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Booking Date
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.created_at|date:"F j, Y, g:i a" }}
+              </dd>
+            </div>
+            {# Booking status - current status of the booking #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Status
+              </dt>
+              <dd class="mt-1 sm:mt-0 sm:col-span-2">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Confirmed
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      {# Tour details section #}
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Tour Details
+          </h3>
+        </div>
+        <div class="border-t border-gray-200">
+          <dl>
+            {# Tour name #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Tour Name
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.tour.name }}
+              </dd>
+            </div>
+            {# Tour destination #}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Destination
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.tour.destination.name }}, {{ booking.tour.destination.country }}
+              </dd>
+            </div>
+            {# Tour start date #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Start Date
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.start_date|date:"F j, Y" }}
+              </dd>
+            </div>
+            {# Tour end date - calculated based on start date and duration #}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                End Date
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.end_date|date:"F j, Y" }}
+              </dd>
+            </div>
+            {# Tour duration in days #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Duration
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.tour.duration }} days
+              </dd>
+            </div>
+            {# Number of travelers in this booking #}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Number of Travelers
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.number_of_travelers }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      {# Traveler information section #}
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Traveler Information
+          </h3>
+        </div>
+        <div class="border-t border-gray-200">
+          <dl>
+            {# Lead traveler information #}
+            <div class="bg-gray-50 px-4 py-5 sm:px-6">
+              <h4 class="text-sm font-medium text-gray-900">Lead Traveler</h4>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Full Name
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.first_name }} {{ booking.last_name }}
+              </dd>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Email
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.email }}
+              </dd>
+            </div>
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Phone
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {{ booking.phone }}
+              </dd>
+            </div>
+            
+            {# Additional travelers if any #}
+            {% if booking.additional_travelers.exists %}
+              <div class="bg-gray-50 px-4 py-5 sm:px-6">
+                <h4 class="text-sm font-medium text-gray-900">Additional Travelers</h4>
+              </div>
+              {% for traveler in booking.additional_travelers.all %}
+                <div class="{% cycle 'bg-white' 'bg-gray-50' %} px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">
+                    Traveler #{{ forloop.counter|add:"1" }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ traveler.first_name }} {{ traveler.last_name }}
+                  </dd>
+                </div>
+              {% endfor %}
+            {% endif %}
+            
+            {# Special requirements if provided #}
+            {% if booking.special_requirements %}
+              <div class="bg-gray-50 px-4 py-5 sm:px-6">
+                <h4 class="text-sm font-medium text-gray-900">Special Requirements</h4>
+              </div>
+              <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt class="text-sm font-medium text-gray-500">
+                  Requirements
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {{ booking.special_requirements }}
+                </dd>
+              </div>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+
+      {# Payment summary section #}
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Payment Summary
+          </h3>
+        </div>
+        <div class="border-t border-gray-200">
+          <dl>
+            {# Payment method - masked card number for security #}
+            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Payment Method
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                Credit Card (ending in {{ booking.card_last_four }})
+              </dd>
+            </div>
+            {# Payment status #}
+            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt class="text-sm font-medium text-gray-500">
+                Payment Status
+              </dt>
+              <dd class="mt-1 sm:mt-0 sm:col-span-2">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Paid
+                </span>
+              </dd>
+            </div>
+            {# Payment breakdown #}
+            <div class="bg-gray-50 px-4 py-5 sm:px-6">
+              <h4 class="text-sm font-medium text-gray-900">Payment Breakdown</h4>
+            </div>
+            <div class="bg-white px-4 py-5 sm:px-6">
+              <div class="flex justify-between py-1">
+                <span class="text-sm text-gray-500">Tour price (per person)</span>
+                <span class="text-sm font-medium text-gray-900">${{ booking.tour.price|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-sm text-gray-500">Number of travelers</span>
+                <span class="text-sm font-medium text-gray-900">{{ booking.number_of_travelers }}</span>
+              </div>
+              {% if booking.discount_amount %}
+              <div class="flex justify-between py-1">
+                <span class="text-sm text-gray-500">Discount</span>
+                <span class="text-sm font-medium text-green-600">-${{ booking.discount_amount|floatformat:2 }}</span>
+              </div>
+              {% endif %}
+              <div class="flex justify-between py-1">
+                <span class="text-sm text-gray-500">Taxes and fees</span>
+                <span class="text-sm font-medium text-gray-900">${{ booking.taxes|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-t border-gray-200 mt-2 pt-2">
+                <span class="text-base font-medium text-gray-900">Total</span>
+                <span class="text-base font-bold text-gray-900">${{ booking.total_price|floatformat:2 }}</span>
+              </div>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      {# Next steps and actions #}
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Next Steps
+          </h3>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+          <ul class="space-y-4">
+            {# Email confirmation step #}
+            <li class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div class="ml-3 text-sm">
+                <p class="font-medium text-gray-900">Check your email</p>
+                <p class="text-gray-500">We've sent a confirmation email to {{ booking.email }} with all your booking details.</p>
+              </div>
+            </li>
+            {# Itinerary step #}
+            <li class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div class="ml-3 text-sm">
+                <p class="font-medium text-gray-900">Review your itinerary</p>
+                <p class="text-gray-500">Your detailed itinerary is available in your account dashboard.</p>
+              </div>
+            </li>
+            {# Preparation step #}
+            <li class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div class="ml-3 text-sm">
+                <p class="font-medium text-gray-900">Prepare for your trip</p>
+                <p class="text-gray-500">Check out our <a href="#" class="text-indigo-600 hover:text-indigo-500">travel preparation guide</a> for {{ booking.tour.destination.name }}.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {# Action buttons #}
+      <div class="flex justify-between">
+        <a href="{% url 'bookings:my_bookings' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          View My Bookings
+        </a>
+        <a href="{% url 'core:home' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          Return to Home
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# JavaScript for handling print functionality #}
+<script>
+  /**
+   * Handles printing the booking confirmation
+   * This function prepares the page for printing by hiding unnecessary elements
+   */
+  function printBookingConfirmation() {
+    window.print();
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<!-- 
+ * ==========================================================================
+ * NOTIFICATION DETAIL PAGE
+ * ==========================================================================
+ * This template displays a single notification with all details including:
+ * - Visual styling based on notification level (info, success, warning, danger)
+ * - Full notification content with proper formatting
+ * - Related object information when available
+ * - Action buttons for navigation and management
+ * - Responsive design for all device sizes
+ */
+-->
+<div class="max-w-screen-2xl w-full mx-auto px-4 py-8">
+    <!-- Back link to notifications list -->
+    <div class="mb-6">
+        <!-- Back link with indigo color from our color palette -->
+        <a href="{% url 'notifications:notification_list' %}" class="flex items-center text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to All Notifications
+        </a>
+    </div>
+    
+    <!-- Notification detail card -->
+    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+        <!-- 
+         * Notification Header Section
+         * - Dynamic styling based on notification level (info, success, warning, danger)
+         * - Uses indigo/violet variations for consistent brand appearance while
+         *   maintaining different visual semantics for each level
+         * - Lighter backgrounds in light mode, subtle overlay in dark mode
+         */
+        -->
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 
+            {% if notification.level == 'info' %}bg-indigo-50 dark:bg-indigo-900/15
+            {% elif notification.level == 'success' %}bg-violet-50 dark:bg-violet-900/15
+            {% elif notification.level == 'warning' %}bg-amber-50 dark:bg-amber-900/15
+            {% elif notification.level == 'danger' %}bg-rose-50 dark:bg-rose-900/15
+            {% endif %}">
+            <div class="flex items-center">
+                <!-- 
+                 * Level Icon with Visual Styling
+                 * - Different icons for different notification types
+                 * - Maintains semantic meaning with distinct icons
+                 * - Uses indigo/violet color variations for consistent branding
+                 * - Adapts colors for dark mode with proper contrast
+                 */
+                 -->
+                {% if notification.level == 'info' %}
+                <div class="w-12 h-12 flex items-center justify-center bg-indigo-100 dark:bg-indigo-800/60 rounded-full mr-4 shadow-sm">
+                    <svg class="w-7 h-7 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                {% elif notification.level == 'success' %}
+                <div class="w-12 h-12 flex items-center justify-center bg-violet-100 dark:bg-violet-800/60 rounded-full mr-4 shadow-sm">
+                    <svg class="w-7 h-7 text-violet-600 dark:text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                {% elif notification.level == 'warning' %}
+                <div class="w-12 h-12 flex items-center justify-center bg-amber-100 dark:bg-amber-800/40 rounded-full mr-4 shadow-sm">
+                    <svg class="w-7 h-7 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                {% elif notification.level == 'danger' %}
+                <div class="w-12 h-12 flex items-center justify-center bg-rose-100 dark:bg-rose-800/40 rounded-full mr-4 shadow-sm">
+                    <svg class="w-7 h-7 text-rose-600 dark:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                {% endif %}
+                
+                <!-- Title and timestamp -->
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ notification.title }}</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Sent {{ notification.created_at|date:"F j, Y \a\t g:i A" }}
+                        {% if notification.is_read %}
+                        <span class="ml-2 inline-flex items-center text-green-600 dark:text-green-400">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Read
+                        </span>
+                        {% else %}
+                        <span class="ml-2 inline-flex items-center text-gray-500 dark:text-gray-400">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                            </svg>
+                            Unread
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notification content body -->
+        <div class="px-6 py-6">
+            <div class="prose dark:prose-invert max-w-none">
+                {{ notification.message|linebreaks }}
+            </div>
+            
+            <!-- Related object information if present -->
+            {% if notification.content_object %}
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-3">Related Information</h3>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p class="text-gray-700 dark:text-gray-300">
+                        This notification is related to: 
+                        <span class="font-medium">{{ notification.content_object }}</span>
+                        ({{ notification.content_type.model|title }})
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- 
+         * ==========================================================================
+         * ACTION BUTTONS FOOTER
+         * ==========================================================================
+         * - Contains primary and secondary action buttons for notification management
+         * - Uses consistent styling with indigo/violet palette for primary actions
+         * - Provides clear visual hierarchy between different button types
+         * - Includes subtle hover effects and proper spacing for all device sizes
+         */
+         -->
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700 flex flex-wrap justify-between">
+            <!-- 
+             * Primary Call-to-Action Button
+             * - Uses the indigo/violet gradient color scheme for brand consistency
+             * - Only appears if the notification has a configured action link
+             * - Styled with shadows and hover effects for better interactivity
+             * - Responsive margin to prevent overlap on small screens
+             */
+             -->
+            {% if notification.link_url and notification.link_text %}
+            <a href="{{ notification.link_url }}" class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-md shadow-md hover:shadow-lg transition-all duration-200 mb-2 sm:mb-0">
+                {{ notification.link_text }}
+            </a>
+            {% else %}
+            <div></div>
+            {% endif %}
+            
+            <!-- 
+             * Secondary Action Buttons
+             * - Contains form submission buttons for notification management
+             * - Properly spaced with consistent styling
+             * - Clear visual differentiation between neutral and destructive actions
+             */
+             -->
+            <div class="flex space-x-3">
+                <!-- Mark as read/unread form -->
+                <form action="{% url 'notifications:mark_read' notification.pk %}" method="POST" class="inline">
+                    {% csrf_token %}
+                    {% if not notification.is_read %}
+                    <!-- 
+                     * Mark as Read Button
+                     * - Styled with subtle indigo tint for brand consistency
+                     * - Only appears if notification is currently unread
+                     * - Includes hover state and smooth transition
+                     */
+                     -->
+                    <button type="submit" class="px-3 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-800/30 dark:hover:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 rounded-md transition-colors duration-200">
+                        Mark as Read
+                    </button>
+                    {% endif %}
+                </form>
+                
+                <!-- Delete notification form -->
+                <form action="{% url 'notifications:delete' notification.pk %}" method="POST" class="inline">
+                    {% csrf_token %}
+                    <!-- 
+                     * Delete Button
+                     * - Styled in rose/red to indicate destructive action
+                     * - Includes confirmation dialog to prevent accidental deletion
+                     * - Distinctive styling to separate from other actions
+                     */
+                     -->
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete this notification?')" 
+                        class="px-3 py-2 bg-rose-100 hover:bg-rose-200 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded-md transition-colors duration-200">
+                        Delete Notification
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

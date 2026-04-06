@@ -1,0 +1,124 @@
+{% extends "emails/base_email.html" %}
+
+{% comment %}
+/**
+ * User Verification Email Template
+ * 
+ * This template is used to send account verification emails to new users.
+ * It extends the base email template to maintain consistent styling and layout.
+ * 
+ * Context variables:
+ * - user: The user object whose email is being verified
+ * - verification_url: The URL that the user needs to visit to verify their account
+ * - expiry_hours: Number of hours until the verification link expires
+ */
+{% endcomment %}
+
+{% block title %}Verify Your TravelGuide Account{% endblock %}
+
+{% block email_title %}Verify Your Email Address{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>Thank you for registering with TravelGuide! To complete your registration and start exploring local experiences, please verify your email address by clicking the button below:</p>
+
+<p style="text-align: center;">
+    <a href="{{ verification_url }}" class="button">Verify Email Address</a>
+</p>
+
+<p>If the button doesn't work, you can also copy and paste the following link into your browser:</p>
+
+<p style="background-color: #f3f4f6; padding: 10px; border-radius: 4px; word-break: break-all;">
+    <a href="{{ verification_url }}">{{ verification_url }}</a>
+</p>
+
+<p><strong>Please note:</strong> This verification link will expire in {{ expiry_hours }} hours.</p>
+
+<p>If you did not register for a TravelGuide account, please disregard this email.</p>
+{% endblock %}
+
+{% block unsubscribe %}
+This email was sent to verify your TravelGuide account. It is not a subscription and you cannot unsubscribe from these account-related emails.
+{% endblock %}

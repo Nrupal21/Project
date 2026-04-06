@@ -1,0 +1,661 @@
+{% comment %}
+/**
+ * Guide Destinations Template
+ * =========================
+ * Displays all destinations managed by the current guide with filtering and search functionality.
+ * Features a responsive card-based layout with the indigo/violet color scheme.
+ *
+ * Template Structure:
+ * - Header with search and filter controls
+ * - Card grid for destinations display
+ * - Empty state for when no destinations exist
+ * - Delete confirmation modal with warning
+ * - Pagination controls
+ */
+{% endcomment %}
+
+{% extends 'destinations/guide_base.html' %}
+{% load static %}
+
+{% block page_title %}My Destinations{% endblock %}
+
+{% block page_actions %}
+<!-- Primary action button for adding a new destination with gradient styling -->
+<a href="{% url 'destinations:destination_create' %}" class="btn btn-quick-action primary">
+    <i class="fas fa-plus-circle"></i> Add Destination
+</a>
+{% endblock %}
+
+{% block guide_content %}
+<!-- Main Destinations Management Section -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-6">
+    <!-- Header Section with Title and Search/Filter Controls -->
+    <div class="p-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-violet-50">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <!-- Section Title with Icon -->
+            <div class="flex items-center">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md mr-3">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">My Destinations</h1>
+                    <p class="text-sm text-gray-600">Manage and organize your destination listings</p>
+                </div>
+            </div>
+            
+            <!-- Search and Filter Controls -->
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full md:w-auto">
+                <!-- Search Input with Icon -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-indigo-400"></i>
+                    </div>
+                    <input type="text" id="searchDestinations" 
+                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out" 
+                           placeholder="Search destinations...">
+                </div>
+                
+                <!-- Status Filter Dropdown -->
+                <div class="relative">
+                    <select id="filterStatus" 
+                            class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out appearance-none cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending Approval</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-indigo-500">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="p-5">
+        {% if destinations %}
+            <!-- Destinations Card Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="destinationsGrid">
+                {% for destination in destinations %}
+                <!-- Destination Card with Hover Effects -->
+                <div class="guide-card group transition-all duration-300 hover:shadow-xl relative overflow-hidden" data-status="{{ destination.status|lower }}">
+                    <!-- Card Header with Image -->
+                    <div class="relative h-48 overflow-hidden">
+                        <!-- Destination Image with Zoom Effect -->
+                        <img src="{{ destination.primary_image_url|default:'/static/img/default-destination.jpg' }}" 
+                             alt="{{ destination.name }}" 
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                        
+                        <!-- Status Badge -->
+                        <div class="absolute top-3 right-3 flex flex-col space-y-1">
+                            {% if destination.is_pending %}
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Pending Review
+                                </span>
+                            {% endif %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if destination.is_active %}
+                                    bg-green-100 text-green-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}">
+                                {% if destination.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Gradient Overlay for Text Visibility -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                                    {% elif destination.status == 'inactive' %}bg-gray-500
+                                    {% else %}bg-yellow-500{% endif %}"></span>
+                                {{ destination.get_status_display }}
+                            </span>
+                            
+                            <!-- Featured Badge (if applicable) -->
+                            {% if destination.is_featured %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                <i class="fas fa-star text-indigo-500 mr-1"></i> Featured
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Card Content -->
+                    <div class="p-4">
+                        <!-- Destination Name -->
+                        <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-indigo-700 transition-colors">
+                            {{ destination.name }}
+                        </h3>
+                        
+                        <!-- Destination Location -->
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>
+                            <span class="text-sm text-gray-600">
+                                {{ destination.city }}, {{ destination.country }}
+                                {% if destination.region %}
+                                <span class="text-gray-400 mx-1">|</span>
+                                <span class="text-gray-500">{{ destination.region.name }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Destination Statistics -->
+                        <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                            <!-- Attractions Count -->
+                            <div class="flex items-center">
+                                <i class="fas fa-map-signs text-indigo-400 mr-1.5"></i>
+                                <span>{{ destination.attractions.count }} Attractions</span>
+                            </div>
+                            
+                            <!-- Last Updated -->
+                            <div class="flex items-center">
+                                <i class="far fa-clock text-indigo-400 mr-1.5"></i>
+                                <span>{{ destination.updated_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Footer with Action Buttons -->
+                    <div class="border-t border-gray-100 p-3 bg-gradient-to-r from-indigo-50/30 to-violet-50/30">
+                        <div class="flex justify-between items-center">
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-2">
+                                <!-- View Button -->
+                                <a href="{% url 'destinations:destination_detail' destination.slug %}" 
+                                   class="p-2 rounded-md text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 transition-colors" 
+                                   title="View details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                <!-- Edit Button -->
+                                <a href="{% url 'destinations:destination_update' destination.id %}" 
+                                   class="p-2 rounded-md text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 transition-colors" 
+                                   title="Edit destination">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <!-- Add Attraction Button -->
+                                <a href="{% url 'destinations:attraction_create' %}?destination={{ destination.id }}" 
+                                   class="p-2 rounded-md text-green-700 hover:text-green-900 hover:bg-green-100 transition-colors" 
+                                   title="Add attraction">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                            
+                            <!-- Delete Button -->
+                            <button type="button" 
+                                    class="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-100 transition-colors"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal"
+                                    data-id="{{ destination.id }}" 
+                                    data-name="{{ destination.name }}"
+                                    data-type="destination" 
+                                    title="Delete destination">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Hover Overlay with Quick Links -->
+                    <div class="absolute inset-0 bg-indigo-900/0 opacity-0 group-hover:opacity-100 group-hover:bg-indigo-900/10 pointer-events-none transition-all duration-300 flex items-center justify-center">
+                        <!-- We only use this for the hover effect, actual buttons are above -->
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination with Indigo/Violet Theme -->
+            <nav aria-label="Destination pagination" class="mt-8">
+                <ul class="flex items-center justify-center space-x-1">
+                    <!-- First Page Button -->
+                    <li>
+                        <a href="?page=1" 
+                           class="{{ page_obj.has_previous|yesno:'hover:bg-indigo-100 text-indigo-700,bg-gray-100 text-gray-400 pointer-events-none' }} inline-flex items-center justify-center px-3 py-2 rounded-md transition-colors duration-150 border border-gray-200">
+                            <i class="fas fa-angle-double-left"></i>
+                            <span class="sr-only">First page</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Previous Page Button -->
+                    <li>
+                        <a href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}" 
+                           class="{{ page_obj.has_previous|yesno:'hover:bg-indigo-100 text-indigo-700,bg-gray-100 text-gray-400 pointer-events-none' }} inline-flex items-center justify-center px-3 py-2 rounded-md transition-colors duration-150 border border-gray-200">
+                            <i class="fas fa-angle-left"></i>
+                            <span class="sr-only">Previous page</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Page Numbers -->
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li>
+                            <span class="inline-flex items-center justify-center px-3 py-2 min-w-[2.5rem] font-medium rounded-md bg-gradient-to-r from-indigo-600 to-violet-600 text-white border border-indigo-700 shadow-sm">
+                                {{ i }}
+                            </span>
+                        </li>
+                        {% elif i > page_obj.number|add:-3 and i < page_obj.number|add:3 %}
+                        <li>
+                            <a href="?page={{ i }}" 
+                               class="inline-flex items-center justify-center px-3 py-2 min-w-[2.5rem] rounded-md hover:bg-indigo-100 text-indigo-700 border border-gray-200 transition-colors duration-150">
+                                {{ i }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Next Page Button -->
+                    <li>
+                        <a href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% else %}#{% endif %}" 
+                           class="{{ page_obj.has_next|yesno:'hover:bg-indigo-100 text-indigo-700,bg-gray-100 text-gray-400 pointer-events-none' }} inline-flex items-center justify-center px-3 py-2 rounded-md transition-colors duration-150 border border-gray-200">
+                            <i class="fas fa-angle-right"></i>
+                            <span class="sr-only">Next page</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Last Page Button -->
+                    <li>
+                        <a href="{% if page_obj.has_next %}?page={{ page_obj.paginator.num_pages }}{% else %}#{% endif %}" 
+                           class="{{ page_obj.has_next|yesno:'hover:bg-indigo-100 text-indigo-700,bg-gray-100 text-gray-400 pointer-events-none' }} inline-flex items-center justify-center px-3 py-2 rounded-md transition-colors duration-150 border border-gray-200">
+                            <i class="fas fa-angle-double-right"></i>
+                            <span class="sr-only">Last page</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Showing Results Summary -->
+            <div class="text-center text-sm text-gray-500 mt-2">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} destinations
+            </div>
+            
+        {% else %}
+            <!-- Empty State with Illustrated Design -->
+            <div class="text-center py-16 px-4 sm:px-6 lg:px-8 bg-indigo-50/30 rounded-lg m-6">
+                <div class="max-w-md mx-auto">
+                    <!-- Empty State Illustration -->
+                    <div class="mx-auto h-48 w-48 text-indigo-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" class="w-full h-full">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </div>
+                    
+                    <!-- Empty State Content -->
+                    <h3 class="mt-6 text-2xl font-bold text-indigo-900">No Destinations Yet</h3>
+                    <p class="mt-2 text-indigo-700 max-w-md mx-auto">
+                        You haven't added any destinations yet. Start your travel guide by adding amazing places for travelers to explore.
+                    </p>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+                        <!-- Primary Action: Add Destination -->
+                        <a href="{% url 'destinations:destination_create' %}" 
+                           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5">
+                            <i class="fas fa-plus-circle mr-2"></i> Add Your First Destination
+                        </a>
+                        
+                        <!-- Secondary Action: View Documentation -->
+                        <a href="#" 
+                           class="inline-flex items-center justify-center px-6 py-3 border border-indigo-200 text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150">
+                            <i class="fas fa-book-open mr-2"></i> View Guide
+                        </a>
+                    </div>
+                    
+                    <!-- Help Text -->
+                    <p class="mt-4 text-sm text-indigo-500">
+                        Need help? <a href="#" class="font-medium text-indigo-700 hover:text-indigo-600">Contact support</a>
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% comment %}
+/**
+ * Delete Confirmation Modal
+ * =======================
+ * Modal dialog for confirming destination deletion with warning about associated data.
+ * Features:
+ * - Modern design with indigo/violet theme
+ * - Clear warning messages
+ * - Animated transitions
+ * - Backdrop blur effect
+ * - Accessible keyboard navigation
+ */
+{% endcomment %}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" 
+     class="hidden fixed inset-0 z-50 overflow-y-auto" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true"
+     data-transition-enter="ease-out duration-300"
+     data-transition-enter-start="opacity-0"
+     data-transition-enter-end="opacity-100"
+     data-transition-leave="ease-in duration-200"
+     data-transition-leave-start="opacity-100"
+     data-transition-leave-end="opacity-0">
+    
+    <!-- Modal Backdrop with Blur Effect -->
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity" 
+         aria-hidden="true"></div>
+
+    <!-- Modal Container -->
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+        <!-- Modal Panel with Animation -->
+        <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+             data-transition-enter="ease-out duration-300"
+             data-transition-enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             data-transition-enter-end="opacity-100 translate-y-0 sm:scale-100"
+             data-transition-leave="ease-in duration-200"
+             data-transition-leave-start="opacity-100 translate-y-0 sm:scale-100"
+             data-transition-leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+            
+            <!-- Modal Header -->
+            <div class="px-4 pb-4 pt-5 sm:p-6 sm:pb-4 border-b border-gray-200">
+                <div class="sm:flex sm:items-start">
+                    <!-- Warning Icon -->
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    
+                    <!-- Modal Title and Description -->
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                            Delete Destination
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                Are you sure you want to delete <strong id="itemName" class="text-indigo-600"></strong>?
+                            </p>
+                            <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-500 rounded-md">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-red-600 mt-0.5"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-red-700">
+                                            This action cannot be undone. This will permanently delete the destination and all associated attractions, tours, and images.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer with Actions -->
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <!-- Delete Form -->
+                <form id="deleteForm" method="post" action="" class="sm:ml-3">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="inline-flex w-full justify-center rounded-md bg-gradient-to-r from-red-600 to-rose-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 sm:w-auto">
+                        <i class="fas fa-trash-alt mr-2"></i> Delete Permanently
+                    </button>
+                </form>
+                
+                <!-- Cancel Button -->
+                <button type="button" 
+                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 sm:mt-0 sm:w-auto"
+                        data-bs-dismiss="modal">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+
+{% comment %}
+/**
+ * Destinations Management JavaScript
+ * ================================
+ * This script handles all interactive functionality for the destinations management page:
+ * - Modal dialog handling (open/close with animations)
+ * - Delete confirmation workflow
+ * - Search and filtering functionality
+ * - Responsive grid layout interactions
+ */
+{% endcomment %}
+
+<script>
+/**
+ * Opens a modal dialog with smooth animation
+ * @param {string} modalId - The ID of the modal to open
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Show the modal
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    
+    // Focus the first focusable element for accessibility
+    const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable) focusable.focus();
+}
+
+/**
+ * Closes a modal dialog with smooth animation
+ * @param {string} modalId - The ID of the modal to close
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Hide the modal
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+/**
+ * Sets up the delete confirmation workflow
+ * - Initializes the delete modal with correct data
+ * - Handles form submission for deletion
+ */
+function setupDeleteConfirmation() {
+    // Get all delete buttons
+    const deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#deleteModal"]');
+    const deleteModal = document.getElementById('deleteModal');
+    
+    if (!deleteModal) return;
+    
+    // Add click event to all delete buttons
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Extract data attributes
+            const itemId = button.getAttribute('data-id');
+            const itemName = button.getAttribute('data-name');
+            const itemType = button.getAttribute('data-type');
+            
+            // Update modal content
+            const modalTitle = document.getElementById('modal-title');
+            const itemNameElement = document.getElementById('itemName');
+            const deleteForm = document.getElementById('deleteForm');
+            
+            if (modalTitle) modalTitle.textContent = `Delete ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`;
+            if (itemNameElement) itemNameElement.textContent = itemName;
+            
+            // Set the form action based on item type
+            if (deleteForm) {
+                if (itemType === 'destination') {
+                    deleteForm.action = `/destinations/${itemId}/delete/`;
+                } else if (itemType === 'attraction') {
+                    deleteForm.action = `/attractions/${itemId}/delete/`;
+                }
+            }
+            
+            // Open the modal
+            openModal('deleteModal');
+        });
+    });
+    
+    // Close modal when clicking the cancel button
+    const cancelButton = deleteModal.querySelector('[data-bs-dismiss="modal"]');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', () => closeModal('deleteModal'));
+    }
+    
+    // Close modal when clicking outside
+    deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal || e.target.classList.contains('backdrop-blur-sm')) {
+            closeModal('deleteModal');
+        }
+    });
+}
+
+/**
+ * Sets up search and filter functionality for destinations
+ * - Status filtering
+ * - Text search with highlighting
+ */
+function setupSearchAndFilter() {
+    const filterStatus = document.getElementById('filterStatus');
+    const searchInput = document.getElementById('searchDestinations');
+    const destinationCards = document.querySelectorAll('#destinationsGrid .guide-card');
+    
+    // Filter by status
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+            const status = this.value.toLowerCase();
+            
+            destinationCards.forEach(card => {
+                if (!status || card.getAttribute('data-status') === status) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Update counters and empty state
+            updateVisibleCount();
+        });
+    }
+    
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            
+            destinationCards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                
+                if (cardText.includes(searchText)) {
+                    card.style.display = '';
+                    
+                    // Optional: Highlight matching text
+                    // highlightMatchingText(card, searchText);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Update counters and empty state
+            updateVisibleCount();
+        });
+    }
+    
+    /**
+     * Updates the visible destinations count and shows empty state if needed
+     */
+    function updateVisibleCount() {
+        const visibleCards = document.querySelectorAll('#destinationsGrid .guide-card[style="display: none;"]');
+        const totalCards = destinationCards.length;
+        const visibleCount = totalCards - visibleCards.length;
+        
+        // If no visible destinations, show an inline message
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        if (noResultsMessage) {
+            if (visibleCount === 0) {
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
+            }
+        }
+    }
+}
+
+/**
+ * Sets up keyboard navigation for modals
+ * Implements accessibility best practices for modal dialogs
+ */
+function setupKeyboardNavigation() {
+    document.addEventListener('keydown', (e) => {
+        // Close modal on Escape key
+        if (e.key === 'Escape') {
+            const visibleModal = document.querySelector('[role="dialog"]:not(.hidden)');
+            if (visibleModal) {
+                closeModal(visibleModal.id);
+            }
+        }
+        
+        // Handle Tab key trapping within modal
+        if (e.key === 'Tab') {
+            const visibleModal = document.querySelector('[role="dialog"]:not(.hidden)');
+            if (visibleModal) {
+                const focusableElements = visibleModal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                
+                if (focusableElements.length > 0) {
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+                    
+                    if (e.shiftKey && document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    } else if (!e.shiftKey && document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Initializes all functionality when the DOM is fully loaded
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup all interactive functionality
+    setupDeleteConfirmation();
+    setupSearchAndFilter();
+    setupKeyboardNavigation();
+    
+    // Initialize any tooltips if needed
+    const tooltips = document.querySelectorAll('[title]');
+    tooltips.forEach(tooltip => {
+        // Initialize tooltips if you have a tooltip library
+        // Example with Bootstrap tooltips: new bootstrap.Tooltip(tooltip)
+    });
+    
+    // Add no results message container if it doesn't exist
+    const destinationsGrid = document.getElementById('destinationsGrid');
+    if (destinationsGrid && !document.getElementById('noResultsMessage')) {
+        const noResultsMessage = document.createElement('div');
+        noResultsMessage.id = 'noResultsMessage';
+        noResultsMessage.className = 'hidden w-full col-span-1 md:col-span-2 lg:col-span-3 p-8 text-center';
+        noResultsMessage.innerHTML = `
+            <div class="p-6 bg-indigo-50/50 rounded-lg">
+                <i class="fas fa-search text-4xl text-indigo-300 mb-3"></i>
+                <h4 class="text-lg font-semibold text-indigo-900">No matching destinations found</h4>
+                <p class="text-sm text-indigo-700">Try adjusting your search or filter criteria</p>
+            </div>
+        `;
+        
+        // Insert after the destinations grid
+        destinationsGrid.parentNode.insertBefore(noResultsMessage, destinationsGrid.nextSibling);
+    }
+});
+</script>
+{% endblock %}

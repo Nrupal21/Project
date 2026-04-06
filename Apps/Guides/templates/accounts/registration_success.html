@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registration Successful - TravelGuide{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Animations */
+    @keyframes checkmark {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .success-animation { animation: checkmark 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    
+    /* Staggered animations */
+    .staggered > * { opacity: 0; animation: fadeIn 0.6s ease-out forwards; }
+    .staggered > *:nth-child(1) { animation-delay: 0.3s; }
+    .staggered > *:nth-child(2) { animation-delay: 0.5s; }
+    .staggered > *:nth-child(3) { animation-delay: 0.7s; }
+    
+    /* Button styles */
+    .btn-explore {
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .btn-explore:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- 
+  Registration Success Page
+  
+  This template displays a success confirmation after user registration with:
+  1. A personalized welcome message with the user's first name
+  2. Confirmation of account creation with checkmark icon
+  3. Email notification information
+  4. Call-to-action button to start exploring the site
+  5. Support contact information
+  
+  The page uses the site's indigo/violet color scheme for consistency.
+-->
+
+<!-- Main container with gradient background -->
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Success card container -->
+    <div class="mx-auto w-full max-w-md">
+        <!-- Card with subtle shadow and border -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl">
+            <!-- Decorative header with gradient -->
+            <div class="bg-gradient-to-r from-indigo-600 to-violet-700 px-6 py-6 text-center">
+                <!-- Animated checkmark icon -->
+                <div class="flex items-center justify-center mb-4">
+                    <div class="flex items-center justify-center h-20 w-20 rounded-full bg-white/10 backdrop-blur-sm">
+                        <svg class="h-12 w-12 text-white success-animation" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Welcome heading with personalization -->
+                <h2 id="welcomeHeading" class="text-2xl font-bold text-white mb-1">
+                    Welcome to TravelGuide{% if user.first_name %}, <span class="text-indigo-100">{{ user.first_name }}</span>{% endif %}! 🎉
+                </h2>
+                <p class="text-indigo-100 text-opacity-90">Your account has been created successfully</p>
+            </div>
+            
+            <!-- Main content area -->
+            <div class="px-8 py-8">
+                <!-- Success message container (initially hidden) -->
+                <div id="successMessage" class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 dark:border-green-500 rounded-r-md hidden">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p id="successMessageText" class="text-sm font-medium text-green-800 dark:text-green-200"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Success content with staggered animation -->
+                <div class="staggered space-y-6">
+                    <!-- Success confirmation heading -->
+                    <div class="text-center">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Registration Complete</h3>
+                
+                    <!-- Email notification information -->
+                    <div class="text-center text-gray-600 dark:text-gray-300">
+                        <p>We've sent a welcome email to:</p>
+                        <p class="font-medium text-indigo-600 dark:text-violet-400 mt-1">{{ user.email }}</p>
+                        <p class="mt-3 text-sm">Check your inbox for exciting travel tips and exclusive offers!</p>
+                    </div>
+                    
+                    <!-- Next steps -->
+                    <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">What's next?</h4>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Verify your email address to secure your account</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="h-5 w-5 text-indigo-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                <span>Complete your profile to get personalized recommendations</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Call-to-action button -->
+                    <div class="pt-4">
+                        <a href="{% url 'core:home' %}" class="w-full flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-base font-medium text-white btn-explore focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                            Start Exploring TravelGuide
+                            <svg class="ml-2 -mr-1 h-5 w-5 text-white transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </a>
+                    </div>
+                    
+                    <!-- Support contact information -->
+                    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Need help? <a href="mailto:support@travelguide.com" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-violet-400 dark:hover:text-violet-300 transition-colors duration-200">
+                                Contact our support team
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Registration Success Page JavaScript
+     * Handles displaying success messages and user data from session storage
+     * after a successful AJAX registration.
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for success message and user data in session storage
+        const successMessage = sessionStorage.getItem('registration_success_message');
+        const userData = JSON.parse(sessionStorage.getItem('registration_user_data') || '{}');
+        
+        // Clear session storage after retrieving the data
+        sessionStorage.removeItem('registration_success_message');
+        sessionStorage.removeItem('registration_user_data');
+        
+        // If we have a success message, display it
+        if (successMessage) {
+            const successMessageElement = document.getElementById('successMessage');
+            const successMessageText = document.getElementById('successMessageText');
+            
+            if (successMessageElement && successMessageText) {
+                successMessageText.textContent = successMessage;
+                successMessageElement.classList.remove('hidden');
+                
+                // Auto-hide the message after 10 seconds
+                setTimeout(() => {
+                    successMessageElement.style.opacity = '0';
+                    setTimeout(() => {
+                        successMessageElement.classList.add('hidden');
+                    }, 300);
+                }, 10000);
+            }
+        }
+        
+        // Update welcome heading with user's first name if available
+        if (userData && userData.first_name) {
+            const welcomeHeading = document.getElementById('welcomeHeading');
+            if (welcomeHeading) {
+                // Only update if we don't already have the name in the template
+                if (!welcomeHeading.textContent.includes(userData.first_name)) {
+                    welcomeHeading.innerHTML = `Welcome to TravelGuide, <span class="text-indigo-100">${userData.first_name}</span>! 🎉`;
+                }
+            }
+            
+            // Update email in the template if it's not already there
+            const emailElement = document.querySelector('.user-email');
+            if (emailElement && userData.email && !emailElement.textContent.includes(userData.email)) {
+                emailElement.textContent = userData.email;
+            }
+        }
+        
+        // Add animation class to the success card after a short delay
+        setTimeout(() => {
+            const card = document.querySelector('.success-container');
+            if (card) {
+                card.classList.add('opacity-100', 'translate-y-0');
+            }
+        }, 50);
+    });
+    
+    // Add smooth scroll to top when page loads
+    window.onload = function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,1184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register - TravelGuide{% endblock %}
+
+{% block extra_css %}
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+<!-- Navbar Styling -->
+    <style>
+        .navbar-wrapper {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .navbar-wrapper .nav-link,
+        .navbar-wrapper .text-gray-300,
+        .navbar-wrapper .text-white {
+            color: #4B5563 !important; /* gray-600 */
+        }
+        
+        .navbar-wrapper .nav-link:hover {
+            color: #1F2937 !important; /* gray-800 */
+        }
+        
+        .navbar-wrapper .logo-icon {
+            background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+        }
+        
+        .mobile-menu-button .hamburger-line {
+            background-color: #4B5563 !important;
+        }
+    </style>
+
+
+<style>
+    /**
+     * Registration Page Styles
+     * ==========================================
+     * Custom styling for the registration page with:
+     * - Indigo/violet color scheme matching login page
+     * - Responsive design for all devices
+     * - Smooth animations and transitions
+     * - Form validation styling
+     * - Floating labels for better UX
+     */
+    :root {
+        /* Color Scheme - Matching login page */
+        --primary: #4F46E5;      /* Indigo 600 */
+        --primary-hover: #4338CA; /* Indigo 700 */
+        --primary-light: #6366F1; /* Indigo 500 */
+        --secondary: #8B5CF6;    /* Violet 500 */
+        --accent: #7C3AED;       /* Violet 600 */
+        --text: #1F2937;         /* Gray 800 */
+        --text-light: #6B7280;   /* Gray 500 */
+        --bg-light: #F9FAFB;     /* Gray 50 */
+        --bg-card: #FFFFFF;      /* White */
+        --border: #E5E7EB;       /* Gray 200 */
+        --success: #10B981;      /* Emerald 500 */
+        --error: #EF4444;        /* Red 500 */
+        --warning: #F59E0B;      /* Amber 500 */
+        --info: #3B82F6;         /* Blue 500 */
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* Transitions */
+        --transition: all 0.2s ease-in-out;
+        --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /**
+     * Auth Container
+     * - Main container for the registration page
+     * - Creates a full-height gradient background
+     * - Centers the registration card horizontally and vertically
+     */
+    .auth-container {
+        margin-top: 5rem;
+        min-height: 130vh;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    /**
+     * Auth Wrapper
+     * - Constrains the width of the registration form
+     * - Centers the form in the container
+     * - Provides responsive behavior across screen sizes
+     */
+    .auth-wrapper {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+    
+    /* 
+     * Auth Header Styles
+     * ==========================================
+     * Styling for the authentication header section
+     * - Centered content with proper spacing
+     * - Smooth animations for better UX
+     * - Responsive design for all screen sizes
+     */
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        padding: 0 1rem;
+        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    /* 
+     * Auth Logo Styling
+     * ==========================================
+     * Styling for the authentication logo container
+     * - Circular gradient background
+     * - Smooth hover and focus states
+     * - Consistent with brand identity
+     */
+    .auth-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .auth-logo:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .auth-logo:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+    
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /**
+     * Auth Card
+     * - Container for the registration form
+     * - Soft UI design with subtle shadows matching login page
+     * - Rounded corners for modern look
+     * - Slide-up animation on page load
+     */
+    .auth-card {
+        background: #ffffff;
+        border-radius: 30px;
+        box-shadow: 20px 20px 60px rgba(119, 117, 117, 0.2),
+                 -20px -20px 60px rgba(182, 181, 181, 0.2);
+        padding: 2.5rem;
+        width: 100%;
+        position: relative;
+        transition: all 0.3s ease;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: slideUp 0.5s ease-out forwards;
+    }
+    
+    @keyframes slideUp {
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /**
+     * Form Elements
+     * - Consistent styling for all form inputs and controls
+     * - Floating labels for better user experience
+     * - Validation styling for errors and success
+     */
+    .form-input {
+        width: 100%;
+        height: 3.5rem;
+        padding: 1.25rem 1rem 0.5rem;
+        border: 2px solid var(--border);
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: #fff;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        outline: none;
+    }
+
+    .form-label {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        font-size: 1rem;
+        color: var(--text-light);
+        transition: var(--transition);
+        pointer-events: none;
+    }
+
+    .form-input:focus ~ .form-label,
+    .form-input:not(:placeholder-shown) ~ .form-label {
+        top: 0.5rem;
+        left: 1rem;
+        font-size: 0.75rem;
+        color: var(--primary);
+        font-weight: 500;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary);
+    }
+    
+    /* 
+     * Social Registration Buttons
+     * ==========================================
+     * Styling for social authentication buttons
+     * - Consistent sizing and spacing
+     * - Smooth hover and focus states
+     * - Responsive grid layout
+     */
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background: white;
+        color: #374151;
+        font-weight: 500;
+        font-size: 0.875rem;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .social-btn:hover {
+        background-color: #f9fafb;
+        border-color: #d1d5db;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .social-btn:active {
+        transform: translateY(0);
+    }
+    
+    .social-btn img {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.5rem;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .social-btn {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+        
+        .social-btn:hover {
+            background-color: #374151;
+            border-color: #4b5563;
+        }
+    }
+
+    /**
+     * Checkbox and Radio Styling
+     * - Custom design for checkbox and radio inputs
+     * - Indigo/violet accent colors to match theme
+     */
+    .checkbox-container {
+        display: flex;
+        align-items: start;
+        margin-bottom: 0.5rem;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.75rem;
+        margin-top: 0.1rem;
+        accent-color: var(--primary);
+    }
+
+    .checkbox-label {
+        font-size: 0.9375rem;
+        color: var(--text);
+        line-height: 1.4;
+    }
+
+    .checkbox-helper {
+        font-size: 0.8125rem;
+        color: var(--text-light);
+        margin-left: 2rem;
+        margin-top: 0.25rem;
+    }
+
+    /**
+     * Submit Button Styling
+     * - Gradient background with indigo/violet colors
+     * - Hover and focus states for better interactivity
+     * - Loading state styling
+     */
+    .submit-btn {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        color: white;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    .submit-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+    }
+
+    .error-message {
+        color: var(--error);
+        font-size: 0.8125rem;
+        margin-top: 0.375rem;
+        display: block;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 1.15rem;
+        color: var(--text-light);
+        cursor: pointer;
+    }
+    .navbar-wrapper {
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .navbar-wrapper .nav-link,
+    .navbar-wrapper .text-gray-300,
+    .navbar-wrapper .text-white {
+        color: #4B5563 !important; /* gray-600 */
+    }
+    
+    .navbar-wrapper .nav-link:hover {
+        color: #1F2937 !important; /* gray-800 */
+    }
+    
+    .navbar-wrapper .logo-icon {
+        background: linear-gradient(to right, #4F46E5, #7C3AED) !important;
+    }
+    
+    .mobile-menu-button .hamburger-line {
+        background-color: #4B5563 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Blank div for top spacing -->
+<div class="h-12"></div>
+
+<!-- Main registration container with gradient background and animation -->
+<div class="auth-container">
+    <!-- Registration wrapper to constrain width on larger screens -->
+    <div class="auth-wrapper">
+        <!-- 
+         * Registration Header
+         * - Centered logo with gradient background
+         * - Consistent with login page styling
+         * - Animated appearance with slide-up effect
+         -->
+        <div class="auth-header">
+            <!-- 
+             * Auth Logo Container
+             * - Centered logo with gradient background
+             * - Smooth hover animation for better interactivity
+             * - Consistent with login page styling
+             * - Uses primary theme colors for visual consistency
+             -->
+            <div class="auth-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="48" height="48" class="transition-transform duration-300 hover:scale-110">
+                    <path d="M12 2L1 9l11 7 9-5.5V17h2V9L12 2z"></path>
+                    <path d="M12 22l-9-5.5v-7L12 16l9-5.5v7L12 22z"></path>
+                </svg>
+            </div>
+            <!-- 
+             * Main Heading
+             * - Large, bold text with gradient color
+             * - Smooth transition for theme changes
+             * - Responsive font sizing
+             -->
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2 bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent transition-colors duration-300">
+                Create Your Account
+            </h1>
+            
+            <!-- 
+             * Description Text
+             * - Subtle text with improved readability
+             * - Responsive text sizing
+             * - Smooth hover effect on the sign-in link
+             -->
+            <p class="text-gray-600 dark:text-gray-300 text-center max-w-md mx-auto leading-relaxed">
+                Join our community of travelers and start your journey with us.
+                
+                <!-- 
+                 * Sign In Link
+                 * - Prominent call-to-action
+                 * - Smooth color transition on hover
+                 * - Matches the primary color scheme
+                 -->
+                <span class="block mt-3 text-sm">
+                    Already have an account? 
+                    <a href="{% url 'accounts:login' %}" 
+                       class="text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors duration-200">
+                        Sign in here
+                    </a>
+                </span>
+            </p>
+        </div>
+
+        <!-- 
+         * Registration Card
+         * - Matches login page with soft UI design
+         * - Enhanced shadow and rounded corners
+         * - Animated entrance effect
+         -->
+        <div class="auth-card">
+            <form id="registrationForm" class="space-y-6" action="{% url 'accounts:register' %}" method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                        <div class="flex">
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="space-y-4">
+                    <!-- First Name -->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="first_name" 
+                                id="first_name" 
+                                required 
+                                class="form-input peer"
+                                placeholder=" " 
+                                value="{{ form.first_name.value|default_if_none:'' }}"
+                            >
+                            <label for="first_name" class="form-label">First Name</label>
+                            
+                            {% if form.first_name.errors %}
+                            <div class="error-message">
+                                {% for error in form.first_name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="last_name" 
+                                id="last_name" 
+                                required 
+                                class="form-input peer"
+                                placeholder=" " 
+                                value="{{ form.last_name.value|default_if_none:'' }}"
+                            >
+                            <label for="last_name" class="form-label">Last Name</label>
+                            
+                            {% if form.last_name.errors %}
+                            <div class="error-message">
+                                {% for error in form.last_name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="username" 
+                                id="username" 
+                                required 
+                                class="form-input peer"
+                                placeholder=" " 
+                                value="{{ form.username.value|default_if_none:'' }}"
+                            >
+                            <label for="username" class="form-label">Username</label>
+                            
+                            {% if form.username.errors %}
+                            <div class="error-message">
+                                {% for error in form.username.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                name="email" 
+                                id="email" 
+                                required 
+                                class="form-input peer"
+                                placeholder=" " 
+                                value="{{ form.email.value|default_if_none:'' }}"
+                            >
+                            <label for="email" class="form-label">Email</label>
+                            
+                            {% if form.email.errors %}
+                            <div class="error-message">
+                                {% for error in form.email.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 
+                     * Password Field with Toggle
+                     * - Strong password input with visibility toggle
+                     * - Floating label with animation
+                     * - Matching indigo/violet focus states
+                     * - Eye icon toggle for password visibility
+                     * - Comprehensive validation with error feedback
+                     */-->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                name="password1" 
+                                id="password1" 
+                                required 
+                                class="form-input peer pr-10"
+                                placeholder=" " 
+                            >
+                            <label for="password1" class="form-label">Password</label>
+                            
+                            <!-- Password toggle button with eye icon -->
+                            <div class="password-toggle" onclick="togglePassword('password1')">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </div>
+                            
+                            <!-- Password validation errors display -->
+                            {% if form.password1.errors %}
+                            <div class="error-message">
+                                {% for error in form.password1.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                     * Confirm Password Field with Toggle
+                     * - Validates password match with the first password
+                     * - Identical styling to password field for consistency
+                     * - Same toggle eye icon for password visibility
+                     * - Error display for validation failures
+                     * - Matches login page styling
+                     * - Uses CSS variables for consistent theming
+                     */ -->
+                    <div class="form-group">
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                name="password2" 
+                                id="password2" 
+                                required 
+                                class="form-input peer pr-10"
+                                placeholder=" " 
+                            >
+                            <label for="password2" class="form-label">Confirm Password</label>
+                            
+                            <!-- Confirm password toggle with matching eye icon -->
+                            <div class="password-toggle" onclick="togglePassword('password2')">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </div>
+                            
+                            {% if form.password2.errors %}
+                            <div class="error-message">
+                                {% for error in form.password2.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                     * Terms and Conditions Checkbox
+                     * - Required for registration
+                     * - Links to terms and privacy policy
+                     * - Styled with indigo/violet accent colors for consistency
+                     * - Enhanced styling for improved readability
+                     * - Error message handling for validation
+                     */ -->
+                    <div class="checkbox-container">
+                        <input 
+                            id="terms" 
+                            name="terms" 
+                            type="checkbox" 
+                            required 
+                            {% if form.terms.value %}checked{% endif %}
+                        >
+                        <div>
+                            <label for="terms" class="checkbox-label">I agree to the 
+                                <a href="{% url 'core:terms_of_service' %}" style="color: var(--primary); font-weight: 500;">Terms of Service</a> and 
+                                <a href="{% url 'core:privacy_policy' %}" style="color: var(--primary); font-weight: 500;">Privacy Policy</a>
+                            </label>
+                            
+                            {% if form.terms.errors %}
+                            <div class="error-message">
+                                {% for error in form.terms.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                     * Marketing Emails Checkbox
+                     * - Optional preference for marketing communications
+                     * - Uses consistent checkbox styling with login page
+                     * - Includes helper text explaining unsubscribe option
+                     * - Accent colors match the indigo/violet theme
+                     */-->
+                    <div class="checkbox-container">
+                        <input 
+                            id="marketing_emails" 
+                            name="marketing_emails" 
+                            type="checkbox" 
+                            {% if form.marketing_emails.value %}checked{% endif %}
+                        >
+                        <div>
+                            <label for="marketing_emails" class="checkbox-label">I want to receive marketing promotions and updates via email</label>
+                            <p class="checkbox-helper">You can unsubscribe at any time.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                     * Newsletter Subscription Checkbox
+                     * - Optional preference for monthly newsletters
+                     * - Consistent styling with other checkbox elements
+                     * - Uses indigo/violet accent colors for theming
+                     * - Includes descriptive helper text about newsletter content
+                     * - Matches login page checkbox styling for consistency
+                     */-->
+                    <div class="checkbox-container">
+                        <input 
+                            id="newsletter_subscription" 
+                            name="newsletter_subscription" 
+                            type="checkbox" 
+                            {% if form.newsletter_subscription.value %}checked{% endif %}
+                        >
+                        <div>
+                            <label for="newsletter_subscription" class="checkbox-label">Subscribe to our monthly newsletter</label>
+                            <p class="checkbox-helper">Get the latest travel tips and destination guides.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <!-- Form Actions -->
+                <div class="space-y-4">
+                    <!-- 
+                     * Submit Button
+                     * - Gradient background using CSS variables
+                     * - Consistent with login page styling
+                     * - Includes loading state and animation
+                     * - Enhanced hover and focus effects
+                     */-->
+                    <button 
+                        type="submit" 
+                        id="submitBtn"
+                        class="submit-btn"
+                    >
+                        <span id="submitText">Create Account</span>
+                        <span id="submitSpinner" class="ml-2 hidden">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                    
+                   <!--
+                     * Form Error Display Container
+                     * ==========================================
+                     * - Displays validation errors from both client and server
+                     * - Initially hidden, shown when errors occur
+                     * - Styled with red background for error visibility
+                     * - Uses ARIA role="alert" for accessibility
+                     */-->
+                    <div id="formErrors" class="p-4 mb-4 text-sm text-red-700 bg-red-50 rounded-lg hidden" role="alert">
+                        <span class="font-medium">Please fix the following errors:</span>
+                        <ul id="errorList" class="mt-1.5 list-disc list-inside">
+                            <!-- Errors will be inserted here by JavaScript -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Social Registration Divider -->
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">
+                                Or continue with
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Registration Buttons -->
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <!-- Google -->
+                        <a href="{% url 'social:begin' 'google-oauth2' %}" 
+                           class="social-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <img src="{% static 'images/google.svg' %}" alt="Google" class="h-5 w-5 mr-2">
+                            Google
+                        </a>
+                        
+                        <!-- Facebook -->
+                        <a href="{% url 'social:begin' 'facebook' %}" 
+                           class="social-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <img src="{% static 'images/facebook.svg' %}" alt="Facebook" class="h-5 w-5 mr-2">
+                            Facebook
+                        </a>
+                        
+                        <!-- GitHub -->
+                        <a href="{% url 'social:begin' 'github' %}" 
+                           class="social-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <img src="{% static 'images/github.svg' %}" alt="GitHub" class="h-5 w-5 mr-2">
+                            GitHub
+                        </a>
+                        
+                        <!-- Twitter -->
+                        <a href="{% url 'social:begin' 'twitter' %}" 
+                           class="social-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <img src="{% static 'images/twitter.svg' %}" alt="Twitter" class="h-5 w-5 mr-2">
+                            Twitter
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * Registration Form Handling
+     * ==========================================
+     * This script handles the registration form submission, validation, and UI feedback.
+     * It provides client-side validation before the form is submitted to the server
+     * and enhances the user experience with visual feedback during form submission.
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get form and related elements
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitSpinner = document.getElementById('submitSpinner');
+        const formErrors = document.getElementById('formErrors');
+        const errorList = document.getElementById('errorList');
+        
+        /**
+         * Set Loading State Function
+         * ==========================================
+         * Controls the loading state of the submit button.
+         * When loading, disables the button and shows a spinner.
+         * 
+         * @param {boolean} isLoading - Whether the form is in loading state
+         * @returns {void}
+         */
+        function setLoading(isLoading) {
+            // Show loading state
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Creating Account...';
+                submitSpinner.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                submitText.textContent = 'Create Account';
+                submitSpinner.classList.add('hidden');
+            }
+        }
+        
+        /**
+         * Show Form Errors Function
+         * ==========================================
+         * Displays error messages in the form error container.
+         * Clears any existing errors, then adds each new error as a list item.
+         * Makes the error container visible and scrolls it into view.
+         * 
+         * @param {Array<string>} errors - Array of error messages to display
+         * @returns {void}
+         */
+        function showErrors(errors) {
+            // Clear any existing error messages
+            errorList.innerHTML = '';
+            
+            // Add each error as a list item
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                errorList.appendChild(li);
+            });
+            
+            // Make sure the error container is visible
+            formErrors.classList.remove('hidden');
+            
+            // Scroll to the error messages for better visibility
+            formErrors.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        /**
+         * Clear Form Errors Function
+         * ==========================================
+         * Hides the error container and removes all error messages.
+         * Called before form validation to ensure a clean slate.
+         * 
+         * @returns {void}
+         */
+        function clearErrors() {
+            // Hide the error container
+            formErrors.classList.add('hidden');
+            
+            // Remove all error messages
+            errorList.innerHTML = '';
+        }
+        
+        /**
+         * Validate Form Function
+         * ==========================================
+         * Performs client-side validation of the registration form.
+         * Checks required fields, email format, password strength, and password match.
+         * 
+         * @returns {Array<string>} - Array of error messages, empty if validation passes
+         */
+        function validateForm() {
+            const errors = [];
+            const formData = new FormData(form);
+            
+            // Check required fields
+            const requiredFields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2'];
+            requiredFields.forEach(field => {
+                if (!formData.get(field) || formData.get(field).trim() === '') {
+                    errors.push(`${field.replace('_', ' ').charAt(0).toUpperCase() + field.replace('_', ' ').slice(1)} is required`);
+                }
+            });
+            
+            // Validate email format if provided
+            const email = formData.get('email');
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errors.push('Email address is invalid');
+            }
+            
+            // Validate password match
+            const password1 = formData.get('password1');
+            const password2 = formData.get('password2');
+            if (password1 && password2 && password1 !== password2) {
+                errors.push('Passwords do not match');
+            }
+            
+            // Validate password strength
+            if (password1 && password1.length < 8) {
+                errors.push('Password must be at least 8 characters long');
+            }
+            
+            // Validate terms checkbox
+            if (!formData.get('terms')) {
+                errors.push('You must agree to the Terms of Service and Privacy Policy');
+            }
+            
+            return errors;
+        }
+        
+        /**
+         * Form Submission Handler
+         * ==========================================
+         * Handles the registration form submission process:
+         * 1. Prevents default form submission
+         * 2. Validates form data client-side
+         * 3. Submits form data via AJAX
+         * 4. Handles server responses (success/error)
+         * 5. Provides user feedback throughout the process
+         */
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            console.log('Form submission started');
+            
+            // Clear previous errors
+            clearErrors();
+            
+            // Validate form
+            const errors = validateForm();
+            if (errors.length > 0) {
+                console.log('Form validation failed:', errors);
+                showErrors(errors);
+                return;
+            }
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            
+            try {
+                console.log('Submitting form data:', Object.fromEntries(formData.entries()));
+                setLoading(true);
+                
+                // Get CSRF token from the form
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Submit form via fetch API with proper headers
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',  // For Django to detect AJAX
+                        'Accept': 'application/json',  // We expect JSON response
+                        'X-CSRFToken': csrfToken  // Include CSRF token in headers
+                    },
+                    body: formData,
+                    credentials: 'same-origin'  // Include cookies for CSRF
+                });
+                
+                // Parse JSON response
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success - redirect or show success message
+                    console.log('Registration successful', data);
+                    
+                    // If we have a redirect URL, use it
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        // Otherwise redirect to home
+                        window.location.href = "{% url 'core:home' %}";
+                    }
+                } else {
+                    // Server-side validation errors
+                    console.error('Registration failed:', data);
+                    
+                    if (data.errors) {
+                        const errorMessages = [];
+                        
+                        /**
+                         * Process errors from the server response
+                         * ==========================================
+                         * Handles different error formats that might be returned by the server:
+                         * 1. Django's error format: {field: [{message: 'error msg', code: 'error_code'}]}
+                         * 2. Simple string format: {field: ['error msg']}
+                         * 3. Direct string format: {field: 'error msg'}
+                         */
+                        Object.entries(data.errors).forEach(([field, fieldErrors]) => {
+                            // Format the field name for display
+                            const fieldName = field === '__all__' ? '' : 
+                                field.replace(/_/g, ' ').charAt(0).toUpperCase() + field.replace(/_/g, ' ').slice(1) + ': ';
+                            
+                            // Handle different error formats
+                            if (Array.isArray(fieldErrors)) {
+                                // Handle array of error objects or strings
+                                fieldErrors.forEach(error => {
+                                    if (error && typeof error === 'object' && error.message) {
+                                        // Format: {field: [{message: 'error msg', code: 'error_code'}]}
+                                        errorMessages.push(`${fieldName}${error.message}`);
+                                    } else if (typeof error === 'string') {
+                                        // Format: {field: ['error msg']}
+                                        errorMessages.push(`${fieldName}${error}`);
+                                    } else {
+                                        // Unknown format, convert to string
+                                        errorMessages.push(`${fieldName}${String(error)}`);
+                                    }
+                                });
+                            } else if (typeof fieldErrors === 'string') {
+                                // Direct string format: {field: 'error msg'}
+                                errorMessages.push(`${fieldName}${fieldErrors}`);
+                            } else if (fieldErrors && typeof fieldErrors === 'object') {
+                                // Might be a single error object without array
+                                if (fieldErrors.message) {
+                                    errorMessages.push(`${fieldName}${fieldErrors.message}`);
+                                } else {
+                                    // Unknown object format, convert to string
+                                    errorMessages.push(`${fieldName}${JSON.stringify(fieldErrors)}`);
+                                }
+                            }
+                        });
+                        
+                        // Show the collected error messages or a fallback
+                        showErrors(errorMessages.length > 0 ? errorMessages : ['An unknown error occurred. Please try again.']);
+                    } else {
+                        showErrors(['An error occurred during registration. Please try again.']);
+                    }
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                
+                // More specific error message based on error type
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    showErrors([
+                        'Unable to connect to the server.',
+                        'Please check your internet connection and try again.'
+                    ]);
+                } else if (error.name === 'SyntaxError') {
+                    // Handle JSON parsing errors
+                    showErrors([
+                        'Invalid response from server.',
+                        'Please try again or contact support if the problem persists.'
+                    ]);
+                } else {
+                    showErrors([
+                        'An error occurred while processing your request.',
+                        'Please check your information and try again or contact support if the problem persists.'
+                    ]);
+                }
+            } finally {
+                setLoading(false);
+            }
+        });
+    });
+    
+    /**
+     * Toggle Password Visibility Function
+     * ==========================================
+     * Toggles the visibility of password input between hidden and visible states.
+     * Updates the eye icon to reflect the current state (open eye or closed eye).
+     * 
+     * @param {string} inputId - The ID of the password input field to toggle
+     * @returns {void}
+     */
+    function togglePassword(inputId) {
+        // Get references to the password input and the SVG icon
+        const passwordInput = document.getElementById(inputId);
+        const icon = document.querySelector(`[onclick="togglePassword('${inputId}')"] svg`);
+        
+        // Toggle the input type between password and text
+        if (passwordInput.type === 'password') {
+            // Show password
+            passwordInput.type = 'text';
+            // Update icon to represent visible password (eye with slash)
+            icon.innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+            `;
+        } else {
+            // Hide password
+            passwordInput.type = 'password';
+            // Update icon to represent hidden password (regular eye)
+            icon.innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            `;
+        }
+    }
+    
+    /**
+     * Form Input Enhancement and Animation
+     * ==========================================
+     * Adds interactive behaviors to form inputs including:
+     * - Floating label animation when input is focused/filled
+     * - Validation feedback with color changes
+     * - Focus management and keyboard accessibility
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize password fields with proper ARIA labels
+        const passwordFields = document.querySelectorAll('input[type="password"]');
+        passwordFields.forEach(field => {
+            field.setAttribute('aria-label', field.placeholder || field.id);
+        });
+        
+        // Add floating label behavior to all form inputs
+        const formInputs = document.querySelectorAll('.form-input');
+        formInputs.forEach(input => {
+            // Set initial state for pre-filled inputs
+            if (input.value) {
+                input.classList.add('not-empty');
+            }
+            
+            // Update state when input value changes
+            input.addEventListener('input', function() {
+                if (this.value) {
+                    this.classList.add('not-empty');
+                } else {
+                    this.classList.remove('not-empty');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

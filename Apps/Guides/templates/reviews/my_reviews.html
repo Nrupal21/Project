@@ -1,0 +1,337 @@
+{% extends 'reviews/base_reviews.html' %}
+{% load static %}
+
+{# 
+  My Reviews Template
+  Displays all reviews created by the currently logged-in user.
+  Shows review status, allows editing and includes filtering options.
+  This template helps users manage all their reviews in one place.
+#}
+
+{% block reviews_title %}My Reviews{% endblock %}
+
+{% block reviews_breadcrumb %}
+  <li>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">My Reviews</span>
+    </div>
+  </li>
+{% endblock %}
+
+{% block reviews_header %}My Reviews{% endblock %}
+
+{% block reviews_subheader %}
+  <p class="text-gray-600 dark:text-gray-400">
+    Manage and track all your reviews across the site.
+  </p>
+{% endblock %}
+
+{% block reviews_content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+  {# Filter sidebar #}
+  <div class="lg:col-span-1">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 sticky top-24">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filter Reviews</h2>
+      
+      <form method="get" class="space-y-6">
+        {# Status filter #}
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h3>
+          <div class="space-y-2">
+            {% for value, label in filter_form.fields.status.choices %}
+            <div class="flex items-center">
+              <input type="checkbox" name="status" value="{{ value }}" 
+                     id="status_{{ value }}" 
+                     class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                     {% if value in filter_form.data.getlist 'status' %}checked{% endif %}>
+              <label for="status_{{ value }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                {{ label }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        {# Rating filter #}
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</h3>
+          <div class="space-y-2">
+            {% for value, label in filter_form.fields.rating.choices %}
+            <div class="flex items-center">
+              <input type="checkbox" name="rating" value="{{ value }}" 
+                     id="rating_{{ value }}" 
+                     class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                     {% if value in filter_form.data.getlist 'rating' %}checked{% endif %}>
+              <label for="rating_{{ value }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                {{ label }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        {# Date range filter #}
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date Range</h3>
+          <select name="date_range" 
+                  class="block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+            {% for value, label in filter_form.fields.date_range.choices %}
+            <option value="{{ value }}" {% if filter_form.data.date_range == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        {# Sort options #}
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort By</h3>
+          <select name="sort_by" 
+                  class="block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+            {% for value, label in filter_form.fields.sort_by.choices %}
+            <option value="{{ value }}" {% if filter_form.data.sort_by == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        {# Submit button #}
+        <div>
+          <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+            Apply Filters
+          </button>
+        </div>
+        
+        {# Clear filters link #}
+        <div class="text-center">
+          <a href="{% url 'reviews:my_reviews' %}" 
+             class="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+            Clear all filters
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  {# Reviews list #}
+  <div class="lg:col-span-3">
+    {% if reviews %}
+      {# Review statistics #}
+      <div class="mb-6 bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-6 rounded-lg shadow-md">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="text-center p-2">
+            <p class="text-3xl font-bold">{{ total_reviews }}</p>
+            <p class="text-sm opacity-80">Total Reviews</p>
+          </div>
+          <div class="text-center p-2">
+            <p class="text-3xl font-bold">{{ avg_rating|floatformat:1 }}</p>
+            <p class="text-sm opacity-80">Average Rating</p>
+          </div>
+          <div class="text-center p-2">
+            <p class="text-3xl font-bold">{{ total_helpful }}</p>
+            <p class="text-sm opacity-80">Helpful Votes</p>
+          </div>
+          <div class="text-center p-2">
+            <p class="text-3xl font-bold">{{ total_comments }}</p>
+            <p class="text-sm opacity-80">Comments</p>
+          </div>
+        </div>
+      </div>
+    
+      {# Review items #}
+      <div class="space-y-6">
+        {% for review in reviews %}
+          <div class="review-card">
+            {# Review header with status and meta information #}
+            <div class="flex flex-wrap justify-between items-start mb-4">
+              <div class="mb-2 sm:mb-0">
+                <span class="review-badge 
+                  {% if review.status == 'pending' %}review-badge-pending
+                  {% elif review.status == 'approved' %}review-badge-approved
+                  {% else %}review-badge-rejected{% endif %}">
+                  {{ review.get_status_display }}
+                </span>
+                
+                {% if review.featured %}
+                  <span class="ml-2 review-badge review-badge-featured">Featured</span>
+                {% endif %}
+              </div>
+              
+              <div class="star-rating-display" data-rating="{{ review.rating }}"></div>
+            </div>
+            
+            {# Review title and date #}
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">{{ review.title }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              {{ review.created_at|date:"F d, Y" }}
+              {% if review.updated_at > review.created_at %}
+                <span class="italic">(Edited: {{ review.updated_at|date:"F d, Y" }})</span>
+              {% endif %}
+            </p>
+            
+            {# Reviewed item link #}
+            <div class="mb-3 flex items-center">
+              <span class="text-sm text-gray-700 dark:text-gray-300 mr-1">For:</span>
+              <a href="{{ review.content_object.get_absolute_url }}" 
+                 class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ review.content_object }}
+              </a>
+            </div>
+            
+            {# Review content (truncated) #}
+            <div class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+              {{ review.content|linebreaks }}
+            </div>
+            
+            {# Review image thumbnails (if any) #}
+            {% if review.images.exists %}
+              <div class="flex gap-2 overflow-x-auto mb-4">
+                {% for image in review.images.all|slice:":3" %}
+                  <div class="flex-shrink-0">
+                    <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Review image' }}" 
+                         class="h-16 w-16 object-cover rounded-md">
+                  </div>
+                {% endfor %}
+                {% if review.images.count > 3 %}
+                  <div class="flex-shrink-0 h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    +{{ review.images.count|add:"-3" }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+            
+            {# Review stats #}
+            <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <div class="flex items-center space-x-4">
+                {# Helpful count #}
+                <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                  </svg>
+                  <span>{{ review.helpful_count }} helpful</span>
+                </div>
+                
+                {# Comments count #}
+                <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                  </svg>
+                  <span>{{ review.comments_count }} comments</span>
+                </div>
+              </div>
+              
+              {# Action buttons #}
+              <div class="flex space-x-2">
+                <a href="{% url 'reviews:review_detail' review_id=review.id %}" 
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  View
+                </a>
+                <span class="text-gray-300 dark:text-gray-600">|</span>
+                <a href="{% url 'reviews:edit_review' review_id=review.id %}" 
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  Edit
+                </a>
+              </div>
+            </div>
+            
+            {# Status message for rejected reviews #}
+            {% if review.status == 'rejected' and review.rejection_reason %}
+              <div class="mt-4 bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-4 rounded-r">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Rejection Reason:</h3>
+                    <div class="mt-1 text-sm text-red-700 dark:text-red-300">
+                      {{ review.rejection_reason }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      
+      {# Pagination #}
+      {% if is_paginated %}
+        <nav class="mt-8 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6">
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Showing
+                <span class="font-medium">{{ page_obj.start_index }}</span>
+                to
+                <span class="font-medium">{{ page_obj.end_index }}</span>
+                of
+                <span class="font-medium">{{ paginator.count }}</span>
+                results
+              </p>
+            </div>
+            <div>
+              <ul class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                  <li>
+                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                      Previous
+                    </a>
+                  </li>
+                {% endif %}
+                
+                {% for i in paginator.page_range %}
+                  {% if i == page_obj.number %}
+                    <li>
+                      <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 dark:bg-indigo-900 dark:text-indigo-200">
+                        {{ i }}
+                      </span>
+                    </li>
+                  {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li>
+                      <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                         class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        {{ i }}
+                      </a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                  <li>
+                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                      Next
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </nav>
+      {% endif %}
+    {% else %}
+      {# No reviews message #}
+      <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No reviews yet</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You haven't written any reviews yet.</p>
+        <div class="mt-6">
+          <a href="{% url 'reviews:review_list' %}" 
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            Browse Places to Review
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
